@@ -1,0 +1,6 @@
+README.md
+setup.py
+Binary_fractions.egg-info/PKG-INFO
+Binary_fractions.egg-info/SOURCES.txt
+Binary_fractions.egg-info/dependency_links.txt
+Binary_fractions.egg-info/top_level.txt
