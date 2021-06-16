@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
-Name: Binary-fractions
-Version: 0.0.1
+Name: binary-fractions
+Version: 0.0.2
 Summary: A package to handle binary fractions
 Home-page: https://github.com/Jonny-exe/binary-fractions
 Author: Jonny-exe
@@ -16,6 +16,7 @@ Description: # Binary fractions
         
         
         ```
+        valid binary fraction: "100111.110001"
         
         float2bin:
           arguments: (float_number: float)

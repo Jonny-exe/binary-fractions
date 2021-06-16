@@ -8,6 +8,7 @@ It has 2 functions:
 
 
 ```
+valid binary fraction: "100111.110001"
 
 float2bin:
   arguments: (float_number: float)
