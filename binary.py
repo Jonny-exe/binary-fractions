@@ -7,8 +7,11 @@ _BINARY_WARNED_ABOUT_FLOAT = False
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
+# https://docs.python.org/3/library/decimal.html
 # see implementation of class Fraction:
 # https://github.com/python/cpython/blob/3.9/Lib/fractions.py
+# https://docs.python.org/3/library/fractions.html
+# https://github.com/bradley101/fraction/blob/master/fraction/Fraction.py
 
 ##### crud for parsing strings #############################################
 #
