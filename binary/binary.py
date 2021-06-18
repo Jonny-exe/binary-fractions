@@ -10,6 +10,104 @@ Exponential representation is also possible:
 '-0b0.01111e3' or '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
 various operations and transformations are offered.
 
+License: GPL v3 or later
+
+File Format: linted/beautified by black
+
+$ python # sample usage, examples
+>>> from binary import Binary
+>>> Binary()
+Binary(0, 0, False)
+>>> Binary(1)
+Binary(1, 0, False)
+>>> Binary(2)
+Binary(10, 0, False)
+>>> Binary('11')
+Binary(11, 0, False)
+>>> Binary('11.11')
+Binary(11.11, 0, False)
+>>> Binary('11.11e-2')
+Binary(1111e-4, 0, False)
+>>> Binary('-11.11e-2')
+Binary(-1111e-4, 1, False)
+>>> Binary('NaN')
+Binary(NaN, 0, True)
+>>> Binary('-Infinity')
+Binary(-Infinity, 1, True)
+>>> Binary(-8.5)
+Warning: mixing floats and Binary
+Binary(-1000.1, 1, False)
+>>> Binary('-0b111001.0001001e-12')
+Binary(-1110010001001e-19, 1, False)
+>>> Binary('-111001.0001001e-12')
+Binary(-1110010001001e-19, 1, False)
+>>> Binary('111001.0001001e-12')
+Binary(1110010001001e-19, 0, False)
+>>> Binary(3/4)
+Binary(0.11, 0, False)
+>>> Binary(17/19)
+Binary(0.11100101000011010111100101000011, 0, False)
+>>> Binary(128+32+8+2+17/19)
+Binary(10101010.11100101000011010111100101000011, 0, False)
+Binary(2**20+128+32+8+2+17/19)
+Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
+>>> Binary((1, (1,0,0,1,1,0,0,0,1), -3))
+Binary(-100110001e-3, 1, False)
+
+>>> b=Binary(2**20+128+32+8+2+17/19)
+>>> b.float()
+1048746.894736842
+>>> b.normalize()
+Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
+>>> b.round(2)
+Binary(100000000000010101011, 0, False)
+>>> b.round(3)
+Binary(100000000000010101010.111, 0, False)
+>>> b.round(4)
+Binary(100000000000010101010.111, 0, False)
+>>> b.fill(10)
+'100000000000010101010.11100101000011010111100101000011'
+>>> b.fill(10,True)
+'100000000000010101010.1110010100'
+>>> b.fill(64)
+'100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
+>>> b.fill(64,True)
+'100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
+>>> b.to_simple_exponential() # no comma
+Binary(10000000000001010101011100101000011010111100101000011e-32, 0, False)
+>>> b.to_sci_exponential() # 1 digit before comma
+Binary(1.0000000000001010101011100101000011010111100101000011e20, 0, False)
+>>> b2=Binary(7)
+>>> b2.to_sci_exponential()
+Binary(1.11e2, 0, False)
+>>> b2=Binary('111')
+>>> b2.to_sci_exponential()
+Binary(1.11e2, 0, False)
+>>> b2.components()
+(0, '111', '', 0)
+>>> b3=b2.to_sci_exponential()
+>>> b3.components()
+(0, '1', '11', 2)
+>>> b3.isinfinity()
+False
+>>> b2.compare(b3) # same value, returns equal
+Binary(0, 0, False)
+>>> b2 == b3  # same value, returns equal
+True
+>>> b2._cmp(b3) # same value, returns equal
+0
+>>> b2.compare_representation(b3) # different representation, returns unequal
+False
+>>> b2
+Binary(111, 0, False)
+>>> str(b2)
+'0b111'
+>>> b4=Binary(7.125)
+>>> str(b4)
+'0b111.001'
+>>> b4.np() # no prefix, '0b' prefix removed
+'111.001'
+
 """
 
 # TODO: go to stackoverflow.com, search for "binary math", "binary fractions"
@@ -36,7 +134,7 @@ _EXP = "e"
 class Binary(str):
     """Floating point class for binary fractions and arithmetic."""
 
-    def __new__(cls, value="0"):
+    def __new__(cls, value="0", simplify=True):
         """Contructor.
 
         Use __new__ and not __init__ because it is immutable.
@@ -44,6 +142,8 @@ class Binary(str):
 
         Parameters:
         value (int, float, str): value of number
+        simplify (bool): if True try to simplify string representation
+            if False, try to leave the string representation as much as is
 
         Returns:
         Binary: created immutable instance
@@ -110,18 +210,27 @@ class Binary(str):
             intpart = m.group("int")
             if intpart is not None:
                 # finite number
-                fracpart = m.group("frac") or ""
-                fracpart = fracpart.rstrip("0")
-                exp = int(m.group("exp") or "0")
-                if exp != 0:
-                    intpart = str(int(intpart + fracpart))
-                    exppart = str(exp - len(fracpart))
-                    self._value = sign + intpart + _EXP + exppart
+                if not simplify:
+                    self._value = value  # leave as is
                 else:
-                    if fracpart == "":
-                        self._value = sign + intpart
+                    fracpart = m.group("frac") or ""
+                    fracpart = fracpart.rstrip("0")
+                    exp = int(m.group("exp") or "0")
+                    if exp != 0:
+                        # version A: this normalizes to remove comma
+                        intpart = str(int(intpart + fracpart))
+                        exppart = str(exp - len(fracpart))
+                        self._value = sign + intpart + _EXP + exppart
+                        # # version B: this leaves string as much as is
+                        # if fracpart == "":
+                        #    self._value = sign + intpart + _EXP + str(exp)
+                        # else:
+                        #    self._value = sign + intpart + "." + fracpart + _EXP + str(exp)
                     else:
-                        self._value = sign + intpart + "." + fracpart
+                        if fracpart == "":
+                            self._value = sign + intpart
+                        else:
+                            self._value = sign + intpart + "." + fracpart
             else:
                 self._is_special = True
                 diag = m.group("diag")
@@ -516,10 +625,10 @@ class Binary(str):
             # rounding can shorten it drastically, 0.1111 => 1
             return Binary.fill_to(result, ndigits, strict)
 
-    def _to_simple_exponential(self):
+    def to_simple_exponential(self):
         """Convert to exponential representation without fraction.
 
-        method, see fill_to()
+        method
         examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
         result has no comma
 
@@ -550,7 +659,54 @@ class Binary(str):
         lenfracpart = len(fracpart)
         exp -= lenfracpart
         intpart += fracpart
-        return Binary(intpart + _EXP + str(exp))
+        return Binary(intpart + _EXP + str(exp), False)
+
+    def to_sci_exponential(self):
+        """Convert to exp. representation with single binary digit before comma.
+
+        method
+        examples: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
+        result has only 1 digit before comma
+
+        Parameters:
+        none
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        value = self._value
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if _EXP not in value:
+            exp = 0
+            intfracpart = Binary.clean(value)
+        else:
+            l = value.split(_EXP)
+            intfracpart = Binary.clean(l[0])
+            exp = int(l[1])
+
+        l = intfracpart.split(".")
+        intpart = l[0]
+        if len(l) == 1:
+            fracpart = ""
+        else:
+            fracpart = l[1]
+        if self._sign:
+            intpart = intpart[1:]
+            sign = "-"
+        else:
+            sign = ""
+        lenintpart = len(intpart)
+        lenfracpart = len(fracpart)
+
+        exp += lenintpart - 1
+        fracpart = intpart[1:] + fracpart
+        intpart = intpart[:1]
+        if fracpart == "":
+            result = sign + intpart + _EXP + str(exp)
+        else:
+            result = sign + intpart + "." + fracpart + _EXP + str(exp)
+        return Binary(result, False)
 
     def __bool__(self):
         """Implement the 'not' operand, operation.
@@ -599,7 +755,7 @@ class Binary(str):
             fracpart = l[1]
         return (self._sign, intpart, fracpart, exp)
 
-    def _isinfinity(self):
+    def isinfinity(self):
         """Determine if object is Infinity.
 
         Parameters:
@@ -623,7 +779,7 @@ class Binary(str):
         """
         if self._is_special:
             return 0
-        se = Binary._to_simple_exponential(self)
+        se = Binary.to_simple_exponential(self)
         sign, intpart, fracpart, exp = Binary.components(se)
         if fracpart != "":
             raise ValueError(
@@ -651,8 +807,8 @@ class Binary(str):
 
         # Compare(NaN, NaN) = NaN
         if self._is_special or other._is_special:
-            self_inf = self._isinfinity()
-            other_inf = other._isinfinity()
+            self_inf = self.isinfinity()
+            other_inf = other.isinfinity()
             if self_inf == other_inf:
                 return 0
             elif self_inf < other_inf:
@@ -684,8 +840,8 @@ class Binary(str):
         if self._sign < other._sign:
             return 1
 
-        self_se = Binary._to_simple_exponential(self)
-        other_se = Binary._to_simple_exponential(other)
+        self_se = Binary.to_simple_exponential(self)
+        other_se = Binary.to_simple_exponential(other)
         self_adjusted = self_se.adjusted()
         other_adjusted = other_se.adjusted()
         if self_adjusted == other_adjusted:
@@ -737,11 +893,11 @@ class Binary(str):
         other (str, Binary): object to compare to
 
         Returns:
-        int: -1 s<o, 0 equal, 1 s>o
+        Binary: -1 s<o, 0 equal, 1 s>o
         """
         return Binary(self._cmp(other))
 
-    def _compare_representation(self, other):
+    def compare_representation(self, other):
         """Compare representation of self to representation of other string.
 
         Does NOT compare values! '1.1' does NOT equal to '11e-1' !
@@ -764,7 +920,7 @@ class Binary(str):
 
     def __repr__(self):
         """Represent self."""
-        return "%s(%s, %s)" % (self.__class__.__name__, self._value)
+        return f"{self.__class__.__name__}({self._value}, {self._sign}, {self._is_special})"
 
     def no_prefix(value):
         """Remove prefix '0b' from string representation.
@@ -863,51 +1019,49 @@ class Binary(str):
         tc += 1
         r &= Binary.testcase(
             tc,
-            Binary(10.10)._compare_representation(
+            Binary(10.10).compare_representation(
                 "1010.000110011001100110011001100110011001"
             ),
             True,
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("10.111")._compare_representation("10.111"), True
+            tc, Binary("10.111").compare_representation("10.111"), True
         )
         tc += 1
-        r &= Binary.testcase(tc, Binary(5)._compare_representation("101"), True)
+        r &= Binary.testcase(tc, Binary(5).compare_representation("101"), True)
         tc += 1
         r &= Binary.testcase(
             tc,
-            Binary(8.3)._compare_representation(
+            Binary(8.3).compare_representation(
                 "1000.0100110011001100110011001100110011"
             ),
             True,
         )
         tc += 1
-        r &= Binary.testcase(tc, Binary(0.0)._compare_representation("0"), True)
+        r &= Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
         tc += 1
-        r &= Binary.testcase(tc, Binary(1.0)._compare_representation("1"), True)
+        r &= Binary.testcase(tc, Binary(1.0).compare_representation("1"), True)
         tc += 1
-        r &= Binary.testcase(tc, Binary(3.5)._compare_representation("11.1"), True)
+        r &= Binary.testcase(tc, Binary(3.5).compare_representation("11.1"), True)
         tc += 1
         r &= Binary.testcase(
-            tc, Binary(-13.75)._compare_representation("-1101.11"), True
+            tc, Binary(-13.75).compare_representation("-1101.11"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary(13.0 + 2 ** -10)._compare_representation("1101.0000000001"), True
+            tc, Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
         )
         tc += 1
         r &= Binary.testcase(
             tc,
-            Binary(13.0 + 2 ** -20)._compare_representation(
-                "1101.00000000000000000001"
-            ),
+            Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
             True,
         )
         tc += 1
         r &= Binary.testcase(
             tc,
-            Binary(13.0 + 2 ** -30)._compare_representation(
+            Binary(13.0 + 2 ** -30).compare_representation(
                 "1101.000000000000000000000000000001"
             ),
             True,
@@ -915,18 +1069,18 @@ class Binary(str):
         tc += 1
         r &= Binary.testcase(
             tc,
-            Binary(13.0 + 2 ** -40)._compare_representation(
+            Binary(13.0 + 2 ** -40).compare_representation(
                 "1101.0000000000000000000000000000000000000001"
             ),
             True,
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary(13.0 + 2 ** -50)._compare_representation("1101"), True
+            tc, Binary(13.0 + 2 ** -50).compare_representation("1101"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary(13.0 + 2 ** -60)._compare_representation("1101"), True
+            tc, Binary(13.0 + 2 ** -60).compare_representation("1101"), True
         )
         tc += 1
         r &= Binary.testcase(
@@ -940,36 +1094,36 @@ class Binary(str):
                 + 2 ** -50
                 + 2 ** -60
                 + 2 ** -70
-            )._compare_representation("1101.0000000001000000000100000000010000000001"),
+            ).compare_representation("1101.0000000001000000000100000000010000000001"),
             True,
         )
         tc += 10
         r &= Binary.testcase(
-            tc, Binary("1.1").round(1)._compare_representation("1.1"), True
+            tc, Binary("1.1").round(1).compare_representation("1.1"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("1.10").round(1)._compare_representation("1.1"), True
+            tc, Binary("1.10").round(1).compare_representation("1.1"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("1.101").round(1)._compare_representation("1.1"), True
+            tc, Binary("1.101").round(1).compare_representation("1.1"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("1.11").round(1)._compare_representation("1.1"), True
+            tc, Binary("1.11").round(1).compare_representation("1.1"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("1.110").round(1)._compare_representation("1.1"), True
+            tc, Binary("1.110").round(1).compare_representation("1.1"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("1.1101").round(1)._compare_representation("10"), True
+            tc, Binary("1.1101").round(1).compare_representation("10"), True
         )
         tc += 1
         r &= Binary.testcase(
-            tc, Binary("1.1111").round(1)._compare_representation("10"), True
+            tc, Binary("1.1111").round(1).compare_representation("10"), True
         )
         tc += 10
         r &= Binary.testcase(tc, Binary("1.1111").fill(1), "1.1111")
@@ -991,7 +1145,7 @@ class Binary(str):
         r &= Binary.testcase(tc, Binary("1.0011").fill(1, True), "1.0")
         tc += 1
         r &= Binary.testcase(
-            tc, Binary((1, (1, 0, 1, 0), -2))._compare_representation("-1010e-2"), True
+            tc, Binary((1, (1, 0, 1, 0), -2)).compare_representation("-1010e-2"), True
         )
         tc += 10
         r &= Binary.testcase(tc, Binary("-1").float(), -1.0)
@@ -1007,6 +1161,28 @@ class Binary(str):
         r &= Binary.testcase(tc, Binary(13.0 + 2 ** -20).float(), 13.000000953674316)
         tc += 1
         r &= Binary.testcase(tc, Binary(13.0 + 2 ** -30).float(), 13.000000000931323)
+        tc += 10
+        r &= Binary.testcase(
+            tc,
+            Binary("1.1").to_simple_exponential().compare_representation("11e-1"),
+            True,
+        )
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
+            True,
+        )
+        tc += 1
+        r &= Binary.testcase(
+            tc, Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
+        )
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
+            True,
+        )
         tc += 1
         if r:
             result = "Self-Test: 😃 All test cases passed ✅"
