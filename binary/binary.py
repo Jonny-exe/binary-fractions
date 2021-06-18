@@ -3,12 +3,17 @@
 
 """An implementation of a Binary class and module.
 
-It allows one to represent integers or floats as binary strings.
+This module allows one to represent integers or floats as binary strings.
 E.g. the integer 5 will be represented as string '0b11'.
 E.g. the float -3.75 will be represented as string '-0b11.11'.
 Exponential representation is also possible:
 '-0b0.01111e3' or '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-various operations and transformations are offered.
+various operations and transformations are offered. 
+
+if you are curious about binary fractions, have a look at:
+- https://en.wikipedia.org/wiki/Computer_number_format#Representing_fractions_in_binary
+- https://www.electronics-tutorials.ws/binary/binary-fractions.html
+- https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 
 License: GPL v3 or later
 
