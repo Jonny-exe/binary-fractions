@@ -1,4 +1,6 @@
-# Binary fractions
+# Binary Fractions
+
+![Logo](logo.svg)
 
 This is really small package to handle binary fractions.
 
