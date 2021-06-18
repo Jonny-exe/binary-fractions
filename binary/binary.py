@@ -8,7 +8,7 @@ E.g. the integer 5 will be represented as string '0b11'.
 E.g. the float -3.75 will be represented as string '-0b11.11'.
 Exponential representation is also possible:
 '-0b0.01111e3' or '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-various operations and transformations are offered. 
+various operations and transformations are offered.
 
 if you are curious about binary fractions, have a look at:
 - https://en.wikipedia.org/wiki/Computer_number_format#Representing_fractions_in_binary
@@ -62,7 +62,7 @@ Binary(-100110001e-3, 1, False)
 >>> b=Binary(2**20+128+32+8+2+17/19)
 >>> b.float()
 1048746.894736842
->>> b.normalize()
+>>> b.to_not_exponential()
 Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
 >>> b.round(2)
 Binary(100000000000010101011, 0, False)
@@ -119,6 +119,7 @@ Binary(111, 0, False)
 # and where there are matches add comment/entry to reference this module
 # in PyPi
 
+from fractions import Fraction
 import math  # isclose()
 import re
 
@@ -192,6 +193,9 @@ class Binary(str):
         global _BINARY_WARNED_ABOUT_FLOAT
         self = super(Binary, cls).__new__(cls)
         self._is_special = False
+        self._fraction = Fraction()
+        self._f_is_set = False  # _fraction is set
+        self._v_is_set = False  # _value is set
 
         # From a string
         # REs insist on real strings, so we can too.
@@ -248,24 +252,28 @@ class Binary(str):
                 else:
                     # infinity
                     self._value = sign + "Infinity"  # F
-            # self._value = Binary.normalize(self._value) # not strictly needed
+            # self._value = Binary.to_not_exponential(self._value) # not strictly needed
+            self._v_is_set = True
             return self
 
         # From an integer
         if isinstance(value, int):
+            self._fraction = Fraction(value)
+            self._f_is_set = True
             if value >= 0:
                 self._sign = 0
-                sign = ""
             else:
                 self._sign = 1
-                sign = "-"
-            self._value = sign + bin(abs(value)).replace(_PREFIX, "")
             return self
 
         # From another Binary
         if isinstance(value, Binary):
             self._sign = value._sign
             self._value = value._value
+            self._fraction = value._fraction
+            self._v_is_set = value._v_is_set
+            self._f_is_set = value._f_is_set
+            self._is_special = value._is_special
             return self
 
         # From a tuple/list conversion (possibly from as_tuple())
@@ -321,7 +329,8 @@ class Binary(str):
                         "be an integer, or one of the "
                         "strings 'F', 'n', 'N'."
                     )
-            # self._value = Binary.normalize(self._value) # not strictly needed
+            # self._value = Binary.to_not_exponential(self._value) # not strictly needed
+            self._v_is_set = True
             return self
 
         # from a float
@@ -329,14 +338,13 @@ class Binary(str):
             if not _BINARY_WARNED_ABOUT_FLOAT:
                 _BINARY_WARNED_ABOUT_FLOAT = True
                 print("Warning: mixing floats and Binary")
-            # TODO
-            # better: store it as fraction (use class fraction for that)
-            # fraction class allows exact math operations
-            if value < 0:
-                self._sign = 1
-            else:
+            self._fraction = Fraction(value)
+            self._f_is_set = True
+
+            if value >= 0:
                 self._sign = 0
-            self._value = Binary.from_float(value)
+            else:
+                self._sign = 1
             return self
 
         # any oher types
@@ -390,10 +398,12 @@ class Binary(str):
         Returns:
         float: number as float or integer
         """
-        value = self._value
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        result = Binary.to_float(value)
+        if self._f_is_set:
+            result = float(self._fraction)
+        else:
+            result = Binary.to_float(self._value)
         return result  # float or integer
 
     def to_float(value):
@@ -412,25 +422,25 @@ class Binary(str):
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
         # print(f"not normalized is {value}")
-        value = Binary.normalize(value)
+        value = Binary.to_not_exponential(value)
         # print(f"normalized is {value}")
-        l = value.split(".")
-        intpart = l[0]
+        li = value.split(".")
+        intpart = li[0]
         result = int(intpart, 2)
         if result < 0:
             sign = -1
         else:
             sign = 1
         # print(f"int result is {result}")
-        if len(l) == 1:
+        if len(li) == 1:
             fracpart = ""
-            return result  ## an integer
+            return result  # an integer
         else:
-            fracpart = l[1]
+            fracpart = li[1]
 
         # print(f"fracpart is {fracpart}")
-        l = len(fracpart)
-        for i in range(l):
+        le = len(fracpart)
+        for i in range(le):
             if fracpart[i] == "1":
                 result += (2 ** -(i + 1)) * sign
         return result  # float
@@ -455,7 +465,7 @@ class Binary(str):
             result = "0"
         return result
 
-    def normalize(value):
+    def to_not_exponential(value):
         """Normalize string representation. Remove exponent part.
 
         utility function
@@ -474,16 +484,16 @@ class Binary(str):
         if _EXP not in value:
             result = Binary.clean(value)
         else:
-            l = value.split(_EXP)
-            intfracpart = l[0]
-            exp = int(l[1])
+            li = value.split(_EXP)
+            intfracpart = li[0]
+            exp = int(li[1])
 
-            l = intfracpart.split(".")
-            intpart = l[0]
-            if len(l) == 1:
+            li = intfracpart.split(".")
+            intpart = li[0]
+            if len(li) == 1:
                 fracpart = ""
             else:
-                fracpart = l[1]
+                fracpart = li[1]
             lenintpart = len(intpart)
             lenfracpart = len(fracpart)
 
@@ -505,6 +515,29 @@ class Binary(str):
                     result = intpart + "." + fracpart
         result = Binary.clean(result)
         # print(f"after normalize {result}")
+        return result
+
+    def binary_string_to_fraction(value):
+        """Convert string representation of binary to Fraction.
+
+        utility function
+
+        Parameters:
+        value (str): number of digits after comma, precision
+
+        Returns:
+        Fraction: value as fraction
+        """
+        something = Binary.get_components(value)
+        print(something)
+        sign, intpart, fracpart, exp = Binary.get_components(value)
+        exp -= len(fracpart)
+        if exp > 0:
+            result = Fraction((-1) ** sign * int(intpart + fracpart, 2) * (2 ** exp), 1)
+        else:
+            print("Enum: ", (-1) ** sign * int(intpart + fracpart, 2))
+            print("Denum: ", 2 ** -exp)
+            result = Fraction((-1) ** sign * int(intpart + fracpart, 2), 2 ** -exp)
         return result
 
     def round(self, ndigits=0):
@@ -542,7 +575,7 @@ class Binary(str):
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
         # print(f"value is {value} of type {type(value)}")
-        value = Binary.normalize(value)
+        value = Binary.to_not_exponential(value)
         l = value.split(".")
         intpart = l[0]
         if len(l) == 1:
@@ -606,7 +639,7 @@ class Binary(str):
             raise TypeError(f"Argument {value} must be of type str.")
         # print(f"value is {value} of type {type(value)}")
         # print(f"non norm. value is {value}")
-        value = Binary.normalize(value)
+        value = Binary.to_not_exponential(value)
         # print(f"norm. value is {value}")
         l = value.split(".")
         intpart = l[0]
@@ -726,23 +759,23 @@ class Binary(str):
         Returns:
         Binary: binary string representation of number
         """
-        return self._is_special or Binary.normalize(self._value) != "0"
+        return self._is_special or Binary.to_not_exponential(self._value) != "0"
 
-    def components(self):
+    def get_components(value):
         """Return sign, intpart (without sign), fracpart, exp.
 
         Example: -11.01e2 ==> (1, '11', '01', 2)
 
         Parameters:
-        none
+        value (str): respresentation of a binary
 
         Returns:
-        list: list of sign, intpart (without sign), fracpart, exp
+        tuple: tuple of sign, intpart (without sign), fracpart, exp
         """
-        value = self._value
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._sign:
+        if not isinstance(value, str):
+            raise TypeError(f"Argument {value} must be of type str.")
+        sign = 1 if value[0] == "-" else 0
+        if sign:
             value = value[1:]  # remove sign from intpart
         if _EXP not in value:
             exp = 0
@@ -758,7 +791,23 @@ class Binary(str):
             fracpart = ""
         else:
             fracpart = l[1]
-        return (self._sign, intpart, fracpart, exp)
+        return (sign, intpart, fracpart, exp)
+
+    def components(self):
+        """Return sign, intpart (without sign), fracpart, exp.
+
+        Example: -11.01e2 ==> (1, '11', '01', 2)
+        intpart does not have a sign
+
+        Parameters:
+        none
+
+        Returns:
+        tuple: tuple of sign, intpart (without sign), fracpart, exp
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary.get_components(self._value)
 
     def isinfinity(self):
         """Determine if object is Infinity.
@@ -1013,7 +1062,32 @@ class Binary(str):
             r &= Binary.testcase(
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
+        tc += 10
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1"), Fraction(1))
         tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("0"), Fraction(0))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("0.1"), Fraction(0.5))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1"), Fraction(-1))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16))
+
+        tc += 10
         r &= Binary.testcase(tc, Binary(-3.5), "-11.1")
         tc += 1
         r &= Binary.testcase(tc, Binary(-3.5), "-0b11.1")
