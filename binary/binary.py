@@ -1,25 +1,67 @@
 #!/usr/bin/python3
 
 
-"""An implementation of a Binary class and module.
+"""# Floating-point Binary Fractions: Do math in base 2!
 
-This module allows one to represent integers or floats as binary strings.
-E.g. the integer 5 will be represented as string '0b11'.
-E.g. the float -3.75 will be represented as string '-0b11.11'.
+![logo](binary-fractions.svg)
+
+An implementation of a floating-point binary fractions class and module
+in Python. Work with binary franctions and binary floats with ease!
+
+This module allows one to represent integers, floats and fractions as
+binary strings.
+- e.g. the integer 5 will be represented as string '0b11'.
+- e.g. the float -3.75 will be represented as string '-0b11.11'.
+- e.g. the fraction 1/2 will be represented as string '0b0.1'
 Exponential representation is also possible:
-'-0b0.01111e3' or '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-various operations and transformations are offered.
+'-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
+Various operations and transformations are offered.
 
-if you are curious about binary fractions, have a look at:
+Basic representation of binary fractions and binary floats:
+A binary fraction is a subset of binary floats. Basically, a binary fraction
+is a binary float without an exponent (e.g. '-0b101.0101').
+Let's have a look at an example binary float value to see how it is represented.
+
+```
+     prefix '0b' to indicate "binary" or "base 2"
+     ||
+     ||   decimal point
+     ||   |
+     ||   |    exponent separator
+     ||   |    |
+     ||   |    | exponent in base 10 (not base 2!)
+     ||   |    | ||
+    -0b101.0101e-34  <-- example floating-point binary fraction
+    |  ||| |||| |
+ sign  ||| |||| exponent sign
+       ||| ||||
+       ||| fraction bits in base 2
+       |||
+       integer bits in base 2
+```
+
+If you are curious about floating point binary fractions, have a look at:
 - https://en.wikipedia.org/wiki/Computer_number_format#Representing_fractions_in_binary
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
 
-License: GPL v3 or later
+## License:
+- GPL v3 or later
 
-File Format: linted/beautified by black
+## Features:
+- Python 3
+- constructors for various types
+- very high precision
+- certain operations are lossless, i.e. with no rounding errors or loss of precision
+- supports very long binary fractions
+- supports exponential representation
+- well documented
 
+
+## Sample usage, Example calls:
+
+```
 $ python # sample usage, examples
 >>> from binary import Binary
 >>> Binary()
@@ -113,6 +155,21 @@ Binary(111, 0, False)
 '0b111.001'
 >>> b4.np() # no prefix, '0b' prefix removed
 '111.001'
+```
+
+## Requirements:
+- Python 3
+- see file [requirements.txt]()
+
+## Installation:
+- see [https://pypi.org/project/binary-fractions/]()
+- `pip install binary-fractions`
+
+## Contributions:
+- PRs are welcome!
+- File Format: linted/beautified with black
+
+Enoy :heart: !
 
 """
 
@@ -126,6 +183,7 @@ import re
 
 _BINARY_WARNED_ABOUT_FLOAT = False
 _BINARY_RELATIVE_TOLERANCE = 1e-10
+_BINARY_PRECISION = 128  # number of binary digits to the right of decimal point
 _PREFIX = "0b"
 _EXP = "e"
 
@@ -142,7 +200,7 @@ class Binary(str):
     """Floating point class for binary fractions and arithmetic."""
 
     def __new__(cls, value="0", simplify=True):
-        """Contructor.
+        """Constructor.
 
         Use __new__ and not __init__ because it is immutable.
         Allows string, float and integer as input for constructor.
@@ -195,8 +253,8 @@ class Binary(str):
         self = super(Binary, cls).__new__(cls)
         self._is_special = False
         self._fraction = Fraction()
-        self._f_is_set = False  # _fraction is set
-        self._v_is_set = False  # _value is set
+        # TODO: not yet implemented, indicate if operations were lossless
+        self._is_lossless = False
 
         # From a string
         # REs insist on real strings, so we can too.
@@ -254,27 +312,8 @@ class Binary(str):
                     # infinity
                     self._value = sign + "Infinity"  # F
             # self._value = Binary.to_not_exponential(self._value) # not strictly needed
-            self._v_is_set = True
-            return self
-
-        # From an integer
-        if isinstance(value, int):
-            self._fraction = Fraction(value)
-            self._f_is_set = True
-            if value >= 0:
-                self._sign = 0
-            else:
-                self._sign = 1
-            return self
-
-        # From another Binary
-        if isinstance(value, Binary):
-            self._sign = value._sign
-            self._value = value._value
-            self._fraction = value._fraction
-            self._v_is_set = value._v_is_set
-            self._f_is_set = value._f_is_set
-            self._is_special = value._is_special
+            if not self._is_special:
+                self._fraction = Binary.string_to_fraction(self._value)
             return self
 
         # From a tuple/list conversion (possibly from as_tuple())
@@ -331,7 +370,25 @@ class Binary(str):
                         "strings 'F', 'n', 'N'."
                     )
             # self._value = Binary.to_not_exponential(self._value) # not strictly needed
-            self._v_is_set = True
+            if not self._is_special:
+                self._fraction = Binary.string_to_fraction(self._value)
+            return self
+
+        # From another Binary
+        if isinstance(value, Binary):
+            self._sign = value._sign
+            self._value = value._value
+            self._fraction = value._fraction
+            self._is_lossless = value._is_lossless
+            self._is_special = value._is_special
+            return self
+
+        # From an integer
+        if isinstance(value, int):
+            self._fraction = Fraction(value)
+            # self._value = Binary.fraction_to_string(self._value)
+            self._value = bin(value).replace(_PREFIX, "")
+            self._sign = 1 if value < 0 else 0
             return self
 
         # from a float
@@ -340,15 +397,11 @@ class Binary(str):
                 _BINARY_WARNED_ABOUT_FLOAT = True
                 print("Warning: mixing floats and Binary")
             self._fraction = Fraction(value)
-            self._f_is_set = True
-
-            if value >= 0:
-                self._sign = 0
-            else:
-                self._sign = 1
+            self._value = Binary.fraction_to_string(value)
+            self._sign = 1 if value < 0 else 0
             return self
 
-        # any oher types
+        # any other types
         raise TypeError("Cannot convert %r to Binary" % value)
 
     def from_float(value, rel_tol=_BINARY_RELATIVE_TOLERANCE):
@@ -390,7 +443,7 @@ class Binary(str):
             i += 1
         return Binary.clean(sign + intpart + "." + fracpart)
 
-    def float(self):
+    def __float__(self):
         """Convert from Binary to float.
 
         method
@@ -401,10 +454,9 @@ class Binary(str):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._f_is_set:
-            result = float(self._fraction)
-        else:
-            result = Binary.to_float(self._value)
+        result = float(self._fraction)
+        # alternative implementation of float
+        # result = Binary.to_float(self._value)
         return result  # float or integer
 
     def to_float(value):
@@ -524,20 +576,16 @@ class Binary(str):
         utility function
 
         Parameters:
-        value (str): number of digits after comma, precision
+        value (str): binary number as string
 
         Returns:
         Fraction: value as fraction
         """
-        something = Binary.get_components(value)
-        print(something)
         sign, intpart, fracpart, exp = Binary.get_components(value)
         exp -= len(fracpart)
         if exp > 0:
             result = Fraction((-1) ** sign * int(intpart + fracpart, 2) * (2 ** exp), 1)
         else:
-            print("Enum: ", (-1) ** sign * int(intpart + fracpart, 2))
-            print("Denum: ", 2 ** -exp)
             result = Fraction((-1) ** sign * int(intpart + fracpart, 2), 2 ** -exp)
         return result
 
@@ -952,56 +1000,71 @@ class Binary(str):
         """
         return Binary(self._cmp(other))
 
-    def fraction_to_string(number, places=10000):
-        entire_number = math.floor(number)
-        if entire_number == 0:
-            result = ["0"]
-        else:
-            result = bin(entire_number)[2:].split()
+    def fraction_to_string(
+        number: [int, float, Fraction], ndigits=_BINARY_PRECISION, strict=False
+    ) -> str:
+        """Convert number representation (int, float, or Fraction) to string.
 
-        result.append(".")
+        utility function
+
+        Parameters:
+        number (int,float,Fraction): binary number in number representation
+        strict (bool): cut off by rounding if input is too long,
+            remove precision if True and necessary
+
+        Returns:
+        str: binary number in string representation
+        """
+        number = Fraction(number) if not isinstance(number, Fraction) else number
+        sign = "-" if number < 0 else ""
+        number = abs(number)
+        int_number = math.floor(number)
+        if int_number == 0:
+            result = [sign, "0"]
+        else:
+            result = [sign] + bin(int_number)[2:].split()
         rest = Fraction(0)
         i = 1
         zeros = 0
-        fraction_number = number - Fraction(math.floor(number), 1)
-        if fraction_number == 0:
-            result.append("0")
-            return "".join(result)
+        fraction_number = number - int_number
+        if fraction_number > 0:
+            result.append(".")
+            while i < ndigits + 1:
+                b = Fraction(1, 2 ** i)
+                if b + rest < fraction_number:
+                    result.append("1")
+                    rest += b
+                elif b + rest > fraction_number:
+                    result.append("0")
+                elif b + rest == fraction_number:
+                    result.append("1")
+                    break
+                i += 1
+        return "".join(result) if strict else Binary.clean("".join(result))
 
+    # TODO:add member variable such as is_exact to indicate if lossless or not
 
-        while i < places:
-            b = Fraction(1, 2 ** i)
-            if b + rest < fraction_number:
-                result.append("1")
-                rest += b
-            elif b + rest > fraction_number:
-                result.append("0")
-            elif b + rest == fraction_number:
-                result.append("1")
-                break
-            i += 1
+    def string_to_fraction(value: str) -> Fraction:
+        """Convert string representation to Fraction.
 
-        return "".join(result)
+        utility function.
 
+        Parameters:
+        value (str): binary number in string representation
 
-    def string_to_fraction(number):
-        result = 0
-        number_entire = number[:number.find(".")]
-        l = len(number_entire)
-        # Entire number
-        for i in range(l - 1, -1, -1):
-            c = number_entire[i]
-            if c == "1":
-                result += 2 ** (l - i - 1)
-
-        number_fraction = number[number.find(".") + 1 :]
-        l = len(number_fraction)
-        # Fraction number
+        Returns:
+        Fraction: binary number in Fraction representation
+        """
+        if _EXP in value:
+            value = Binary.to_not_exponential(value)
+        sign, intpart, fracpart, exp = Binary.get_components(value)
+        result = Fraction(int(intpart, 2))
+        l = len(fracpart)
         for i in range(l):
-            c = number_fraction[i]
+            c = fracpart[i]
             if c == "1":
-                result += 2 ** -(i + 1)
-        return result
+                result += Fraction(1, 2 ** (i + 1))
+        return result if sign == 0 else -result
 
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
@@ -1020,6 +1083,7 @@ class Binary(str):
         if isinstance(other, Binary):
             return str(self._value) == str(other._value)
         if isinstance(other, str):
+            print(self._value)
             return str(self._value) == other
         else:
             return str(self._value) == str(other)
@@ -1114,6 +1178,13 @@ class Binary(str):
             r &= Binary.testcase(
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
+        tc += 1
+        r &= Binary.testcase(tc, float(Binary("0")), 0.0)
+        tc += 1
+        r &= Binary.testcase(tc, float(Binary("1.1")), 1.5)
+        tc += 1
+        r &= Binary.testcase(tc, float(Binary("-1.11")), -1.75)
+
         tc += 10
         r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1"), Fraction(1))
         tc += 1
@@ -1127,17 +1198,170 @@ class Binary(str):
         tc += 1
         r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1"), Fraction(-1))
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5))
+        r &= Binary.testcase(
+            tc, Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5))
+        r &= Binary.testcase(
+            tc, Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6))
+        r &= Binary.testcase(
+            tc, Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5))
+        r &= Binary.testcase(
+            tc, Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16))
+        r &= Binary.testcase(
+            tc, Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16))
+        r &= Binary.testcase(
+            tc, Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16)
+        )
+
+        tc += 10
+        r &= Binary.testcase(tc, Binary.fraction_to_string(0), "0")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(1), "1")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(2), "10")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(13), "1101")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-0), "0")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-1), "-1")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-2), "-10")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-13), "-1101")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(0.0), "0")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(1.0), "1")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(2.0), "10")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(13.0), "1101")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-0.0), "0")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-1.0), "-1")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-2.0), "-10")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(-13.0), "-1101")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(0.0)), "0")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(1.0)), "1")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(2.0)), "10")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(13.0)), "1101")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-0.0)), "0")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-1.0)), "-1")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-2.0)), "-10")
+        tc += 1
+        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-13.0)), "-1101")
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)),
+            "1" + "0" * 99 + "1",
+        )
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(Fraction(-2 ** 100 - 2 ** 0)),
+            "-1" + "0" * 99 + "1",
+        )
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, 2 ** 101)),
+            "0.1" + "0" * 99 + "1",
+        )
+        tc += 1
+
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, -1 * 2 ** 101)),
+            "-0.1" + "0" * 99 + "1",
+        )
+        tc += 1
+
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(
+                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10000
+            ),
+            "-0.1" + "0" * 999 + "1",
+        )
+
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(
+                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10
+            ),
+            "-0.1",
+        )
+
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.fraction_to_string(
+                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10, strict=True
+            ),
+            "-0.1" + "0" * 9,
+        )
+
+        tc += 10
+        r &= Binary.testcase(tc, Binary.string_to_fraction("0"), Fraction(0))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("1"), Fraction(1))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("-0"), Fraction(0))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("-1"), Fraction(-1))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("11"), Fraction(3))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("-0.0"), Fraction(0))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("1.0"), Fraction(1))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("1.1"), Fraction(3, 2))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("-1.1"), Fraction(3, -2))
+        tc += 1
+        r &= Binary.testcase(tc, Binary.string_to_fraction("-0.111"), Fraction(-0.875))
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.string_to_fraction("1.1" + "0" * 2 + "1"),
+            Fraction(3 * 2 ** 3 + 1, 2 ** 4),
+        )
+        tc += 1
+        print(tc, float(Binary.string_to_fraction("1.1" + "0" * 100 + "1")))
+        r &= Binary.testcase(
+            tc,
+            Binary.string_to_fraction("1.1" + "0" * 100 + "1"),
+            Fraction(3 * 2 ** 101 + 1, 2 ** 102),
+        )
+        tc += 1
+        r &= Binary.testcase(
+            tc,
+            Binary.string_to_fraction("1.1" + "0" * 1000 + "1"),
+            Fraction(3 * 2 ** 1001 + 1, 2 ** 1002),
+        )
 
         tc += 10
         r &= Binary.testcase(tc, Binary(-3.5), "-11.1")
@@ -1151,7 +1375,7 @@ class Binary(str):
         r &= Binary.testcase(
             tc,
             Binary(10.10).compare_representation(
-                "1010.000110011001100110011001100110011001"
+               "1010.0001100110011001100110011001100110011001100110011"
             ),
             True,
         )
@@ -1165,10 +1389,11 @@ class Binary(str):
         r &= Binary.testcase(
             tc,
             Binary(8.3).compare_representation(
-                "1000.0100110011001100110011001100110011"
+                "1000.010011001100110011001100110011001100110011001101"
             ),
             True,
         )
+        print("TC: ", tc)
         tc += 1
         r &= Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
         tc += 1
@@ -1279,19 +1504,19 @@ class Binary(str):
             tc, Binary((1, (1, 0, 1, 0), -2)).compare_representation("-1010e-2"), True
         )
         tc += 10
-        r &= Binary.testcase(tc, Binary("-1").float(), -1.0)
+        r &= Binary.testcase(tc, float(Binary("-1")), -1.0)
         tc += 1
-        r &= Binary.testcase(tc, Binary("-1.1").float(), -1.5)
+        r &= Binary.testcase(tc, float(Binary("-1.1")), -1.5)
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.001").float(), 1.125)
+        r &= Binary.testcase(tc, float(Binary("1.001")), 1.125)
         tc += 1
-        r &= Binary.testcase(tc, Binary((1, (1, 0, 1, 0), -2)).float(), -2.5)
+        r &= Binary.testcase(tc, float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
         tc += 1
-        r &= Binary.testcase(tc, Binary(-13.0 - 2 ** -10).float(), -13.0009765625)
+        r &= Binary.testcase(tc, float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
         tc += 1
-        r &= Binary.testcase(tc, Binary(13.0 + 2 ** -20).float(), 13.000000953674316)
+        r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
         tc += 1
-        r &= Binary.testcase(tc, Binary(13.0 + 2 ** -30).float(), 13.000000000931323)
+        r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
         tc += 10
         r &= Binary.testcase(
             tc,
