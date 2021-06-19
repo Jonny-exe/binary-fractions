@@ -156,10 +156,10 @@ Binary(111, 0, False)
 
 ## Requirements:
 - Python 3
-- see file ![requirements.txt](requirements.txt)
+- see file [requirements.txt]()
 
 ## Installation:
-- see ![](https://pypi.org/project/binary-fractions/)
+- see [https://pypi.org/project/binary-fractions/]()
 - `pip install binary-fractions`
 
 ## Contributions:
