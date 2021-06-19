@@ -14,6 +14,7 @@ if you are curious about binary fractions, have a look at:
 - https://en.wikipedia.org/wiki/Computer_number_format#Representing_fractions_in_binary
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
+- https://planetcalc.com/862/
 
 License: GPL v3 or later
 
@@ -950,6 +951,57 @@ class Binary(str):
         Binary: -1 s<o, 0 equal, 1 s>o
         """
         return Binary(self._cmp(other))
+
+    def fraction_to_string(number, places=10000):
+        entire_number = math.floor(number)
+        if entire_number == 0:
+            result = ["0"]
+        else:
+            result = bin(entire_number)[2:].split()
+
+        result.append(".")
+        rest = Fraction(0)
+        i = 1
+        zeros = 0
+        fraction_number = number - Fraction(math.floor(number), 1)
+        if fraction_number == 0:
+            result.append("0")
+            return "".join(result)
+
+
+        while i < places:
+            b = Fraction(1, 2 ** i)
+            if b + rest < fraction_number:
+                result.append("1")
+                rest += b
+            elif b + rest > fraction_number:
+                result.append("0")
+            elif b + rest == fraction_number:
+                result.append("1")
+                break
+            i += 1
+
+        return "".join(result)
+
+
+    def string_to_fraction(number):
+        result = 0
+        number_entire = number[:number.find(".")]
+        l = len(number_entire)
+        # Entire number
+        for i in range(l - 1, -1, -1):
+            c = number_entire[i]
+            if c == "1":
+                result += 2 ** (l - i - 1)
+
+        number_fraction = number[number.find(".") + 1 :]
+        l = len(number_fraction)
+        # Fraction number
+        for i in range(l):
+            c = number_fraction[i]
+            if c == "1":
+                result += 2 ** -(i + 1)
+        return result
 
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
