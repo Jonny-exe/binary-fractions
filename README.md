@@ -43,16 +43,18 @@ If you are curious about floating point binary fractions, have a look at:
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
 
-## License: 
+## License:
 - GPL v3 or later
 
 ## Features:
 - Python 3
-- constructors for various types
+- constructors for various types: int, float, Fraction, Binary, str
+- supports many operators: +, -, *, /, //, %, **, not, ...
+- supports many methods: lshift, rshift, <<, >>, round, floor, ceil, ...
 - very high precision
-- certain operations are lossless, i.e. with no rounding errors or loss of precision
+- many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
-- supports exponential representation
+- supports exponential representations
 - well documented
 
 
@@ -152,18 +154,38 @@ Binary(111, 0, False)
 '0b111.001'
 >>> b4.np() # no prefix, '0b' prefix removed
 '111.001'
+>>> # simple math
+>>> Binary('111') + Binary(3)
+Binary(1010, 0, False)
+>>> Binary('111.1') - Binary(3)
+Binary(100.1, 0, False)
+>>> Binary('111.1') * Binary(2.0)
+Binary(1111, 0, False)
+>>> Binary('111.1') / Binary(4.0)
+Binary(1.111, 0, False)
+>>> Binary('111.1') // Binary(4.0)
+Binary(1, 0, False)
+>>> float(Binary('111.1'))
+7.5
+>>> int(Binary('111.1'))
+7
+>>> # works with large numbers
+>>> Binary('11100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111.100000000000000000000000000000000000000010101010101010101010101010101010101010101010101010101') * Binary('11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000111111111111.0111111111111111111111111111111111111111111111111111111111100000000000000000000000000011111111111111111111e-12')
+Binary(1101111111111111111111111111111111111111111111111111111111111111100100000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000001101111111111111111111111111100111111111111111111111110010000000000001010101010101010101011001010101010011100101010101010011111111111101011001010101010101010101001110010101010101010101011000110011111111101111110010000000000000000001000000000000110101010101100101010101010101010101010101010101001.1101010001011001010101010101010101110101111111111111100101010101010101100101010101010101010100101000101010111110101011001010101, 0, False)
+>>> # and so much more
+
 ```
 
 ## Requirements:
 - Python 3
-- see file [requirements.txt]()
+- requires no `pip` packages (uses built-in `math` and `fractions` modules)
 
 ## Installation:
 - see [https://pypi.org/project/binary-fractions/]()
 - `pip install binary-fractions`
 
 ## Contributions:
-- PRs are welcome!
+- PRs are welcome and very much appreciated!
 - File Format: linted/beautified with black
 
-Enoy :heart: !
+Enjoy :heart: !
