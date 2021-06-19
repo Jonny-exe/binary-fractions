@@ -13,9 +13,11 @@ binary strings.
 - e.g. the integer 5 will be represented as string '0b11'.
 - e.g. the float -3.75 will be represented as string '-0b11.11'.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
-Exponential representation is also possible:
+- Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-Various operations and transformations are offered.
+
+Various operations and transformations are offered on these objects.
+You can sum, subtract, multiply, divide, shift, round, ... these objects.
 
 Basic representation of binary fractions and binary floats:
 A binary fraction is a subset of binary floats. Basically, a binary fraction
@@ -51,12 +53,17 @@ If you are curious about floating point binary fractions, have a look at:
 
 ## Features:
 - Python 3
-- constructors for various types
+- constructors for various types: int, float, Fraction, Binary, str
+- supports many operators: +, -, *, /, //, %, **, not, ...
+- supports many methods: lshift, rshift, <<, >>, round, floor, ceil, ...
 - very high precision
-- certain operations are lossless, i.e. with no rounding errors or loss of precision
+- many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
-- supports exponential representation
-- well documented
+- supports exponential representations
+- well documented. For documentation please look at the source code or
+  run pydoc to extract it into a separate document. You can also run
+  `pydoc3 -b` after having installed `binary-fractions` and
+  `pydoc` to view the documentation in your browser.
 
 
 ## Sample usage, Example calls:
@@ -155,21 +162,42 @@ Binary(111, 0, False)
 '0b111.001'
 >>> b4.np() # no prefix, '0b' prefix removed
 '111.001'
+>>> # simple math
+>>> Binary('111') + Binary(3)
+Binary(1010, 0, False)
+>>> Binary('111.1') - Binary(3)
+Binary(100.1, 0, False)
+>>> Binary('111.1') * Binary(2.0)
+Binary(1111, 0, False)
+>>> Binary('111.1') / Binary(4.0)
+Binary(1.111, 0, False)
+>>> Binary('111.1') // Binary(4.0)
+Binary(1, 0, False)
+>>> float(Binary('111.1'))
+7.5
+>>> int(Binary('111.1'))
+7
+>>> # works with large numbers
+>>> Binary('11100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111.100000000000000000000000000000000000000010101010101010101010101010101010101010101010101010101') * Binary('11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000111111111111.0111111111111111111111111111111111111111111111111111111111100000000000000000000000000011111111111111111111e-12')
+Binary(1101111111111111111111111111111111111111111111111111111111111111100100000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000001101111111111111111111111111100111111111111111111111110010000000000001010101010101010101011001010101010011100101010101010011111111111101011001010101010101010101001110010101010101010101011000110011111111101111110010000000000000000001000000000000110101010101100101010101010101010101010101010101001.1101010001011001010101010101010101110101111111111111100101010101010101100101010101010101010100101000101010111110101011001010101, 0, False)
+>>> # and so much more
+
 ```
 
 ## Requirements:
 - Python 3
-- see file [requirements.txt]()
+- requires no `pip` packages (uses built-in `math` and `fractions` modules)
 
 ## Installation:
 - see [https://pypi.org/project/binary-fractions/]()
 - `pip install binary-fractions`
 
 ## Contributions:
-- PRs are welcome!
+- PRs are welcome and very much appreciated!
+  Before you submit a PR please run `selftest()`
 - File Format: linted/beautified with black
 
-Enoy :heart: !
+Enjoy :heart: !
 
 """
 
@@ -407,9 +435,8 @@ class Binary(str):
             self._sign = 1 if value < 0 else 0
             return self
 
-
         # any other types
-        raise TypeError("Cannot convert %r to Binary" % value)
+        raise TypeError(f"Cannot convert {value} to Binary")
 
     def from_float(value, rel_tol=_BINARY_RELATIVE_TOLERANCE):
         """Convert from float to Binary.
@@ -466,7 +493,6 @@ class Binary(str):
         # result = Binary.to_float(self._value)
         return result  # float or integer
 
-
     def __int__(self):
         """Convert from Binary to int.
 
@@ -482,7 +508,6 @@ class Binary(str):
         # alternative implementation of float
         # result = Binary.to_float(self._value)
         return result  # float or integer
-
 
     def to_float(value):
         """Convert from Binary to float or integer.
@@ -631,7 +656,7 @@ class Binary(str):
         result = Binary.round_to(value, ndigits)
         return Binary(result)
 
-    def round_to(value, ndigits=0):
+    def round_to(value, ndigits=0) -> str:
         """Normalize and round number to n digits after comma.
 
         utility function
@@ -692,9 +717,9 @@ class Binary(str):
         value = self._value
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary.fill_to(value, ndigits, strict)
+        return Binary(Binary.fill_to(value, ndigits, strict))
 
-    def fill_to(value, ndigits=0, strict=False):
+    def fill_to(value, ndigits=0, strict=False) -> str:
         """Normalize and fill number to n digits after comma.
 
         utility function
@@ -709,6 +734,7 @@ class Binary(str):
         Returns:
         str: binary string representation of number
         """
+        # TODO: needs to be fixed, fraction is missing
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
         # print(f"value is {value} of type {type(value)}")
@@ -1187,7 +1213,6 @@ class Binary(str):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction // other._fraction)
 
-
     def testcase(id, input, expected_result):
         """Test a single test case. Compares input to expected result.
 
@@ -1426,7 +1451,7 @@ class Binary(str):
         r &= Binary.testcase(
             tc,
             Binary(10.10).compare_representation(
-               "1010.0001100110011001100110011001100110011001100110011"
+                "1010.0001100110011001100110011001100110011001100110011"
             ),
             True,
         )
@@ -1569,7 +1594,6 @@ class Binary(str):
         tc += 1
         r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
 
-
         tc += 10
         r &= Binary.testcase(tc, int(Binary("-1")), -1)
         tc += 1
@@ -1593,7 +1617,9 @@ class Binary(str):
         r &= Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
 
         tc += 10
-        r &= Binary.testcase(tc, Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3))
+        r &= Binary.testcase(
+            tc, Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
+        )
         tc += 1
         r &= Binary.testcase(tc, Binary(1) - Binary(1), 0)
         tc += 1
