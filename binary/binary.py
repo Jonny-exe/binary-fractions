@@ -383,6 +383,12 @@ class Binary(str):
             self._is_special = value._is_special
             return self
 
+        if isinstance(value, Fraction):
+            self._fraction = value
+            self._value = Binary.fraction_to_string(value)
+            self._sign = 1 if value < 0 else 0
+            return self
+
         # From an integer
         if isinstance(value, int):
             self._fraction = Fraction(value)
@@ -400,6 +406,7 @@ class Binary(str):
             self._value = Binary.fraction_to_string(value)
             self._sign = 1 if value < 0 else 0
             return self
+
 
         # any other types
         raise TypeError("Cannot convert %r to Binary" % value)
@@ -458,6 +465,24 @@ class Binary(str):
         # alternative implementation of float
         # result = Binary.to_float(self._value)
         return result  # float or integer
+
+
+    def __int__(self):
+        """Convert from Binary to int.
+
+        method
+        Binary --> float or integer
+
+        Returns:
+        float: number as integer
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        result = int(self._fraction)
+        # alternative implementation of float
+        # result = Binary.to_float(self._value)
+        return result  # float or integer
+
 
     def to_float(value):
         """Convert from Binary to float or integer.
@@ -1137,6 +1162,32 @@ class Binary(str):
         else:
             return _PREFIX + self._value
 
+    def __add__(self, other):
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction + other._fraction)
+
+    def __sub__(self, other):
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction - other._fraction)
+
+    def __mul__(self, other):
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction * other._fraction)
+
+    def __truediv__(self, other):
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction / other._fraction)
+
+    def __floordiv__(self, other):
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction // other._fraction)
+
+
     def testcase(id, input, expected_result):
         """Test a single test case. Compares input to expected result.
 
@@ -1517,6 +1568,60 @@ class Binary(str):
         r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
         tc += 1
         r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
+
+
+        tc += 10
+        r &= Binary.testcase(tc, int(Binary("-1")), -1)
+        tc += 1
+        r &= Binary.testcase(tc, int(Binary("-1.111")), -1)
+        tc += 1
+        r &= Binary.testcase(tc, int(Binary("1.001")), 1)
+        tc += 1
+        r &= Binary.testcase(tc, int(Binary((1, (1, 0, 1, 0), -2))), -2)
+        tc += 1
+        r &= Binary.testcase(tc, int(Binary(-13.0 - 2 ** -10)), -13)
+        tc += 1
+        r &= Binary.testcase(tc, int(Binary(13.0 + 2 ** -20)), 13)
+        tc += 1
+        r &= Binary.testcase(tc, int(Binary(13.0 + 2 ** -30)), 13)
+
+        tc += 10
+        r &= Binary.testcase(tc, Binary(1) + Binary("1"), 2)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(-1) + Binary("1"), 0)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
+
+        tc += 10
+        r &= Binary.testcase(tc, Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3))
+        tc += 1
+        r &= Binary.testcase(tc, Binary(1) - Binary(1), 0)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(0) - Binary(1), -1)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(0.1) - Binary(0.2), -0.1)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
+
+        tc += 10
+        r &= Binary.testcase(tc, Binary(0) * Binary(1), 0)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(1) * Binary(1), 1)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(100) / Binary(Fraction(1, 10)), 1000)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(0) / Binary(10), 0)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(10) // Binary(3), 3)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(7) // Binary(2), 3)
+        tc += 1
+        r &= Binary.testcase(tc, Binary(8) // Binary(3), 2)
+
         tc += 10
         r &= Binary.testcase(
             tc,
