@@ -30,6 +30,23 @@
     * [no\_prefix](#binary.Binary.no_prefix)
     * [np](#binary.Binary.np)
     * [\_\_str\_\_](#binary.Binary.__str__)
+    * [\_\_add\_\_](#binary.Binary.__add__)
+    * [\_\_sub\_\_](#binary.Binary.__sub__)
+    * [\_\_mul\_\_](#binary.Binary.__mul__)
+    * [\_\_truediv\_\_](#binary.Binary.__truediv__)
+    * [\_\_floordiv\_\_](#binary.Binary.__floordiv__)
+    * [\_\_mod\_\_](#binary.Binary.__mod__)
+    * [\_\_abs\_\_](#binary.Binary.__abs__)
+    * [\_\_ceil\_\_](#binary.Binary.__ceil__)
+    * [\_\_floor\_\_](#binary.Binary.__floor__)
+    * [\_\_round\_\_](#binary.Binary.__round__)
+    * [\_\_lt\_\_](#binary.Binary.__lt__)
+    * [\_\_gt\_\_](#binary.Binary.__gt__)
+    * [\_\_le\_\_](#binary.Binary.__le__)
+    * [\_\_ge\_\_](#binary.Binary.__ge__)
+    * [\_\_bool\_\_](#binary.Binary.__bool__)
+    * [\_\_rshift\_\_](#binary.Binary.__rshift__)
+    * [\_\_lshift\_\_](#binary.Binary.__lshift__)
     * [testcase](#binary.Binary.testcase)
     * [selftest](#binary.Binary.selftest)
 
@@ -48,9 +65,12 @@ binary strings.
 - e.g. the integer 5 will be represented as string '0b11'.
 - e.g. the float -3.75 will be represented as string '-0b11.11'.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
-Exponential representation is also possible:
+- Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-Various operations and transformations are offered.
+
+Many operations and transformations are offered.
+You can sum, subtract, multiply, divide, compute power of, etc.
+of long floating-point binary fractions.
 
 Basic representation of binary fractions and binary floats:
 A binary fraction is a subset of binary floats. Basically, a binary fraction
@@ -69,12 +89,17 @@ If you are curious about floating point binary fractions, have a look at:
 
 ## Features:
 - Python 3
-- constructors for various types
+- constructors for various types: int, float, Fraction, Binary, str
+- supports many operators: +, -, *, /, //, %, **, not, ...
+- supports many methods: lshift, rshift, <<, >>, round, floor, ceil, ...
 - very high precision
-- certain operations are lossless, i.e. with no rounding errors or loss of precision
+- many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
-- supports exponential representation
-- well documented
+- supports exponential representations
+- well documented. Please read the documentation inside the source code
+([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
+Or look at the pydoc-generated documentation in
+[README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 
 
 ## Sample usage, Example calls:
@@ -82,17 +107,20 @@ If you are curious about floating point binary fractions, have a look at:
 
 ## Requirements:
 - Python 3
-- see file [requirements.txt]()
+- requires no `pip` packages (uses built-in `math` and `fractions` modules)
 
 ## Installation:
 - see [https://pypi.org/project/binary-fractions/]()
 - `pip install binary-fractions`
 
 ## Contributions:
-- PRs are welcome!
+- PRs are welcome and very much appreciated!
+Please run
+[selftest()](https://github.com/Jonny-exe/binary-fractions/blob/a44ec44cb58e97dac661bae6b6baffdf9d94425e/binary_fractions/binary.py#L1237)
+before issuing a PR to be sure all test cases pass.
 - File Format: linted/beautified with black
 
-Enoy :heart: !
+Enjoy :heart: !
 ```
      prefix '0b' to indicate "binary" or "base 2"
      ||
@@ -204,13 +232,33 @@ Binary(111, 0, False)
 '0b111.001'
 >>> b4.np() # no prefix, '0b' prefix removed
 '111.001'
+>>> # simple math
+>>> Binary('111') + Binary(3)
+Binary(1010, 0, False)
+>>> Binary('111.1') - Binary(3)
+Binary(100.1, 0, False)
+>>> Binary('111.1') * Binary(2.0)
+Binary(1111, 0, False)
+>>> Binary('111.1') / Binary(4.0)
+Binary(1.111, 0, False)
+>>> Binary('111.1') // Binary(4.0)
+Binary(1, 0, False)
+>>> float(Binary('111.1'))
+7.5
+>>> int(Binary('111.1'))
+7
+>>> # works with large numbers
+>>> Binary('11100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111.100000000000000000000000000000000000000010101010101010101010101010101010101010101010101010101') * Binary('11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000111111111111.0111111111111111111111111111111111111111111111111111111111100000000000000000000000000011111111111111111111e-12')
+Binary(1101111111111111111111111111111111111111111111111111111111111111100100000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000001101111111111111111111111111100111111111111111111111110010000000000001010101010101010101011001010101010011100101010101010011111111111101011001010101010101010101001110010101010101010101011000110011111111101111110010000000000000000001000000000000110101010101100101010101010101010101010101010101001.1101010001011001010101010101010101110101111111111111100101010101010101100101010101010101010100101000101010111110101011001010101, 0, False)
+>>> # and so much more
+
 ```
 
 <a name="binary.Binary"></a>
 ## Binary Objects
 
 ```python
-class Binary(str)
+class Binary(object)
 ```
 
 Floating point class for binary fractions and arithmetic.
@@ -225,7 +273,12 @@ Floating point class for binary fractions and arithmetic.
 Constructor.
 
 Use __new__ and not __init__ because it is immutable.
-Allows string, float and integer as input for constructor.
+Allows string, float, integer, and Fraction as input for constructor.
+If instance is contructed from a string, attention is paid to *not*
+modify the string or to modify it as little as possible.
+For example, if given '1e1' it will remain as '1e1', it will not change it
+to '1'. Same with '1000', it will not change it to '1e4'. We try to keep then
+string representation as close to the original as possible.
 
 **Arguments**:
 
@@ -779,6 +832,354 @@ Return format is e.g. -0b101.101e-23
 **Returns**:
 
 - `str` - (with) prefix
+
+<a name="binary.Binary.__add__"></a>
+#### \_\_add\_\_
+
+```python
+ | __add__(other)
+```
+
+Add operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - addittion of the two numbers
+
+<a name="binary.Binary.__sub__"></a>
+#### \_\_sub\_\_
+
+```python
+ | __sub__(other)
+```
+
+Subtract operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - subtraction of the two numbers
+
+<a name="binary.Binary.__mul__"></a>
+#### \_\_mul\_\_
+
+```python
+ | __mul__(other)
+```
+
+Multiply operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - multiplication of the two numbers
+
+<a name="binary.Binary.__truediv__"></a>
+#### \_\_truediv\_\_
+
+```python
+ | __truediv__(other)
+```
+
+True division operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - true division of the two numbers
+
+<a name="binary.Binary.__floordiv__"></a>
+#### \_\_floordiv\_\_
+
+```python
+ | __floordiv__(other)
+```
+
+Floor division operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - floor division of the two numbers
+
+<a name="binary.Binary.__mod__"></a>
+#### \_\_mod\_\_
+
+```python
+ | __mod__(other)
+```
+
+modular operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - modulation of the two numbers
+
+<a name="binary.Binary.__abs__"></a>
+#### \_\_abs\_\_
+
+```python
+ | __abs__()
+```
+
+Absolute
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - Absolute of the number
+
+<a name="binary.Binary.__ceil__"></a>
+#### \_\_ceil\_\_
+
+```python
+ | __ceil__()
+```
+
+Math ceiling
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - ceiling of the number
+
+<a name="binary.Binary.__floor__"></a>
+#### \_\_floor\_\_
+
+```python
+ | __floor__()
+```
+
+Math floor
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - floor of the number
+
+<a name="binary.Binary.__round__"></a>
+#### \_\_round\_\_
+
+```python
+ | __round__()
+```
+
+Math round
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `Binary` - rounded number
+
+<a name="binary.Binary.__lt__"></a>
+#### \_\_lt\_\_
+
+```python
+ | __lt__(other)
+```
+
+Less than operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `bool` - condition result
+
+<a name="binary.Binary.__gt__"></a>
+#### \_\_gt\_\_
+
+```python
+ | __gt__(other)
+```
+
+Greater than operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `bool` - condition result
+
+<a name="binary.Binary.__le__"></a>
+#### \_\_le\_\_
+
+```python
+ | __le__(other)
+```
+
+Less or equal operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `bool` - condition result
+
+<a name="binary.Binary.__ge__"></a>
+#### \_\_ge\_\_
+
+```python
+ | __ge__(other)
+```
+
+Greater or equal operation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `bool` - condition result
+
+<a name="binary.Binary.__bool__"></a>
+#### \_\_bool\_\_
+
+```python
+ | __bool__()
+```
+
+Boolean transformation
+
+method
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+  
+
+**Returns**:
+
+- `bool` - boolean transformation of the number
+
+<a name="binary.Binary.__rshift__"></a>
+#### \_\_rshift\_\_
+
+```python
+ | __rshift__(ndigits: int)
+```
+
+Shifts number to the right n times
+
+**Arguments**:
+
+- `self` _Binary_ - number to be shifted
+- `ndigits` _int_ - numner times to be shifted
+  
+
+**Returns**:
+
+- `Binary` - shifted number
+
+<a name="binary.Binary.__lshift__"></a>
+#### \_\_lshift\_\_
+
+```python
+ | __lshift__(ndigits: int)
+```
+
+Shifts number to the left n times
+
+**Arguments**:
+
+- `self` _Binary_ - number to be shifted
+- `ndigits` _int_ - numner times to be shifted
+  
+
+**Returns**:
+
+- `Binary` - shifted number
 
 <a name="binary.Binary.testcase"></a>
 #### testcase
