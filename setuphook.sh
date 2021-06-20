@@ -1,5 +1,14 @@
 #!/usr/bin/bash
 
+#
+# This file is only needed by developers who want to automatically generate
+# the API documentation when performing a `git push`.
+# This sets up a git hook on the local machine of the developer which
+# triggers that on each `git push` a new API document is auto-generated in
+# markdown format using pydoc and the pydoc-markdown tools.
+# This auto-generated file is binary_fractions/README.md.
+#
+
 HOOKFILE=".git/hooks/pre-commit"
 PATTERN="# autogenerate README.md"
 

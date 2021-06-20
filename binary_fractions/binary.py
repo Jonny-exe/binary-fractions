@@ -322,15 +322,17 @@ class Binary(object):
                     fracpart = fracpart.rstrip("0")
                     exp = int(m.group("exp") or "0")
                     if exp != 0:
-                        # version A: this normalizes to remove comma
-                        intpart = str(int(intpart + fracpart))
-                        exppart = str(exp - len(fracpart))
-                        self._value = sign + intpart + _EXP + exppart
-                        # # version B: this leaves string as much as is
-                        # if fracpart == "":
-                        #    self._value = sign + intpart + _EXP + str(exp)
-                        # else:
-                        #    self._value = sign + intpart + "." + fracpart + _EXP + str(exp)
+                        # # version A: this normalizes to remove comma
+                        # intpart = str(int(intpart + fracpart))
+                        # exppart = str(exp - len(fracpart))
+                        # self._value = sign + intpart + _EXP + exppart
+                        # version B: this leaves string as much as is
+                        if fracpart == "":
+                            self._value = sign + intpart + _EXP + str(exp)
+                        else:
+                            self._value = (
+                                sign + intpart + "." + fracpart + _EXP + str(exp)
+                            )
                     else:
                         if fracpart == "":
                             self._value = sign + intpart
@@ -698,7 +700,6 @@ class Binary(object):
             return value
         nplusonedigit = fracpart[ndigits]
         nplusonedigits = fracpart[ndigits:]
-        # print(f"nplusonedigit and nplusonedigits is {nplusonedigit} and {nplusonedigits}")
         if (len(nplusonedigits.rstrip("0")) <= 1) or (nplusonedigit == "0"):
             # '' or '1'
             return intpart + "." + fracpart[0:ndigits]
@@ -1160,7 +1161,10 @@ class Binary(object):
 
     def __repr__(self):
         """Represent self."""
-        return f"{self.__class__.__name__}({self._value}, {self._sign}, {self._is_special})"
+        return (
+            f"{self.__class__.__name__}"
+            + f"({self._value}, {self._sign}, {self._is_special})"
+        )
 
     def no_prefix(value):
         """Remove prefix '0b' from string representation.
