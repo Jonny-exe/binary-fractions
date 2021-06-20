@@ -16,8 +16,9 @@ binary strings.
 - Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
 
-Various operations and transformations are offered on these objects.
-You can sum, subtract, multiply, divide, shift, round, ... these objects.
+Many operations and transformations are offered.
+You can sum, subtract, multiply, divide, compute power of, etc.
+of long floating-point binary fractions.
 
 Basic representation of binary fractions and binary floats:
 A binary fraction is a subset of binary floats. Basically, a binary fraction
@@ -60,10 +61,10 @@ If you are curious about floating point binary fractions, have a look at:
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented. For documentation please look at the source code or
-  run pydoc to extract it into a separate document. You can also run
-  `pydoc3 -b` after having installed `binary-fractions` and
-  `pydoc` to view the documentation in your browser.
+- well documented. Please read the documentation inside the source code
+  ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
+  Or look at the pydoc-generated documentation in
+  [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 
 
 ## Sample usage, Example calls:
@@ -194,7 +195,9 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 
 ## Contributions:
 - PRs are welcome and very much appreciated!
-  Before you submit a PR please run `selftest()`
+  Please run
+  [selftest()](https://github.com/Jonny-exe/binary-fractions/blob/a44ec44cb58e97dac661bae6b6baffdf9d94425e/binary_fractions/binary.py#L1237)
+  before issuing a PR to be sure all test cases pass.
 - File Format: linted/beautified with black
 
 Enjoy :heart: !
@@ -208,6 +211,8 @@ Enjoy :heart: !
 from fractions import Fraction
 import math  # isclose()
 import re
+import inspect
+import sys
 
 _BINARY_WARNED_ABOUT_FLOAT = False
 _BINARY_RELATIVE_TOLERANCE = 1e-10
@@ -231,7 +236,12 @@ class Binary(str):
         """Constructor.
 
         Use __new__ and not __init__ because it is immutable.
-        Allows string, float and integer as input for constructor.
+        Allows string, float, integer, and Fraction as input for constructor.
+        If instance is contructed from a string, attention is paid to *not*
+        modify the string or to modify it as little as possible.
+        For example, if given '1e1' it will remain as '1e1', it will not change it
+        to '1'. Same with '1000', it will not change it to '1e4'. We try to keep then
+        string representation as close to the original as possible.
 
         Parameters:
         value (int, float, str): value of number
@@ -241,7 +251,7 @@ class Binary(str):
         Returns:
         Binary: created immutable instance
         """
-        ##### crud for parsing strings #############################################
+        # crud for parsing strings
         #
         # Regular expression used for parsing numeric strings.  Additional
         # comments:
@@ -436,7 +446,7 @@ class Binary(str):
             return self
 
         # any other types
-        raise TypeError(f"Cannot convert {value} to Binary")
+        raise TypeError("Cannot convert %r to Binary" % value)
 
     def from_float(value, rel_tol=_BINARY_RELATIVE_TOLERANCE):
         """Convert from float to Binary.
@@ -562,6 +572,8 @@ class Binary(str):
         """
         if "." in value:
             result = value.rstrip("0").rstrip(".")
+        elif "1" in value:
+            result = value
         else:
             result = value
         if result == "-0":
@@ -656,7 +668,7 @@ class Binary(str):
         result = Binary.round_to(value, ndigits)
         return Binary(result)
 
-    def round_to(value, ndigits=0) -> str:
+    def round_to(value, ndigits=0):
         """Normalize and round number to n digits after comma.
 
         utility function
@@ -675,12 +687,12 @@ class Binary(str):
             raise TypeError(f"Argument {value} must be of type str.")
         # print(f"value is {value} of type {type(value)}")
         value = Binary.to_not_exponential(value)
-        l = value.split(".")
-        intpart = l[0]
-        if len(l) == 1:
+        li = value.split(".")
+        intpart = li[0]
+        if len(li) == 1:
             fracpart = ""
         else:
-            fracpart = l[1]
+            fracpart = li[1]
 
         # print(f"fracpart is {fracpart}")
         if len(fracpart) <= ndigits:
@@ -697,8 +709,8 @@ class Binary(str):
             digits = intpart + fracpart[0:ndigits]
             digits = bin(int(digits, 2) + 1)[2:]  # rounded up
             # print(f'digits is {digits}')
-            l = len(digits)
-            result = digits[: l - ndigits] + "." + digits[l - ndigits :]
+            le = len(digits)
+            result = digits[: le - ndigits] + "." + digits[le - ndigits :]
             return Binary.clean(result)
 
     def fill(self, ndigits=0, strict=False):
@@ -717,9 +729,9 @@ class Binary(str):
         value = self._value
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(Binary.fill_to(value, ndigits, strict))
+        return Binary.fill_to(value, ndigits, strict)
 
-    def fill_to(value, ndigits=0, strict=False) -> str:
+    def fill_to(value, ndigits=0, strict=False):
         """Normalize and fill number to n digits after comma.
 
         utility function
@@ -734,19 +746,17 @@ class Binary(str):
         Returns:
         str: binary string representation of number
         """
-        # TODO: needs to be fixed, fraction is missing
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
         # print(f"value is {value} of type {type(value)}")
         # print(f"non norm. value is {value}")
         value = Binary.to_not_exponential(value)
         # print(f"norm. value is {value}")
-        l = value.split(".")
-        intpart = l[0]
-        if len(l) == 1:
+        li = value.split(".")
+        if len(li) == 1:
             fracpart = ""
         else:
-            fracpart = l[1]
+            fracpart = li[1]
 
         # print(f"fracpart is {fracpart}")
         if len(fracpart) == ndigits:
@@ -783,17 +793,17 @@ class Binary(str):
             exp = 0
             intfracpart = Binary.clean(value)
         else:
-            l = value.split(_EXP)
-            intfracpart = Binary.clean(l[0])
-            exp = int(l[1])
+            li = value.split(_EXP)
+            intfracpart = Binary.clean(li[0])
+            exp = int(li[1])
 
-        l = intfracpart.split(".")
-        intpart = l[0]
-        if len(l) == 1:
+        li = intfracpart.split(".")
+        intpart = li[0]
+        if len(li) == 1:
             fracpart = ""
         else:
-            fracpart = l[1]
-        lenintpart = len(intpart)
+            fracpart = li[1]
+        # lenintpart = len(intpart)
         lenfracpart = len(fracpart)
         exp -= lenfracpart
         intpart += fracpart
@@ -819,23 +829,23 @@ class Binary(str):
             exp = 0
             intfracpart = Binary.clean(value)
         else:
-            l = value.split(_EXP)
-            intfracpart = Binary.clean(l[0])
-            exp = int(l[1])
+            li = value.split(_EXP)
+            intfracpart = Binary.clean(li[0])
+            exp = int(li[1])
 
-        l = intfracpart.split(".")
-        intpart = l[0]
-        if len(l) == 1:
+        li = intfracpart.split(".")
+        intpart = li[0]
+        if len(li) == 1:
             fracpart = ""
         else:
-            fracpart = l[1]
+            fracpart = li[1]
         if self._sign:
             intpart = intpart[1:]
             sign = "-"
         else:
             sign = ""
         lenintpart = len(intpart)
-        lenfracpart = len(fracpart)
+        # lenfracpart = len(fracpart)
 
         exp += lenintpart - 1
         fracpart = intpart[1:] + fracpart
@@ -881,16 +891,16 @@ class Binary(str):
             exp = 0
             intfracpart = Binary.clean(value)
         else:
-            l = value.split(_EXP)
-            intfracpart = Binary.clean(l[0])
-            exp = int(l[1])
+            li = value.split(_EXP)
+            intfracpart = Binary.clean(li[0])
+            exp = int(li[1])
 
-        l = intfracpart.split(".")
-        intpart = l[0]
-        if len(l) == 1:
+        li = intfracpart.split(".")
+        intpart = li[0]
+        if len(li) == 1:
             fracpart = ""
         else:
-            fracpart = l[1]
+            fracpart = li[1]
         return (sign, intpart, fracpart, exp)
 
     def components(self):
@@ -970,6 +980,17 @@ class Binary(str):
             else:
                 return 1
 
+        if self._fraction == other._fraction:
+            result = 0
+        elif self._fraction < other._fraction:
+            result = -1
+        else:
+            result = 1
+        return result
+
+        # TODO: this does string comparison, no longer needed
+        # TODO: cleanup, save this code as string comparisons
+        # TODO: Bug for 0b101e-18 0b0.000000000000000101 ?
         if self._sign and self._value[0] != "-":
             raise ValueError(
                 f"Invalid literal: {self._value}. Internal error. Wrong sign."
@@ -1076,7 +1097,6 @@ class Binary(str):
             result = [sign] + bin(int_number)[2:].split()
         rest = Fraction(0)
         i = 1
-        zeros = 0
         fraction_number = number - int_number
         if fraction_number > 0:
             result.append(".")
@@ -1110,8 +1130,8 @@ class Binary(str):
             value = Binary.to_not_exponential(value)
         sign, intpart, fracpart, exp = Binary.get_components(value)
         result = Fraction(int(intpart, 2))
-        l = len(fracpart)
-        for i in range(l):
+        le = len(fracpart)
+        for i in range(le):
             c = fracpart[i]
             if c == "1":
                 result += Fraction(1, 2 ** (i + 1))
@@ -1189,29 +1209,167 @@ class Binary(str):
             return _PREFIX + self._value
 
     def __add__(self, other):
+        # TODO: No pydoc! add pydoc
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction + other._fraction)
 
     def __sub__(self, other):
+        # TODO: No pydoc! add pydoc
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction - other._fraction)
 
     def __mul__(self, other):
+        # TODO: No pydoc! add pydoc
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction * other._fraction)
 
     def __truediv__(self, other):
+        # TODO: No pydoc! add pydoc
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction / other._fraction)
 
     def __floordiv__(self, other):
+        # TODO: No pydoc! add pydoc
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction // other._fraction)
+
+    def __mod__(self, other):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction % other._fraction)
+
+    def __abs__(self):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(abs(self._fraction))
+
+    def __ceil__(self):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(math.ceil(self._fraction))
+
+    def __floor__(self):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(math.ceil(self._fraction))
+
+    def __round__(self):
+        # TODO: I already implemented a round() which is exact for binary.
+        # compare my round() to this!
+        # TODO: No pydoc! add pydoc
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(math.round(self._fraction))
+
+    def __lt__(self, other):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction < other._fraction
+
+    def __gt__(self, other):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction > other._fraction
+
+    def __le__(self, other):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction <= other._fraction
+
+    def __ge__(self, other):
+        # TODO: No pydoc! add pydoc
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction >= other._fraction
+
+    def __bool__(self):
+        # TODO; already implemented, compare both implementations
+        # and use the proper one
+        # TODO: No pydoc! add pydoc
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return bool(self._fraction)
+
+    def __rshift__(self, ndigits: int):
+        """Shifts number to the right n times
+
+        Parameters:
+        self (Binary): number to be shifted
+        ndigits (int): numner times to be shifted
+
+        Returns:
+        Binary: True if test passes, False if test fails
+        """
+        if not isinstance(self, Binary) or not isinstance(ndigits, int):
+            raise TypeError(
+                f"Arguments {self} {ndigits} must be of type Binary and int."
+            )
+        if "e" in self._value:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            shifted = (
+                sign * "-"
+                + intpart
+                + "."
+                + (fracpart if len(fracpart) > 0 else "0")
+                + "e"
+                + str(exp - ndigits)
+            )
+        else:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            if ndigits >= len(intpart):
+                intpart = (ndigits - len(intpart) + 1) * "0" + intpart
+
+            shifted_intpart = sign * "-" + intpart[: len(intpart) - ndigits] + "."
+            shifted_fracpart = intpart[len(intpart) - ndigits :] + fracpart
+            shifted = Binary.clean(shifted_intpart + shifted_fracpart)
+        return Binary(shifted)
+
+    def __lshift__(self, ndigits: int):
+        # self << ndigits
+        # TODO: No pydoc! add pydoc
+        if not isinstance(self, Binary) or not isinstance(ndigits, int):
+            raise TypeError(
+                f"Arguments {self} {ndigits} must be of type Binary and int."
+            )
+        if "e" in self._value:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            shifted = (
+                sign * "-"
+                + intpart
+                + "."
+                + (fracpart if len(fracpart) > 0 else "0")
+                + "e"
+                + str(exp + ndigits)
+            )
+        else:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            if ndigits >= len(fracpart):
+                fracpart += (ndigits - len(fracpart) + 1) * "0"
+            shifted_intpart = (
+                sign * "-" + (intpart + fracpart[:ndigits]).lstrip("0") + "."
+            )
+            shifted_intpart = "0." if len(shifted_intpart) <= 1 else shifted_intpart
+            shifted_fracpart = fracpart[ndigits:]
+            shifted = Binary.clean(shifted_intpart + shifted_fracpart)
+        return Binary(shifted)
+
+    def __LINE__():
+        try:
+            raise Exception
+        except:
+            return sys.exc_info()[2].tb_frame.f_back.f_back.f_lineno
 
     def testcase(id, input, expected_result):
         """Test a single test case. Compares input to expected result.
@@ -1225,13 +1383,15 @@ class Binary(str):
         bool: True if test passes, False if test fails
         """
         print(f"Test case {id} ", end="")
+        info = ""
         if input == expected_result:
-            result = " passed ✅"
+            result = "passed ✅"
             ret = True
         else:
-            result = " failed ❌"
+            result = f"in line {Binary.__LINE__()} failed ❌"
             ret = False
-        print(f"{result}")
+            info = f" : output: {input}; expected: {expected_result}"
+        print(f"{result}{info}")
         return ret
 
     def selftest():
@@ -1244,136 +1404,146 @@ class Binary(str):
         bool: True if all tests pass, False if any single test fails
         """
         tc = 1000
-        r = True
+        r = 0  # failure count
         # type should be Binary, not string
-        r &= Binary.testcase(tc, "Binary" in str(type(Binary(5))), True)
+        r += not Binary.testcase(tc, "Binary" in str(type(Binary(5))), True)
         tc += 1
         try:
             Binary("102")  # should fail
         except:
-            r &= Binary.testcase(
+            r += not Binary.testcase(
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
         tc += 1
-        r &= Binary.testcase(tc, float(Binary("0")), 0.0)
+        r += not Binary.testcase(tc, float(Binary("0")), 0.0)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary("1.1")), 1.5)
+        r += not Binary.testcase(tc, float(Binary("1.1")), 1.5)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary("-1.11")), -1.75)
+        r += not Binary.testcase(tc, float(Binary("-1.11")), -1.75)
 
         tc += 10
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1"), Fraction(1))
+        r += not Binary.testcase(tc, Binary.binary_string_to_fraction("1"), Fraction(1))
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("0"), Fraction(0))
+        r += not Binary.testcase(tc, Binary.binary_string_to_fraction("0"), Fraction(0))
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("0.1"), Fraction(0.5))
+        r += not Binary.testcase(
+            tc, Binary.binary_string_to_fraction("0.1"), Fraction(0.5)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
+        r += not Binary.testcase(
+            tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
+        r += not Binary.testcase(
+            tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5)
+        )
         tc += 1
-        r &= Binary.testcase(tc, Binary.binary_string_to_fraction("-1"), Fraction(-1))
+        r += not Binary.testcase(
+            tc, Binary.binary_string_to_fraction("-1"), Fraction(-1)
+        )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5)
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5)
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6)
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5)
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16)
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16)
         )
 
         tc += 10
-        r &= Binary.testcase(tc, Binary.fraction_to_string(0), "0")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(0), "0")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(1), "1")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(1), "1")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(2), "10")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(2), "10")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(13), "1101")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(13), "1101")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-0), "0")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-0), "0")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-1), "-1")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-1), "-1")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-2), "-10")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-2), "-10")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-13), "-1101")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-13), "-1101")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(0.0), "0")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(0.0), "0")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(1.0), "1")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(1.0), "1")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(2.0), "10")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(2.0), "10")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(13.0), "1101")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(13.0), "1101")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-0.0), "0")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-0.0), "0")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-1.0), "-1")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-1.0), "-1")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-2.0), "-10")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-2.0), "-10")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(-13.0), "-1101")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(-13.0), "-1101")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(0.0)), "0")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(0.0)), "0")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(1.0)), "1")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(1.0)), "1")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(2.0)), "10")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(2.0)), "10")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(13.0)), "1101")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(13.0)), "1101")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-0.0)), "0")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-0.0)), "0")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-1.0)), "-1")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-1.0)), "-1")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-2.0)), "-10")
+        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-2.0)), "-10")
         tc += 1
-        r &= Binary.testcase(tc, Binary.fraction_to_string(Fraction(-13.0)), "-1101")
+        r += not Binary.testcase(
+            tc, Binary.fraction_to_string(Fraction(-13.0)), "-1101"
+        )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)),
             "1" + "0" * 99 + "1",
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(-2 ** 100 - 2 ** 0)),
             "-1" + "0" * 99 + "1",
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, 2 ** 101)),
             "0.1" + "0" * 99 + "1",
         )
         tc += 1
 
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, -1 * 2 ** 101)),
             "-0.1" + "0" * 99 + "1",
         )
         tc += 1
 
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(
                 Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10000
@@ -1382,7 +1552,7 @@ class Binary(str):
         )
 
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(
                 Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10
@@ -1391,7 +1561,7 @@ class Binary(str):
         )
 
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.fraction_to_string(
                 Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10, strict=True
@@ -1400,55 +1570,57 @@ class Binary(str):
         )
 
         tc += 10
-        r &= Binary.testcase(tc, Binary.string_to_fraction("0"), Fraction(0))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("0"), Fraction(0))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("1"), Fraction(1))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("1"), Fraction(1))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("-0"), Fraction(0))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("-0"), Fraction(0))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("-1"), Fraction(-1))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("-1"), Fraction(-1))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("11"), Fraction(3))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("11"), Fraction(3))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("-0.0"), Fraction(0))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("-0.0"), Fraction(0))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("1.0"), Fraction(1))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("1.0"), Fraction(1))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("1.1"), Fraction(3, 2))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("1.1"), Fraction(3, 2))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("-1.1"), Fraction(3, -2))
+        r += not Binary.testcase(tc, Binary.string_to_fraction("-1.1"), Fraction(3, -2))
         tc += 1
-        r &= Binary.testcase(tc, Binary.string_to_fraction("-0.111"), Fraction(-0.875))
+        r += not Binary.testcase(
+            tc, Binary.string_to_fraction("-0.111"), Fraction(-0.875)
+        )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 2 + "1"),
             Fraction(3 * 2 ** 3 + 1, 2 ** 4),
         )
         tc += 1
         print(tc, float(Binary.string_to_fraction("1.1" + "0" * 100 + "1")))
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 100 + "1"),
             Fraction(3 * 2 ** 101 + 1, 2 ** 102),
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 1000 + "1"),
             Fraction(3 * 2 ** 1001 + 1, 2 ** 1002),
         )
 
         tc += 10
-        r &= Binary.testcase(tc, Binary(-3.5), "-11.1")
+        r += not Binary.testcase(tc, Binary(-3.5), "-11.1")
         tc += 1
-        r &= Binary.testcase(tc, Binary(-3.5), "-0b11.1")
+        r += not Binary.testcase(tc, Binary(-3.5), "-0b11.1")
         tc += 1
-        r &= Binary.testcase(tc, Binary(-3.5).np(), "-11.1")
+        r += not Binary.testcase(tc, Binary(-3.5).np(), "-11.1")
         tc += 1
-        r &= Binary.testcase(tc, str(Binary(-3.5)), "-0b11.1")
+        r += not Binary.testcase(tc, str(Binary(-3.5)), "-0b11.1")
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary(10.10).compare_representation(
                 "1010.0001100110011001100110011001100110011001100110011"
@@ -1456,13 +1628,13 @@ class Binary(str):
             True,
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("10.111").compare_representation("10.111"), True
         )
         tc += 1
-        r &= Binary.testcase(tc, Binary(5).compare_representation("101"), True)
+        r += not Binary.testcase(tc, Binary(5).compare_representation("101"), True)
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary(8.3).compare_representation(
                 "1000.010011001100110011001100110011001100110011001101"
@@ -1471,27 +1643,27 @@ class Binary(str):
         )
         print("TC: ", tc)
         tc += 1
-        r &= Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
+        r += not Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
         tc += 1
-        r &= Binary.testcase(tc, Binary(1.0).compare_representation("1"), True)
+        r += not Binary.testcase(tc, Binary(1.0).compare_representation("1"), True)
         tc += 1
-        r &= Binary.testcase(tc, Binary(3.5).compare_representation("11.1"), True)
+        r += not Binary.testcase(tc, Binary(3.5).compare_representation("11.1"), True)
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary(-13.75).compare_representation("-1101.11"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
             True,
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary(13.0 + 2 ** -30).compare_representation(
                 "1101.000000000000000000000000000001"
@@ -1499,7 +1671,7 @@ class Binary(str):
             True,
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary(13.0 + 2 ** -40).compare_representation(
                 "1101.0000000000000000000000000000000000000001"
@@ -1507,15 +1679,15 @@ class Binary(str):
             True,
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary(13.0 + 2 ** -50).compare_representation("1101"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary(13.0 + 2 ** -60).compare_representation("1101"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary(
                 13.0
@@ -1530,158 +1702,308 @@ class Binary(str):
             True,
         )
         tc += 10
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.1").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.10").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.101").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.11").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.110").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.1101").round(1).compare_representation("10"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.1111").round(1).compare_representation("10"), True
         )
         tc += 10
-        r &= Binary.testcase(tc, Binary("1.1111").fill(1), "1.1111")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(1), "1.1111")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(4), "1.1111")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(4), "1.1111")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(5), "1.11110")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(5), "1.11110")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(6), "1.111100")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(6), "1.111100")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(1, True), "10.0")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(1, True), "10.0")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(4, True), "1.1111")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(4, True), "1.1111")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(5, True), "1.11110")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(5, True), "1.11110")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.1111").fill(6, True), "1.111100")
+        r += not Binary.testcase(tc, Binary("1.1111").fill(6, True), "1.111100")
         tc += 1
-        r &= Binary.testcase(tc, Binary("1.0011").fill(1, True), "1.0")
+        r += not Binary.testcase(tc, Binary("1.0011").fill(1, True), "1.0")
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary((1, (1, 0, 1, 0), -2)).compare_representation("-1010e-2"), True
         )
         tc += 10
-        r &= Binary.testcase(tc, float(Binary("-1")), -1.0)
+        r += not Binary.testcase(tc, float(Binary("-1")), -1.0)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary("-1.1")), -1.5)
+        r += not Binary.testcase(tc, float(Binary("-1.1")), -1.5)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary("1.001")), 1.125)
+        r += not Binary.testcase(tc, float(Binary("1.001")), 1.125)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
+        r += not Binary.testcase(tc, float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
+        r += not Binary.testcase(tc, float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
+        r += not Binary.testcase(tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
         tc += 1
-        r &= Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
+        r += not Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
 
         tc += 10
-        r &= Binary.testcase(tc, int(Binary("-1")), -1)
+        r += not Binary.testcase(tc, int(Binary("-1")), -1)
         tc += 1
-        r &= Binary.testcase(tc, int(Binary("-1.111")), -1)
+        r += not Binary.testcase(tc, int(Binary("-1.111")), -1)
         tc += 1
-        r &= Binary.testcase(tc, int(Binary("1.001")), 1)
+        r += not Binary.testcase(tc, int(Binary("1.001")), 1)
         tc += 1
-        r &= Binary.testcase(tc, int(Binary((1, (1, 0, 1, 0), -2))), -2)
+        r += not Binary.testcase(tc, int(Binary((1, (1, 0, 1, 0), -2))), -2)
         tc += 1
-        r &= Binary.testcase(tc, int(Binary(-13.0 - 2 ** -10)), -13)
+        r += not Binary.testcase(tc, int(Binary(-13.0 - 2 ** -10)), -13)
         tc += 1
-        r &= Binary.testcase(tc, int(Binary(13.0 + 2 ** -20)), 13)
+        r += not Binary.testcase(tc, int(Binary(13.0 + 2 ** -20)), 13)
         tc += 1
-        r &= Binary.testcase(tc, int(Binary(13.0 + 2 ** -30)), 13)
+        r += not Binary.testcase(tc, int(Binary(13.0 + 2 ** -30)), 13)
 
         tc += 10
-        r &= Binary.testcase(tc, Binary(1) + Binary("1"), 2)
+        r += not Binary.testcase(tc, Binary(1) + Binary("1"), 2)
         tc += 1
-        r &= Binary.testcase(tc, Binary(-1) + Binary("1"), 0)
+        r += not Binary.testcase(tc, Binary(-1) + Binary("1"), 0)
         tc += 1
-        r &= Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
+        r += not Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
 
         tc += 10
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
         )
         tc += 1
-        r &= Binary.testcase(tc, Binary(1) - Binary(1), 0)
+        r += not Binary.testcase(tc, Binary(1) - Binary(1), 0)
         tc += 1
-        r &= Binary.testcase(tc, Binary(0) - Binary(1), -1)
+        r += not Binary.testcase(tc, Binary(0) - Binary(1), -1)
         tc += 1
-        r &= Binary.testcase(tc, Binary(0.1) - Binary(0.2), -0.1)
+        r += not Binary.testcase(tc, Binary(0.1) - Binary(0.2), -0.1)
         tc += 1
-        r &= Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
+        r += not Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
 
         tc += 10
-        r &= Binary.testcase(tc, Binary(0) * Binary(1), 0)
+        r += not Binary.testcase(tc, Binary(0) * Binary(1), 0)
         tc += 1
-        r &= Binary.testcase(tc, Binary(1) * Binary(1), 1)
+        r += not Binary.testcase(tc, Binary(1) * Binary(1), 1)
         tc += 1
-        r &= Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
+        r += not Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
         tc += 1
-        r &= Binary.testcase(tc, Binary(100) / Binary(Fraction(1, 10)), 1000)
+        r += not Binary.testcase(tc, Binary(100) / Binary(Fraction(1, 10)), 1000)
         tc += 1
-        r &= Binary.testcase(tc, Binary(0) / Binary(10), 0)
+        r += not Binary.testcase(tc, Binary(0) / Binary(10), 0)
         tc += 1
-        r &= Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
+        r += not Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
         tc += 1
-        r &= Binary.testcase(tc, Binary(10) // Binary(3), 3)
+        r += not Binary.testcase(tc, Binary(10) // Binary(3), 3)
         tc += 1
-        r &= Binary.testcase(tc, Binary(7) // Binary(2), 3)
+        r += not Binary.testcase(tc, Binary(7) // Binary(2), 3)
         tc += 1
-        r &= Binary.testcase(tc, Binary(8) // Binary(3), 2)
+        r += not Binary.testcase(tc, Binary(8) // Binary(3), 2)
 
         tc += 10
-        r &= Binary.testcase(
+        r += not Binary.testcase(tc, Binary(1) >> 1, 0.5)
+        tc += 1
+        r += not Binary.testcase(tc, Binary(2) >> 3, 0.25)
+        tc += 1
+        r += not Binary.testcase(tc, Binary(0.25) >> 1, Fraction(1, 8))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("1e1") >> 1, 1)
+
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") >> 2, 5)
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") >> 3, Fraction(5, 2 ** 1))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") >> 3, Binary(Fraction(5, 2 ** 1)))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") >> 4, Binary(Fraction(5, 2 ** 2)))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") >> 4, Binary("101e-2"))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") >> 20, Binary("101e-18"))
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary("101e2") >> 20, Binary(Fraction(5, 2 ** 18))
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
+        )
+        tc += 1
+        # should this be '101' or '101e0'?
+        r += not Binary.testcase(
+            tc, (Binary("101e2") >> 2).compare_representation("101"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101e-2") >> 2).compare_representation("101e-4"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101") >> 2).compare_representation("1.01"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc,
+            (Binary("101") >> 20).compare_representation("0." + "0" * 17 + "101"),
+            True,
+        )
+        # TODO ZZZZZ START
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01e2") >> 0).compare_representation("101.01e2"), True
+        )
+        tc += 1
+        # should this be '10.101e2' or '101.01e1'?
+        r += not Binary.testcase(
+            tc, (Binary("101.01e2") >> 1).compare_representation("101.01e1"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01e2") >> 20).compare_representation("101.01e18"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01") >> 2).compare_representation("1.0101"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01") >> 1).compare_representation("10.101"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01") >> 3).compare_representation("0.101010"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc,
+            (Binary("101.01") >> 20).compare_representation("0." + "0" * 17 + "10101"),
+            True,
+        )
+        # TODO ZZZZZ END
+
+        tc += 10
+        r += not Binary.testcase(tc, Binary(1) << 1, 2)
+        tc += 1
+        r += not Binary.testcase(tc, Binary(2) << 3, 16)
+        tc += 1
+        r += not Binary.testcase(tc, Binary(0.25) << 1, 0.5)
+        tc += 1
+        r += not Binary.testcase(tc, Binary(0.125) << 3, 1)
+        tc += 1
+        r += not Binary.testcase(tc, Binary("1e1") << 2, 8)
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") << 2, 5 * 2 ** 4)
+        tc += 1
+        r += not Binary.testcase(tc, Binary("101e2") << 20, 5 * 2 ** 22)
+        tc += 1
+        # should this be '101' or '101e0'?
+        r += not Binary.testcase(
+            tc, (Binary("101e-2") << 2).compare_representation("101"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101e2") << 2).compare_representation("101e4"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101e2") << 20).compare_representation("101e22"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101") << 2).compare_representation("10100"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101") << 20).compare_representation("101" + "0" * 20), True
+        )
+        tc += 1
+        # should this be '10101e2' or '101.01e4'? I think '101.01e4' is correct
+        r += not Binary.testcase(
+            tc, (Binary("101.01e2") << 2).compare_representation("101.01e4"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01e2") << 20).compare_representation("101.01e22"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01") << 2).compare_representation("10101"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01") << 1).compare_representation("1010.1"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, (Binary("101.01") << 3).compare_representation("101010"), True
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc,
+            (Binary("101.01") << 20).compare_representation("10101" + "0" * 18),
+            True,
+        )
+
+        tc += 10
+        r += not Binary.testcase(
             tc,
             Binary("1.1").to_simple_exponential().compare_representation("11e-1"),
             True,
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
             True,
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc, Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
         )
         tc += 1
-        r &= Binary.testcase(
+        r += not Binary.testcase(
             tc,
             Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
             True,
         )
         tc += 1
-        if r:
+        if r == 0:
             result = "Self-Test: 😃 All test cases passed ✅"
             ret = True
         else:
-            result = "Self-Test: Some test case failed ❌"
+            plural = "" if r == 1 else "s"
+            result = f"Self-Test: {r} test case{plural} failed ❌"
             ret = False
         print(f"{result}")
         return ret
 
 
-##### Useful Constants (internal use only) ################################
+# Useful Constants (internal use only)
 
 """ Reusable defaults """
 _Infinity = Binary("Inf")
