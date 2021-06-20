@@ -10,9 +10,12 @@ binary strings.
 - e.g. the integer 5 will be represented as string '0b11'.
 - e.g. the float -3.75 will be represented as string '-0b11.11'.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
-Exponential representation is also possible:
+- Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-Various operations and transformations are offered.
+
+Many operations and transformations are offered.
+You can sum, subtract, multiply, divide, compute power of, etc.
+of long floating-point binary fractions.
 
 Basic representation of binary fractions and binary floats:
 A binary fraction is a subset of binary floats. Basically, a binary fraction
@@ -55,7 +58,10 @@ If you are curious about floating point binary fractions, have a look at:
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented
+- well documented. Please read the documentation inside the source code
+  ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
+  Or look at the pydoc-generated documentation in
+  [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md)).
 
 
 ## Sample usage, Example calls:
@@ -186,6 +192,7 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 
 ## Contributions:
 - PRs are welcome and very much appreciated!
+  Please run [selftest()](https://github.com/Jonny-exe/binary-fractions/blob/a44ec44cb58e97dac661bae6b6baffdf9d94425e/binary_fractions/binary.py#L1237) before issuing a PR to be sure all test cases pass.
 - File Format: linted/beautified with black
 
 Enjoy :heart: !
