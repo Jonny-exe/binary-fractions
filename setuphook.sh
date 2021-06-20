@@ -2,6 +2,14 @@
 
 HOOKFILE=".git/hooks/pre-commit"
 PATTERN="# autogenerate README.md"
+
+if ! test -f "$HOOKFILE"; then
+  echo "Copying file from \"${HOOKFILE}.sample\" to \"$HOOKFILE\"."
+  cp "${HOOKFILE}.sample" "$HOOKFILE"
+else
+  echo "${HOOKFILE} already exists. Perfect."
+fi
+
 cnt=$(grep "$PATTERN" $HOOKFILE | wc -l)
 if [ "$cnt" == "0" ]; then
   #

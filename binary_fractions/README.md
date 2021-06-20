@@ -58,7 +58,7 @@
 ![logo](binary-fractions.svg)
 
 An implementation of a floating-point binary fractions class and module
-in Python. Work with binary franctions and binary floats with ease!
+in Python. Work with binary fractions and binary floats with ease!
 
 This module allows one to represent integers, floats and fractions as
 binary strings.
