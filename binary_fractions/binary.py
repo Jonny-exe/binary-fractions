@@ -229,7 +229,7 @@ _EXP = "e"
 # https://github.com/bradley101/fraction/blob/master/fraction/Fraction.py
 
 
-class Binary(str):
+class Binary(object):
     """Floating point class for binary fractions and arithmetic."""
 
     def __new__(cls, value="0", simplify=True):
@@ -1209,55 +1209,142 @@ class Binary(str):
             return _PREFIX + self._value
 
     def __add__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Add operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: addittion of the two numbers
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction + other._fraction)
 
     def __sub__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Subtract operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: subtraction of the two numbers
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction - other._fraction)
 
     def __mul__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Multiply operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: multiplication of the two numbers
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction * other._fraction)
 
     def __truediv__(self, other):
-        # TODO: No pydoc! add pydoc
+        """True division operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: true division of the two numbers
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction / other._fraction)
 
     def __floordiv__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Floor division operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: floor division of the two numbers
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction // other._fraction)
 
     def __mod__(self, other):
-        # TODO: No pydoc! add pydoc
+        """modular operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: modulation of the two numbers
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction % other._fraction)
 
     def __abs__(self):
-        # TODO: No pydoc! add pydoc
+        """Absolute
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: Absolute of the number
+        """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(abs(self._fraction))
 
     def __ceil__(self):
-        # TODO: No pydoc! add pydoc
+        """Math ceiling
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: ceiling of the number
+        """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
 
     def __floor__(self):
-        # TODO: No pydoc! add pydoc
+        """Math floor
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: floor of the number
+        """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
@@ -1265,31 +1352,80 @@ class Binary(str):
     def __round__(self):
         # TODO: I already implemented a round() which is exact for binary.
         # compare my round() to this!
-        # TODO: No pydoc! add pydoc
+        """Math round
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: rounded number
+        """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.round(self._fraction))
 
     def __lt__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Less than operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return self._fraction < other._fraction
 
     def __gt__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Greater than operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return self._fraction > other._fraction
 
     def __le__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Less or equal operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return self._fraction <= other._fraction
 
     def __ge__(self, other):
-        # TODO: No pydoc! add pydoc
+        """Greater or equal operation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return self._fraction >= other._fraction
@@ -1297,7 +1433,16 @@ class Binary(str):
     def __bool__(self):
         # TODO; already implemented, compare both implementations
         # and use the proper one
-        # TODO: No pydoc! add pydoc
+        """Boolean transformation
+
+        method
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        bool: boolean transformation of the number
+        """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return bool(self._fraction)
@@ -1310,7 +1455,7 @@ class Binary(str):
         ndigits (int): numner times to be shifted
 
         Returns:
-        Binary: True if test passes, False if test fails
+        Binary: shifted number
         """
         if not isinstance(self, Binary) or not isinstance(ndigits, int):
             raise TypeError(
@@ -1337,8 +1482,15 @@ class Binary(str):
         return Binary(shifted)
 
     def __lshift__(self, ndigits: int):
-        # self << ndigits
-        # TODO: No pydoc! add pydoc
+        """Shifts number to the left n times
+
+        Parameters:
+        self (Binary): number to be shifted
+        ndigits (int): numner times to be shifted
+
+        Returns:
+        Binary: shifted number
+        """
         if not isinstance(self, Binary) or not isinstance(ndigits, int):
             raise TypeError(
                 f"Arguments {self} {ndigits} must be of type Binary and int."
