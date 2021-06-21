@@ -231,7 +231,7 @@ _EXP = "e"
 class Binary(object):
     """Floating point class for binary fractions and arithmetic."""
 
-    def __new__(cls, value="0", simplify=True):
+    def __new__(cls, value:[int,float,str,Fraction] = "0", simplify:bool = True):
         """Constructor.
 
         Use __new__ and not __init__ because it is immutable.
@@ -449,7 +449,7 @@ class Binary(object):
         # any other types
         raise TypeError("Cannot convert %r to Binary" % value)
 
-    def from_float(value, rel_tol=_BINARY_RELATIVE_TOLERANCE):
+    def from_float(value:float, rel_tol:float=_BINARY_RELATIVE_TOLERANCE):
         """Convert from float to Binary.
 
         utility function
@@ -520,11 +520,11 @@ class Binary(object):
         # result = Binary.to_float(self._value)
         return result  # float or integer
 
-    def to_float(value):
-        """Convert from Binary to float or integer.
+    def to_float(value:str):
+        """Convert from Binary string to float or integer.
 
         utility function
-        Binary --> float or integer
+        Binary string --> float or integer
         could also use inverse of method float.hex()
 
         Parameters:
@@ -559,7 +559,7 @@ class Binary(object):
                 result += (2 ** -(i + 1)) * sign
         return result  # float
 
-    def clean(value):
+    def clean(value:str) -> str:
         """Clean up string representation.
 
         utility function
@@ -581,7 +581,7 @@ class Binary(object):
             result = "0"
         return result
 
-    def to_not_exponential(value):
+    def to_not_exponential(value:str) -> str:
         """Normalize string representation. Remove exponent part.
 
         utility function
