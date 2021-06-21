@@ -655,6 +655,24 @@ class Binary(object):
             result = Fraction((-1) ** sign * int(intpart + fracpart, 2), 2 ** -exp)
         return result
 
+    def __round__(self):
+        """Normalize and round number to n digits after comma.
+
+        method, see round_to()
+
+        Parameters:
+        ndigits (int): number of digits after comma, precision
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        ndigits = 0
+        value = self._value
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        result = Binary.round_to(value, ndigits)
+        return Binary(result)
+
     def round(self, ndigits=0):
         """Normalize and round number to n digits after comma.
 
@@ -751,8 +769,6 @@ class Binary(object):
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
-        # print(f"value is {value} of type {type(value)}")
-        # print(f"non norm. value is {value}")
         value = Binary.to_not_exponential(value)
         # print(f"norm. value is {value}")
         li = value.split(".")
@@ -879,21 +895,6 @@ class Binary(object):
         else:
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
         return Binary(result, False)
-
-    def __bool__(self):
-        """Implement the 'not' operand, operation.
-
-        Return True if self is nonzero; otherwise return False.
-        NaNs and infinities are considered nonzero.
-        For "not" operand.
-
-        Parameters:
-        none
-
-        Returns:
-        Binary: binary string representation of number
-        """
-        return self._is_special or Binary.to_not_exponential(self._value) != "0"
 
     def get_components(value):
         """Return sign, intpart (without sign), fracpart, exp.
@@ -1375,22 +1376,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
 
-    def __round__(self):
-        # TODO: I already implemented a round() which is exact for binary.
-        # compare my round() to this!
-        """Math round
-
-        method
-
-        Parameters:
-        self (Binary): binary number
-
-        Returns:
-        Binary: rounded number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(math.round(self._fraction))
 
     def __lt__(self, other):
         """Less than operation
@@ -1457,8 +1442,6 @@ class Binary(object):
         return self._fraction >= other._fraction
 
     def __bool__(self):
-        # TODO; already implemented, compare both implementations
-        # and use the proper one
         """Boolean transformation
 
         method
