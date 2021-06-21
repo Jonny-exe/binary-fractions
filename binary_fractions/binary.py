@@ -627,7 +627,10 @@ class Binary(object):
                     result = "0." + intpart + fracpart
                 else:
                     fracpart = intpart[exp:] + fracpart
-                    intpart = intpart[:exp]
+                    if intpart[:exp] == "" or intpart[:exp] == "-":
+                        intpart = "0"
+                    else:
+                        intpart = intpart[:exp]
                     result = intpart + "." + fracpart
         result = Binary.clean(result)
         # print(f"after normalize {result}")
@@ -807,6 +810,12 @@ class Binary(object):
         lenfracpart = len(fracpart)
         exp -= lenfracpart
         intpart += fracpart
+
+        if self._sign:
+            intpart = "-" + intpart[1:].lstrip("0") if len(intpart) > 1 else intpart
+        else:
+            intpart = intpart.lstrip("0") if len(intpart) > 1 else intpart
+
         return Binary(intpart + _EXP + str(exp), False)
 
     def to_sci_exponential(self):
@@ -822,6 +831,8 @@ class Binary(object):
         Returns:
         Binary: binary string representation of number
         """
+        print("HELLO")
+        print(self._value)
         value = self._value
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -845,12 +856,25 @@ class Binary(object):
         else:
             sign = ""
         lenintpart = len(intpart)
-        # lenfracpart = len(fracpart)
 
+        intfracpart = intfracpart.replace(".", "").replace("-", "")
+        middle = 1
+        start = 0
         exp += lenintpart - 1
-        fracpart = intpart[1:] + fracpart
-        intpart = intpart[:1]
-        if fracpart == "":
+        print("HELLO")
+        while True:
+            if middle > len(intfracpart):
+                break
+            if intfracpart[start:start+1] != "0":
+                fracpart = intfracpart[middle:]
+                intpart = intfracpart[start:middle]
+                break
+            start += 1
+            middle += 1
+            exp -= 1
+
+        print("Parts: ", intpart, fracpart)
+        if fracpart == "" or fracpart == "0":
             result = sign + intpart + _EXP + str(exp)
         else:
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
@@ -1154,7 +1178,6 @@ class Binary(object):
         if isinstance(other, Binary):
             return str(self._value) == str(other._value)
         if isinstance(other, str):
-            print(self._value)
             return str(self._value) == other
         else:
             return str(self._value) == str(other)
@@ -1464,14 +1487,14 @@ class Binary(object):
             raise TypeError(
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
-        if "e" in self._value:
+        if _EXP in self._value:
             sign, intpart, fracpart, exp = Binary.get_components(self._value)
             shifted = (
                 sign * "-"
                 + intpart
                 + "."
                 + (fracpart if len(fracpart) > 0 else "0")
-                + "e"
+                + _EXP
                 + str(exp - ndigits)
             )
         else:
@@ -1753,7 +1776,6 @@ class Binary(object):
             Fraction(3 * 2 ** 3 + 1, 2 ** 4),
         )
         tc += 1
-        print(tc, float(Binary.string_to_fraction("1.1" + "0" * 100 + "1")))
         r += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 100 + "1"),
@@ -1796,7 +1818,6 @@ class Binary(object):
             ),
             True,
         )
-        print("TC: ", tc)
         tc += 1
         r += not Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
         tc += 1
@@ -2039,7 +2060,7 @@ class Binary(object):
         )
         tc += 1
         r += not Binary.testcase(
-            tc, (Binary("101.01e2") >> 20).compare_representation("101.01e18"), True
+            tc, (Binary("101.01e2") >> 20).compare_representation("101.01e-18"), True
         )
         tc += 1
         r += not Binary.testcase(
@@ -2051,7 +2072,7 @@ class Binary(object):
         )
         tc += 1
         r += not Binary.testcase(
-            tc, (Binary("101.01") >> 3).compare_representation("0.101010"), True
+            tc, (Binary("101.01") >> 3).compare_representation("0.10101"), True
         )
         tc += 1
         r += not Binary.testcase(
@@ -2059,6 +2080,14 @@ class Binary(object):
             (Binary("101.01") >> 20).compare_representation("0." + "0" * 17 + "10101"),
             True,
         )
+
+        tc += 10
+        r += not Binary.testcase(
+            tc,
+            Binary("101e2").to_sci_exponential().compare_representation("1.01e4"),
+            True
+        )
+
         # TODO ZZZZZ END
 
         tc += 10
@@ -2136,6 +2165,13 @@ class Binary(object):
             Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
             True,
         )
+        # TODO: test to_simple_exponential and to_sci_exponential
+        tc += 1
+        r += not Binary.testcase(
+            tc,
+            Binary("-0.01e-2") == Binary("-1e-4"),
+            True,
+        )
         tc += 1
         r += not Binary.testcase(
             tc, Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
@@ -2147,6 +2183,19 @@ class Binary(object):
             True,
         )
         tc += 1
+        r += not Binary.testcase(
+            tc,
+            Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
+            True,
+        )
+        tc += 1
+        print("This is it")
+        r += not Binary.testcase(
+            tc,
+            Binary("-10.01e-2").to_sci_exponential().compare_representation("-1.001e-1"),
+            True,
+        )
+
         if r == 0:
             result = "Self-Test: 😃 All test cases passed ✅"
             ret = True
