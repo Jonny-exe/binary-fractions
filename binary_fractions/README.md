@@ -253,6 +253,7 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 >>> # and so much more
 
 ```
+```
 
 <a name="binary.Binary"></a>
 ## Binary Objects
