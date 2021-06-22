@@ -20,6 +20,7 @@ MSG="$(cat "$1")"
 if [[ "$MSG" == *"update version"* ]]; then
 	echo "Update version"
 	./update_version.sh
+	git add binary_fractions/binary.py
 fi
 
 test "" = "$(grep '^Signed-off-by: ' "$1" |

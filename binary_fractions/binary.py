@@ -220,7 +220,7 @@ _BINARY_PRECISION = 128  # number of binary digits to the right of decimal point
 _PREFIX = "0b"
 _EXP = "e"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210622-145123"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210622-154840"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py

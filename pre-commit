@@ -26,8 +26,8 @@ pydoc-markdown -I ./binary_fractions -m binary --render-toc  > ./binary_fraction
 echo "===Generated new document README.md==="
 python3 update_readme.py
 echo "===Updated README.md==="
-#git add README.md
-#git add binary_fractions/binary.py
+git add README.md
+git add binary_fractions/binary.py
 
 # Cross platform projects tend to avoid non-ASCII filenames; prevent
 # them from being added to the repository. We exploit the fact that the
