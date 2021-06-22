@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # An example hook script to check the commit log message.
 # Called by "git commit" with one argument, the name of the file
@@ -16,7 +16,7 @@
 # grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
 
 # This example catches duplicate Signed-off-by lines.
-MSG=`$(cat $1)`
+MSG="$(cat "$1")"
 if [[ "$MSG" == *"update version"* ]]; then
 	echo "Update version"
 	./update_version.sh
