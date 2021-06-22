@@ -16,9 +16,8 @@
 # grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
 
 # This example catches duplicate Signed-off-by lines.
-SUB='update version'
-echo "Message $MSG"
-if [[ "$1" == *"$SUB"* ]]; then
+echo "Message $1"
+if [[ "$1" == *"update version"* ]]; then
 	echo "Update version"
 	./update_version.sh
 fi
