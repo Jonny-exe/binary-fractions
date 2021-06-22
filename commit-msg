@@ -17,7 +17,7 @@
 
 # This example catches duplicate Signed-off-by lines.
 echo "Message $1"
-MSG=$(cat $1)
+MSG="$(cat $1)"
 if [[ "$MSG" == *"update version"* ]]; then
 	echo "Update version"
 	./update_version.sh
