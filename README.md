@@ -7,7 +7,7 @@ in Python. Work with binary fractions and binary floats with ease!
 
 This module allows one to represent integers, floats and fractions as
 binary strings.
-- e.g. the integer 5 will be represented as string '0b11'.
+- e.g. the integer 3 will be represented as string '0b11'.
 - e.g. the float -3.75 will be represented as string '-0b11.11'.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
 - Exponential representation is also possible:
@@ -61,7 +61,7 @@ If you are curious about floating point binary fractions, have a look at:
 - well documented. Please read the documentation inside the source code
   ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
   Or look at the pydoc-generated documentation in
-  [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md)).
+  [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 
 
 ## Sample usage, Example calls:
@@ -187,12 +187,15 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 - requires no `pip` packages (uses built-in `math` and `fractions` modules)
 
 ## Installation:
-- see [https://pypi.org/project/binary-fractions/]()
+- see [https://pypi.org/project/binary-fractions/](https://pypi.org/project/binary-fractions/)
 - `pip install binary-fractions`
 
 ## Contributions:
 - PRs are welcome and very much appreciated!
-  Please run [selftest()](https://github.com/Jonny-exe/binary-fractions/blob/a44ec44cb58e97dac661bae6b6baffdf9d94425e/binary_fractions/binary.py#L1237) before issuing a PR to be sure all test cases pass.
+  Please run
+  [selftest()](https://github.com/Jonny-exe/binary-fractions/blob/a44ec44cb58e97dac661bae6b6baffdf9d94425e/binary_fractions/binary.py#L1237)
+  before issuing a PR to be sure all test cases pass.
 - File Format: linted/beautified with black
 
 Enjoy :heart: !
+```

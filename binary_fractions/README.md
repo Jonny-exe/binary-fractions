@@ -4,19 +4,20 @@
   * [Binary](#binary.Binary)
     * [\_\_new\_\_](#binary.Binary.__new__)
     * [from\_float](#binary.Binary.from_float)
+    * [version](#binary.Binary.version)
     * [\_\_float\_\_](#binary.Binary.__float__)
     * [\_\_int\_\_](#binary.Binary.__int__)
     * [to\_float](#binary.Binary.to_float)
     * [clean](#binary.Binary.clean)
     * [to\_not\_exponential](#binary.Binary.to_not_exponential)
     * [binary\_string\_to\_fraction](#binary.Binary.binary_string_to_fraction)
+    * [\_\_round\_\_](#binary.Binary.__round__)
     * [round](#binary.Binary.round)
     * [round\_to](#binary.Binary.round_to)
     * [fill](#binary.Binary.fill)
     * [fill\_to](#binary.Binary.fill_to)
     * [to\_simple\_exponential](#binary.Binary.to_simple_exponential)
     * [to\_sci\_exponential](#binary.Binary.to_sci_exponential)
-    * [\_\_bool\_\_](#binary.Binary.__bool__)
     * [get\_components](#binary.Binary.get_components)
     * [components](#binary.Binary.components)
     * [isinfinity](#binary.Binary.isinfinity)
@@ -39,7 +40,6 @@
     * [\_\_abs\_\_](#binary.Binary.__abs__)
     * [\_\_ceil\_\_](#binary.Binary.__ceil__)
     * [\_\_floor\_\_](#binary.Binary.__floor__)
-    * [\_\_round\_\_](#binary.Binary.__round__)
     * [\_\_lt\_\_](#binary.Binary.__lt__)
     * [\_\_gt\_\_](#binary.Binary.__gt__)
     * [\_\_le\_\_](#binary.Binary.__le__)
@@ -62,7 +62,7 @@ in Python. Work with binary fractions and binary floats with ease!
 
 This module allows one to represent integers, floats and fractions as
 binary strings.
-- e.g. the integer 5 will be represented as string '0b11'.
+- e.g. the integer 3 will be represented as string '0b11'.
 - e.g. the float -3.75 will be represented as string '-0b11.11'.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
 - Exponential representation is also possible:
@@ -110,7 +110,7 @@ Or look at the pydoc-generated documentation in
 - requires no `pip` packages (uses built-in `math` and `fractions` modules)
 
 ## Installation:
-- see [https://pypi.org/project/binary-fractions/]()
+- see [https://pypi.org/project/binary-fractions/](https://pypi.org/project/binary-fractions/)
 - `pip install binary-fractions`
 
 ## Contributions:
@@ -267,7 +267,7 @@ Floating point class for binary fractions and arithmetic.
 #### \_\_new\_\_
 
 ```python
- | __new__(cls, value="0", simplify=True)
+ | __new__(cls, value: [int, float, str, Fraction] = "0", simplify: bool = True)
 ```
 
 Constructor.
@@ -295,7 +295,7 @@ string representation as close to the original as possible.
 #### from\_float
 
 ```python
- | from_float(value, rel_tol=_BINARY_RELATIVE_TOLERANCE)
+ | from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE)
 ```
 
 Convert from float to Binary.
@@ -314,6 +314,21 @@ could also use method float.hex()
 **Returns**:
 
 - `str` - string representation of Binary
+
+<a name="binary.Binary.version"></a>
+#### version
+
+```python
+ | version() -> str
+```
+
+Give version number.
+
+Is a utility function.
+
+**Returns**:
+
+- `str` - version number as date in format "YYMMDD-HHMMSS", e.g. "20210622-103815"
 
 <a name="binary.Binary.__float__"></a>
 #### \_\_float\_\_
@@ -351,13 +366,13 @@ Binary --> float or integer
 #### to\_float
 
 ```python
- | to_float(value)
+ | to_float(value: str)
 ```
 
-Convert from Binary to float or integer.
+Convert from Binary string to float or integer.
 
 utility function
-Binary --> float or integer
+Binary string --> float or integer
 could also use inverse of method float.hex()
 
 **Arguments**:
@@ -373,7 +388,7 @@ could also use inverse of method float.hex()
 #### clean
 
 ```python
- | clean(value)
+ | clean(value: str) -> str
 ```
 
 Clean up string representation.
@@ -394,7 +409,7 @@ Example: convert '11.0' to '11'
 #### to\_not\_exponential
 
 ```python
- | to_not_exponential(value)
+ | to_not_exponential(value: str) -> str
 ```
 
 Normalize string representation. Remove exponent part.
@@ -431,6 +446,26 @@ utility function
 **Returns**:
 
 - `Fraction` - value as fraction
+
+<a name="binary.Binary.__round__"></a>
+#### \_\_round\_\_
+
+```python
+ | __round__()
+```
+
+Normalize and round number to n digits after comma.
+
+method, see round_to()
+
+**Arguments**:
+
+- `ndigits` _int_ - number of digits after comma, precision
+  
+
+**Returns**:
+
+- `Binary` - binary string representation of number
 
 <a name="binary.Binary.round"></a>
 #### round
@@ -556,28 +591,6 @@ Convert to exp. representation with single binary digit before comma.
 method
 examples: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
 result has only 1 digit before comma
-
-**Arguments**:
-
-  none
-  
-
-**Returns**:
-
-- `Binary` - binary string representation of number
-
-<a name="binary.Binary.__bool__"></a>
-#### \_\_bool\_\_
-
-```python
- | __bool__()
-```
-
-Implement the 'not' operand, operation.
-
-Return True if self is nonzero; otherwise return False.
-NaNs and infinities are considered nonzero.
-For "not" operand.
 
 **Arguments**:
 
@@ -1018,26 +1031,6 @@ method
 **Returns**:
 
 - `Binary` - floor of the number
-
-<a name="binary.Binary.__round__"></a>
-#### \_\_round\_\_
-
-```python
- | __round__()
-```
-
-Math round
-
-method
-
-**Arguments**:
-
-- `self` _Binary_ - binary number
-  
-
-**Returns**:
-
-- `Binary` - rounded number
 
 <a name="binary.Binary.__lt__"></a>
 #### \_\_lt\_\_

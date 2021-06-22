@@ -201,6 +201,7 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 - File Format: linted/beautified with black
 
 Enjoy :heart: !
+```
 
 """
 
@@ -218,6 +219,8 @@ _BINARY_RELATIVE_TOLERANCE = 1e-10
 _BINARY_PRECISION = 128  # number of binary digits to the right of decimal point
 _PREFIX = "0b"
 _EXP = "e"
+# _BINARY_VERSION will be set automatically with git hook upon commit
+_BINARY_VERSION = "20210622-142841"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -231,7 +234,7 @@ _EXP = "e"
 class Binary(object):
     """Floating point class for binary fractions and arithmetic."""
 
-    def __new__(cls, value:[int,float,str,Fraction] = "0", simplify:bool = True):
+    def __new__(cls, value: [int, float, str, Fraction] = "0", simplify: bool = True):
         """Constructor.
 
         Use __new__ and not __init__ because it is immutable.
@@ -449,7 +452,7 @@ class Binary(object):
         # any other types
         raise TypeError("Cannot convert %r to Binary" % value)
 
-    def from_float(value:float, rel_tol:float=_BINARY_RELATIVE_TOLERANCE):
+    def from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE):
         """Convert from float to Binary.
 
         utility function
@@ -488,6 +491,16 @@ class Binary(object):
             i += 1
         return Binary.clean(sign + intpart + "." + fracpart)
 
+    def version() -> str:
+        """Give version number.
+
+        Is a utility function.
+
+        Returns:
+        str: version number as date in format "YYMMDD-HHMMSS", e.g. "20210622-103815"
+        """
+        return _BINARY_VERSION
+
     def __float__(self):
         """Convert from Binary to float.
 
@@ -520,7 +533,7 @@ class Binary(object):
         # result = Binary.to_float(self._value)
         return result  # float or integer
 
-    def to_float(value:str):
+    def to_float(value: str):
         """Convert from Binary string to float or integer.
 
         utility function
@@ -559,7 +572,7 @@ class Binary(object):
                 result += (2 ** -(i + 1)) * sign
         return result  # float
 
-    def clean(value:str) -> str:
+    def clean(value: str) -> str:
         """Clean up string representation.
 
         utility function
@@ -581,7 +594,7 @@ class Binary(object):
             result = "0"
         return result
 
-    def to_not_exponential(value:str) -> str:
+    def to_not_exponential(value: str) -> str:
         """Normalize string representation. Remove exponent part.
 
         utility function
@@ -881,7 +894,7 @@ class Binary(object):
         while True:
             if middle > len(intfracpart):
                 break
-            if intfracpart[start:start+1] != "0":
+            if intfracpart[start : start + 1] != "0":
                 fracpart = intfracpart[middle:]
                 intpart = intfracpart[start:middle]
                 break
@@ -1376,7 +1389,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
 
-
     def __lt__(self, other):
         """Less than operation
 
@@ -1575,6 +1587,12 @@ class Binary(object):
             r += not Binary.testcase(
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
+        tc += 1
+        r += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815)"))
+        tc += 1
+        r += not Binary.testcase(tc, isinstance(Binary.version(), str), True)
+        tc += 1
+        r += not Binary.testcase(tc, Binary.version()[8], "-")
         tc += 1
         r += not Binary.testcase(tc, float(Binary("0")), 0.0)
         tc += 1
@@ -2009,7 +2027,6 @@ class Binary(object):
             tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
         )
         tc += 1
-        # should this be '101' or '101e0'?
         r += not Binary.testcase(
             tc, (Binary("101e2") >> 2).compare_representation("101"), True
         )
@@ -2031,13 +2048,11 @@ class Binary(object):
             (Binary("101") >> 20).compare_representation("0." + "0" * 17 + "101"),
             True,
         )
-        # TODO ZZZZZ START
         tc += 1
         r += not Binary.testcase(
             tc, (Binary("101.01e2") >> 0).compare_representation("101.01e2"), True
         )
         tc += 1
-        # should this be '10.101e2' or '101.01e1'?
         r += not Binary.testcase(
             tc, (Binary("101.01e2") >> 1).compare_representation("101.01e1"), True
         )
@@ -2068,10 +2083,8 @@ class Binary(object):
         r += not Binary.testcase(
             tc,
             Binary("101e2").to_sci_exponential().compare_representation("1.01e4"),
-            True
+            True,
         )
-
-        # TODO ZZZZZ END
 
         tc += 10
         r += not Binary.testcase(tc, Binary(1) << 1, 2)
@@ -2088,7 +2101,6 @@ class Binary(object):
         tc += 1
         r += not Binary.testcase(tc, Binary("101e2") << 20, 5 * 2 ** 22)
         tc += 1
-        # should this be '101' or '101e0'?
         r += not Binary.testcase(
             tc, (Binary("101e-2") << 2).compare_representation("101"), True
         )
@@ -2109,7 +2121,6 @@ class Binary(object):
             tc, (Binary("101") << 20).compare_representation("101" + "0" * 20), True
         )
         tc += 1
-        # should this be '10101e2' or '101.01e4'? I think '101.01e4' is correct
         r += not Binary.testcase(
             tc, (Binary("101.01e2") << 2).compare_representation("101.01e4"), True
         )
@@ -2148,13 +2159,8 @@ class Binary(object):
             Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
             True,
         )
-        # TODO: test to_simple_exponential and to_sci_exponential
         tc += 1
-        r += not Binary.testcase(
-            tc,
-            Binary("-0.01e-2") == Binary("-1e-4"),
-            True,
-        )
+        r += not Binary.testcase(tc, Binary("-0.01e-2") == Binary("-1e-4"), True)
         tc += 1
         r += not Binary.testcase(
             tc, Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
@@ -2175,7 +2181,9 @@ class Binary(object):
         print("This is it")
         r += not Binary.testcase(
             tc,
-            Binary("-10.01e-2").to_sci_exponential().compare_representation("-1.001e-1"),
+            Binary("-10.01e-2")
+            .to_sci_exponential()
+            .compare_representation("-1.001e-1"),
             True,
         )
 

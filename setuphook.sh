@@ -22,7 +22,7 @@ fi
 cnt=$(grep "$PATTERN" $HOOKFILE | wc -l)
 if [ "$cnt" == "0" ]; then
   #
-  sed -i "s/# Cross platform projects tend to avoid non-ASCII filenames; prevent/\n\n$PATTERN\npydoc-markdown -I .\/binary_fractions -m binary --render-toc  > .\/binary_fractions\/README.md\necho Generated new document README.md\npython3 update_readme.py\n\n\n# Cross platform projects tend to avoid non-ASCII filenames; prevent/" $HOOKFILE
+  sed -i "s/# Cross platform projects tend to avoid non-ASCII filenames; prevent/\n\n$PATTERN\npydoc-markdown -I .\/binary_fractions -m binary --render-toc  > .\/binary_fractions\/README.md\necho Generated new document README.md\npython3 update_readme.py\n.\/update_version.sh\ngit add README.md\n\n# Cross platform projects tend to avoid non-ASCII filenames; prevent/" $HOOKFILE
   echo "Modified file $HOOKFILE"
 else
   echo "Nothing to do, setup was already done in $HOOKFILE"
