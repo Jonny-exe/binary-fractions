@@ -1206,8 +1206,8 @@ class Binary(object):
     def no_prefix(value):
         """Remove prefix '0b' from string representation.
 
-        utility function
-        Return format is e.g. -101.101e-23
+        A utility function.
+        Return format is e.g. -101.101e-23.
 
         Parameters:
         value (str): string from where to remove prefix
@@ -1220,8 +1220,9 @@ class Binary(object):
     def np(self):  # no prefix
         """Return string representation with prefix '0b' removed.
 
-        method
-        Return format is e.g. -101.101e-23
+        Method implements the string conversion without prefix.
+        Return format is e.g. -101.101e-23.
+        Note that there is no '0b' prefix.
 
         Parameters:
         none
@@ -1231,17 +1232,18 @@ class Binary(object):
         """
         return str(self._value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Stringify self.
 
-        method
-        Return format is e.g. -0b101.101e-23
+        Method that implements the string conversion.
+        Return format is e.g. -0b101.101e-23.
+        Note the prefix of '0b'.
 
         Parameters:
         none
 
         Returns:
-        str: (with) prefix
+        str: string representation with prefix '0b'
         """
         if self._sign:
             return "-" + _PREFIX + self._value[1:]
@@ -1249,9 +1251,9 @@ class Binary(object):
             return _PREFIX + self._value
 
     def __add__(self, other):
-        """Add operation
+        """Add operation.
 
-        method
+        Method that implements the * operand.
 
         Parameters:
         self (Binary): binary number
@@ -1265,9 +1267,9 @@ class Binary(object):
         return Binary(self._fraction + other._fraction)
 
     def __sub__(self, other):
-        """Subtract operation
+        """Subtract operation.
 
-        method
+        Method that implements the - operand.
 
         Parameters:
         self (Binary): binary number
@@ -1281,9 +1283,9 @@ class Binary(object):
         return Binary(self._fraction - other._fraction)
 
     def __mul__(self, other):
-        """Multiply operation
+        """Multiply operation.
 
-        method
+        Method that implements the * operand.
 
         Parameters:
         self (Binary): binary number
@@ -1329,9 +1331,9 @@ class Binary(object):
         return Binary(self._fraction // other._fraction)
 
     def __mod__(self, other):
-        """modular operation
+        """Compute modular operation
 
-        method
+        Method that implements modulr, i.e. it returns the integer remainder.
 
         Parameters:
         self (Binary): binary number
@@ -1345,9 +1347,9 @@ class Binary(object):
         return Binary(self._fraction % other._fraction)
 
     def __abs__(self):
-        """Absolute
+        """Compute absolute value.
 
-        method
+        Method that implements absolute value, i.e. the positive value.
 
         Parameters:
         self (Binary): binary number
@@ -1360,9 +1362,10 @@ class Binary(object):
         return Binary(abs(self._fraction))
 
     def __ceil__(self):
-        """Math ceiling
+        """Perform math ceiling operation.
 
-        method
+        Method that implements ceiling.
+        For example, '1.11' will return '10'.
 
         Parameters:
         self (Binary): binary number
@@ -1375,9 +1378,10 @@ class Binary(object):
         return Binary(math.ceil(self._fraction))
 
     def __floor__(self):
-        """Math floor
+        """Perform math floor operation.
 
-        method
+        Method that implements floor.
+        For example, '1.11' will return '1'.
 
         Parameters:
         self (Binary): binary number
@@ -1390,9 +1394,9 @@ class Binary(object):
         return Binary(math.ceil(self._fraction))
 
     def __lt__(self, other):
-        """Less than operation
+        """Less than operation.
 
-        method
+        Method that implements "<" operand.
 
         Parameters:
         self (Binary): binary number
@@ -1406,9 +1410,9 @@ class Binary(object):
         return self._fraction < other._fraction
 
     def __gt__(self, other):
-        """Greater than operation
+        """Greater than operation.
 
-        method
+        Method that implements ">" operand.
 
         Parameters:
         self (Binary): binary number
@@ -1422,9 +1426,9 @@ class Binary(object):
         return self._fraction > other._fraction
 
     def __le__(self, other):
-        """Less or equal operation
+        """Less or equal operation.
 
-        method
+        Method that implements "<=" operand.
 
         Parameters:
         self (Binary): binary number
@@ -1438,9 +1442,9 @@ class Binary(object):
         return self._fraction <= other._fraction
 
     def __ge__(self, other):
-        """Greater or equal operation
+        """Greater or equal operation.
 
-        method
+        Method that implements ">=" operand.
 
         Parameters:
         self (Binary): binary number
@@ -1453,10 +1457,11 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return self._fraction >= other._fraction
 
-    def __bool__(self):
-        """Boolean transformation
 
-        method
+    def __bool__(self):
+        """Boolean transformation. Used for not operand.
+
+        Method that implements boolian operation "not".
 
         Parameters:
         self (Binary): binary number
@@ -1468,15 +1473,93 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return bool(self._fraction)
 
+
+    def __and__(self, other):
+        """Return the bitwise and of self and other.
+
+        Method that implements the & operand.
+
+        For example, '11.1' ^ '10.1' will return '10.1'
+
+        Parameters:
+        self (Binary): number
+        other (Binary): number
+
+        Returns:
+        Binary: bitwise and of the two numbers
+        """
+        return Binary.and_or(self, other, "and") # TODO , do you really need the and_or function?
+
+    def __or__(self, other):
+        """Return the bitwise or of self and other.
+
+        Method that implements the | operand.
+
+        For example, '11.1' ^ '10.1' will return '11.1'
+
+        Parameters:
+        self (Binary): number
+        other (Binary): number
+
+        Returns:
+        Binary: bitwise or of the two numbers
+        """
+        return Binary.or(self, other)  # TODO
+
+
+    def __xor__(self, other):
+        """Return the bitwise or of self and other.
+
+        Method that implements the ^ operand.
+
+        For example, '11.1' ^ '10.1' will return '11.1'
+
+        Parameters:
+        self (Binary): number
+        other (Binary): number
+
+        Returns:
+        Binary: bitwise exclusive or of the two numbers
+        """
+        return Binary.xor(self, other)  # TODO
+
+
+    def __not__(self):
+        """Return the bitwise not of self.
+
+        Method that implements the ~ operand.
+        This is also called the 'invert' operand, or the 'bitwise not' operand.
+
+        For example, '11.1' ^ '10.1' will return '??.?' # TODO: not sure because of sign
+
+        Parameters:
+        self (Binary): number
+
+        Returns:
+        Binary: bitwise not of number
+        """
+        return Binary.not(self)  # TODO
+        # TODO: I am not really sure what this function should return.
+        # for integers it is defined as -(x+1). So ~9 is -10.
+
     def __rshift__(self, ndigits: int):
-        """Shifts number to the right n times
+        """Shifts number n digits (bits) to the right.
+
+        Method that implementes >> operand.
+
+        As example, shifting right by 1, divides the number by 2.
+        The string representation will be changed as little as possible.
+        If the string representation is in exponential form it will remain in
+        exponential form. If the string representation is in non-exponential form,
+        it will remain in non-exponential form, i.e. only the decimal point will be
+        moved to the left.
 
         Parameters:
         self (Binary): number to be shifted
-        ndigits (int): numner times to be shifted
+        ndigits (int): number of digits to be shifted right
 
         Returns:
-        Binary: shifted number
+        Binary: right shifted number
         """
         if not isinstance(self, Binary) or not isinstance(ndigits, int):
             raise TypeError(
@@ -1503,14 +1586,23 @@ class Binary(object):
         return Binary(shifted)
 
     def __lshift__(self, ndigits: int):
-        """Shifts number to the left n times
+        """Shifts number n digits (bits) to the left.
+
+        Method that implementes << operand.
+
+        As example, shifting left by 1, multiplies the number by 2.
+        The string representation will be changed as little as possible.
+        If the string representation is in exponential form it will remain in
+        exponential form. If the string representation is in non-exponential form,
+        it will remain in non-exponential form, i.e. only the decimal point will be
+        moved to the right.
 
         Parameters:
         self (Binary): number to be shifted
-        ndigits (int): numner times to be shifted
+        ndigits (int): number of digits to be shifted left
 
         Returns:
-        Binary: shifted number
+        Binary: left shifted number
         """
         if not isinstance(self, Binary) or not isinstance(ndigits, int):
             raise TypeError(
@@ -1537,6 +1629,62 @@ class Binary(object):
             shifted_fracpart = fracpart[ndigits:]
             shifted = Binary.clean(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
+
+    # is this necessary? can't we just call the corresponding function from Fractions?
+    # can't we just call binary operands on Fractions and not implement anything?
+    def and_or(this, other, which):
+        """Shifts number to the left n times # TODO
+
+        Parameters:
+        self (Binary): number to be shifted  # TODO
+        ndigits (int): numner times to be shifted # TODO
+
+        Returns:
+        Binary: shifted number # TODO
+        """
+        # TODO: make this work with negative numbers
+        if not isinstance(this, Binary) or not isinstance(other, Binary):
+            raise TypeError(
+                f"Arguments {self} {ndigits} must be of type Binary and Binary."  # TODO
+            )
+        sign1, intpart1, fracpart1, exp1 = this.components()
+        sign2, intpart2, fracpart2, exp2 = other.components()
+        print("Fracpart: ", fracpart1, fracpart2)
+
+        def operation(a, b, l):
+            number = ""
+            for i in range(l):
+                if which == "and":
+                    if a[i] == b[i]:
+                        number += a[i]
+                    else:
+                        number += "0"
+                elif which == "or":
+                    if int(a[i]) or int(b[i]):
+                        number += "1"
+                    else:
+                        number += "0"
+            return number
+
+        if sign1 == 0 and sign2 == 0:
+            intl = len(intpart1) if len(intpart1) > len(intpart2) else len(intpart2)
+            fracl = (
+                len(fracpart1) if len(fracpart1) > len(fracpart2) else len(fracpart2)
+            )
+            intpart1 = (intl - len(intpart1)) * "0" + intpart1
+            intpart2 = (intl - len(intpart2)) * "0" + intpart2
+            fracpart1 = fracpart1 + (fracl - len(fracpart1)) * "0"
+            fracpart2 = fracpart2 + (fracl - len(fracpart2)) * "0"
+
+            result = operation(intpart1, intpart2, intl)
+            if len(result) > 1 and int(result) == 0:
+                result = "0"
+            result += "."
+            result += operation(fracpart1, fracpart2, fracl)
+
+        else:
+            result = 0
+        return Binary(Binary.clean(result))
 
     def __LINE__():
         try:
@@ -1588,7 +1736,7 @@ class Binary(object):
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
         tc += 1
-        r += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815)"))
+        r += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815"))
         tc += 1
         r += not Binary.testcase(tc, isinstance(Binary.version(), str), True)
         tc += 1
@@ -2177,8 +2325,16 @@ class Binary(object):
             Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
             True,
         )
+
+        tc += 10
+        r += not Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
         tc += 1
-        print("This is it")
+        r += not Binary.testcase(tc, Binary(0) & Binary(1), Binary(0))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("1000") & Binary("0"), Binary(0))
+        tc += 1
+        r += not Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
+
         r += not Binary.testcase(
             tc,
             Binary("-10.01e-2")
