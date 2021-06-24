@@ -969,6 +969,17 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return "Inf" in self._value
 
+    def isint(self) -> bool:
+        """Determines if binary fraction is an integer.
+
+            This is a utility function.
+
+            Returns:
+            bool: True if int, False otherwise (Fraction, float)
+        """
+        # result = #TODO
+        return result
+
     def adjusted(self):
         """Return the adjusted exponent of self.
 
@@ -1175,10 +1186,66 @@ class Binary(object):
         return result if sign == 0 else -result
 
     def invert(value: str, strict=True) -> str:
+        """Inverts (bitwise negates) string that is in twos-complement format.
+
+            This is a utility function.
+            It negates (flips) every bit in the string.
+            Input must be of format: twos-complement format.
+
+            The twos-complement format is as follows.
+                first bit: sign, 0 for +, 1 for -
+                1 or more integer bits
+                optional decimal point
+                0 or more fractional bits
+                optional exponent (e.g. e-12)
+
+                [0,1][0,1]+.[0,1]*e[-][0-9]+
+                sign (required)
+                     integer bits (at least 1 bit required)
+                           decimal point (optional, one or none)
+                            fractional bits (optional, zero or more)
+                                exponent (optional, possible with sign -)
+
+
+            Examples inputs are:
+                0...not valid, missing sign, or missing digits
+                1...not valid, missing sign, or missing digits
+                01...1, 010...2, 011...3
+                10..-0, 111110..-0
+                11...-1, 111...-1, 111111111...-1
+                110...-2, 1110...-2,
+                1101...-3, 111101...-3
+                01.1...1.5, 010.11...2.75,
+                111.1...-0.5, 111.11...-0.25
+                01.1e-4...1.5e-4, 010.11e-4...2.75e-4,
+                111.1e3...-0.5e3, 111.11e3...-0.25e3
+
+                invert('0') raises exception
+                invert('1') raises exception
+                invert('1..1') raises exception
+                invert('34') raises exception
+                invert('1ee2') raises exception
+                invert('1e') raises exception
+                invert('01') returns '10'
+                invert('10') returns '01'
+                invert('101010') returns '010101'
+                invert('0101010') returns '1010101'
+                invert('0101010e-34') returns '1010101e-34'
+                invert('101010e34') returns '0101010e34'
+                invert(invert('0101010e-34')) returns '0101010e-34'
+                invert(invert('101010e34')) returns '101010e34'
+
+                invert(invert(n)) == for all valid n
+
+            Returns:
+            str: bitwise negated string, a twos-complement formated string
+        """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
 
         result = ""
+        intpart = ""
+        fracpart = ""
         for i in value:
             try:
                 if int(i):
@@ -1186,23 +1253,80 @@ class Binary(object):
                 else:
                     result += "1"
             except ValueError:
-                result += "."
-        return result.lstrip("0") if not strict and len(result) > 1 else result
+                intpart = result
+                result = ""
+        if len(intpart) > 0:
+            fracpart = result
+        else:
+            intpart = result
+            fracpart = "0"
 
-    def to_twos_complement(self, fill=12) -> str:
+        if not strict:
+            leader = intpart[0]
+            intpart = leader + intpart.lstrip(leader) if int(intpart) != int(leader) else leader
+            fracpart = fracpart.rstrip("0") if int(fracpart) != 0 else "0"
+        if int(fracpart) == 0:
+            result = intpart
+        else:
+            result = intpart + "." + fracpart
+        return result
+
+    def to_twos_complement(self, fill=1) -> str:
+        """Computes the representation as a string in twos-complement.
+
+        This is a utility function.
+        Examples:
+            convert '-11.1e-2' to '1101.1e-2' (-3/4)
+            convert '-11' to '1101'
+            convert '-0.5' to '11.1'
+            Converts '-1' to '11' (-1)
+            Converts '-10' to '110' (-2)
+            Converts '-11' to '101' (-3)
+            Converts '-100' to '1100' (-4)
+            Converts '-1.5' to '10.1'
+            Converts '-2.5' to '101.1'
+            Converts '-2.5e89' to '101.1e89'
+
+        Parameters:
+        None
+
+        Returns:
+        str: binary string representation in twos-complement
+        """
         if self._fraction >= 0:
-            return self._value
+            return "0" + self._value
 
         if _EXP in self._value:
-            value = "0"
+            return "0" + self._value
+
+        sign, intpart, fracpart, exp = self.components()
+        intpart = abs(int(intpart, 2))
+        intpart = bin(intpart)[2:]
+        intpart = Binary.invert(intpart)
+        new_intpart = bin(
+            int(intpart.lstrip("0") if len(intpart) > 1 else intpart, 2) + 1
+        )[2:]
+        intpart = (len(intpart) - len(new_intpart)) * "0" + new_intpart
+        intpart = (fill - len(intpart)) * "1" + intpart
+
+        if fracpart != "" and int(fracpart) != 0:
+            fracpart = fracpart.rstrip("0")
+            fracl = len(fracpart)
+            print(fracpart)
+            fracpart = bin(2 ** fracl - int(fracpart, 2))[2:]
+            print(fracl, len(fracpart), fracpart)
+            fracpart = "." + (fracl - len(fracpart)) * "0" + fracpart
         else:
-            value = abs(int(self._value, 2))
-            value = bin(value)[2:]
-            value = Binary.invert(value)
-            new_value = bin(int(value.lstrip("0") if len(value) > 1 else value, 2) + 1)[2:]
-            value = (len(value) - len(new_value)) * "0" + new_value
-            value = (fill - len(value)) * "1" + value
-        return value
+            fracpart = ""
+        return "1" + intpart + fracpart
+
+    def from_twos_complement(value) -> str:
+        """The opposite of to_twos_complement() function:
+
+        Converts '1101' to '-11' (-3)
+        convert '1101.1e-2' to '-11.1e-2'  (-3.5/4)
+        """
+        # TODO implement this function
 
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
@@ -1486,7 +1610,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return self._fraction >= other._fraction
 
-
     def __bool__(self):
         """Boolean transformation. Used for not operand.
 
@@ -1502,7 +1625,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return bool(self._fraction)
 
-
     def __and__(self, other):
         """Return the bitwise and of self and other.
 
@@ -1517,7 +1639,9 @@ class Binary(object):
         Returns:
         Binary: bitwise and of the two numbers
         """
-        return Binary.and_or(self, other, "and") # TODO , do you really need the and_or function?
+        return Binary.and_or(
+            self, other, "and"
+        )  # TODO , do you really need the and_or function?
 
     def __or__(self, other):
         """Return the bitwise or of self and other.
@@ -1533,8 +1657,10 @@ class Binary(object):
         Returns:
         Binary: bitwise or of the two numbers
         """
-        return Binary.or(self, other)  # TODO
+        return Binary._or(self, other)  # TODO
 
+    def _or(self, other):
+        return  # TODO
 
     def __xor__(self, other):
         """Return the bitwise or of self and other.
@@ -1552,14 +1678,14 @@ class Binary(object):
         """
         return Binary.xor(self, other)  # TODO
 
-
     def __not__(self):
         """Return the bitwise not of self.
 
         Method that implements the ~ operand.
         This is also called the 'invert' operand, or the 'bitwise not' operand.
 
-        For example, '11.1' ^ '10.1' will return '??.?' # TODO: not sure because of sign
+        For example, ~9 will return 10.
+        TODO: add more examples
 
         Parameters:
         self (Binary): number
@@ -1567,9 +1693,25 @@ class Binary(object):
         Returns:
         Binary: bitwise not of number
         """
-        return Binary.not(self)  # TODO
-        # TODO: I am not really sure what this function should return.
+        # TODO:
         # for integers it is defined as -(x+1). So ~9 is -10.
+        if isint(self):
+            # TODO: use n = - (n+1) formula
+            return  # TODO
+        else:
+            # For floating point numbers ~ is not defined. What would ~0.5 be?
+            # It could be implemented but only if the number of fractional bits is
+            # known and managed.
+            # ~ of floats would be very difficult to understand and get right as a
+            # user. To avoid user error and to avoid introducing ndigits for
+            # number of fractional bits it is better to force the user to convert
+            # to a twos-complement string and invert (~) this twos-complement formatted
+            # string. This avoids to computation of a number representation (float) of
+            # an inverted (~) float.
+
+            # TODO: raise exception telling user that invert on float it not defined.
+            # TODO: Tell user they should use Binary.invert(Binary.to_twos_complement(self)) instead.
+            return None  # TODO
 
     def __rshift__(self, ndigits: int):
         """Shifts number n digits (bits) to the right.
@@ -2349,11 +2491,7 @@ class Binary(object):
             True,
         )
         tc += 1
-        r += not Binary.testcase(
-            tc,
-            Binary("10").to_twos_complement(),
-            Binary("10"),
-        )
+        r += not Binary.testcase(tc, Binary("10").to_twos_complement(), Binary("10"))
 
         tc += 10
         r += not Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
@@ -2365,22 +2503,54 @@ class Binary(object):
         r += not Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
 
         r += not Binary.testcase(
-            tc,
-            Binary("1010").to_twos_complement(),
-            Binary("1010"),
+            tc, Binary("1010").to_twos_complement(), Binary("1010")
+        )
+        tc += 1
+        r += not Binary.testcase(tc, Binary("-1").to_twos_complement(fill=12), "1" * 13)
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary(-1975).to_twos_complement(fill=12), "1100001001001"
         )
         tc += 1
         r += not Binary.testcase(
-            tc,
-            Binary("-1").to_twos_complement(),
-            "1" * 12,
+            tc, Binary("-1.0").to_twos_complement(fill=12), "1" * 13
         )
         tc += 1
         r += not Binary.testcase(
-            tc,
-            Binary(-1975).to_twos_complement(),
-            "100001001001",
+            tc, Binary.invert("0001000"), "1110111"
         )
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary.invert("0001000", strict=False), "10111"
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary.invert("1110110", strict=False), "01001"
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary.invert("0.1101", strict=True), "1.0010"
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary.invert("0.1101", strict=False), "1.001"
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary.invert("11.1101", strict=False), "0.001"
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc, Binary.invert("00.1101", strict=False), "1.001"
+        )
+        tc += 1
+        r += not Binary.testcase(tc, Binary("-1.0010").to_twos_complement(), "11.111")
+        tc += 1
+        r += not Binary.testcase(tc, Binary("-0.0010").to_twos_complement(), "110.111")
+        tc += 1
+        r += not Binary.testcase(tc, Binary("-0.111").to_twos_complement(), "110.001")
+        tc += 1
+        r += not Binary.testcase(tc, Binary("-0.10").to_twos_complement(), "110.1")
         if r == 0:
             result = "Self-Test: 😃 All test cases passed ✅"
             ret = True
@@ -2403,119 +2573,3 @@ _One = Binary(1)
 _NegativeOne = Binary(-1)
 
 # End of class
-
-
-
-
-
-
-
-# def isint(self) -> bool:
-    # """Determines if binary fraction is an integer.
-
-        # This is a utility function.
-
-        # Returns:
-        # bool: True if int, False otherwise (Fraction, float)
-    # """
-    # result = #TODO
-    # return result
-
-
-
-# def invert(value:str) -> str:
-    """Inverts string that is in 2s-complement format.
-
-        # This is a utility function.
-        # It negates (flips) every bit in the string.
-        # Input must be of format:
-            # first bit: sign, 0 for +, 1 for -
-            # 1 or more integer bits
-            # optional decimal point
-            # 0 or more fractional bits
-            # optional exponent (e.g. e-12)
-
-        # Examples inputs are:
-            # 0...not valid, missing sign, or missing digits
-            # 1...not valid, missing sign, or missing digits
-            # 01...1, 010...2, 011...3
-            # 10..-0, 111110..-0
-            # 11...-1, 111...-1, 111111111...-1
-            # 110...-2, 1110...-2,
-            # 1101...-3, 111101...-3
-            # 01.1...1.5, 010.11...2.75,
-            # 111.1...-0.5, 111.11...-0.25
-            # 01.1e-4...1.5e-4, 010.11e-4...2.75e-4,
-            # 111.1e3...-0.5e3, 111.11e3...-0.25e3
-
-            # invert('0') raises exception
-            # invert('1') raises exception
-            # invert('1..1') raises exception
-            # invert('34') raises exception
-            # invert('1ee2') raises exception
-            # invert('1e') raises exception
-            # invert('01') returns '10'
-            # invert('10') returns '01'
-            # invert('101010') returns '010101'
-            # invert('0101010') returns '1010101'
-            # invert('0101010e-34') returns '1010101e-34'
-            # invert('101010e34') returns '0101010e34'
-            # invert(invert('0101010e-34')) returns '0101010e-34'
-            # invert(invert('101010e34')) returns '101010e34'
-
-            # invert(invert(n)) == for all valid n
-
-        # Returns:
-        # str: bitwise negated string
-    # """
-    # result = #TODO
-    # return result
-
-
-# def __not__(self):
-    # if isint(self):
-        # TODO: use n = - (n+1) formula
-    # else:
-        # TODO: raise exception telling user that invert on float it not defined.
-        # TODO: And that the user should use Binary.invert(Binary.to_twos_complement(self)) instead.
-        # return #TODO
-
-
-    # def to_twos_complement(value) -> str:
-        # """Computes the representation as a string in 2s-complement.
-
-        # This is a utility function.
-        # Examples:
-            # convert '-11.1e-2' to '1101.1e-2' (-3/4)
-            # convert '-11' to '1101'
-            # convert '-0.5' to '11.1'
-            # Converts '-1' to '11' (-1)
-            # Converts '-10' to '110' (-2)
-            # Converts '-11' to '101' (-3)
-            # Converts '-100' to '1100' (-4)
-            # Converts '-1.5' to '10.1'
-            # Converts '-2.5' to '101.1'
-            # Converts '-2.5e89' to '101.1e89'
-
-        # Parameters:
-        # None
-
-        # Returns:
-        # str: binary string representation in 2s-complement
-        # """
-        # if not isinstance(value, str):
-            # raise TypeError(f"Argument {value} must be of type str.")
-        # TODO:
-        # if self.value >= 0:
-            # return self._value
-        # else:
-            # TODO: convert -1.5e3 into 11.1e3 etc
-            # return # TODO
-
-    # def from_twos_complement(value) -> str:
-        # """The opposite of to_twos_complement(value) -> str:
-
-        # Converts '1101' to '-11' (-3)
-        # convert '1101.1e-2' to '-11.1e-2'  (-3.5/4)
-        # """
-        # TODO
