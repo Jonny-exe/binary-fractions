@@ -147,7 +147,6 @@ False
 Binary(0, 0, False)
 >>> b2 == b3  # same value, returns equal
 True
->>> b2._cmp(b3) # same value, returns equal
 0
 >>> b2.compare_representation(b3) # different representation, returns unequal
 False
