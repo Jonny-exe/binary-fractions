@@ -150,7 +150,6 @@ False
 Binary(0, 0, False)
 >>> b2 == b3  # same value, returns equal
 True
->>> b2._cmp(b3) # same value, returns equal
 0
 >>> b2.compare_representation(b3) # different representation, returns unequal
 False
@@ -1175,6 +1174,36 @@ class Binary(object):
                 result += Fraction(1, 2 ** (i + 1))
         return result if sign == 0 else -result
 
+    def invert(value: str, strict=True) -> str:
+        if not isinstance(value, str):
+            raise TypeError(f"Argument {value} must be of type str.")
+
+        result = ""
+        for i in value:
+            try:
+                if int(i):
+                    result += "0"
+                else:
+                    result += "1"
+            except ValueError:
+                result += "."
+        return result.lstrip("0") if not strict and len(result) > 1 else result
+
+    def to_twos_complement(self, fill=12) -> str:
+        if self._fraction >= 0:
+            return self._value
+
+        if _EXP in self._value:
+            value = "0"
+        else:
+            value = abs(int(self._value, 2))
+            value = bin(value)[2:]
+            value = Binary.invert(value)
+            new_value = bin(int(value.lstrip("0") if len(value) > 1 else value, 2) + 1)[2:]
+            value = (len(value) - len(new_value)) * "0" + new_value
+            value = (fill - len(value)) * "1" + value
+        return value
+
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
 
@@ -1588,7 +1617,7 @@ class Binary(object):
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
         tc += 1
-        r += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815)"))
+        r += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815"))
         tc += 1
         r += not Binary.testcase(tc, isinstance(Binary.version(), str), True)
         tc += 1
@@ -2174,19 +2203,27 @@ class Binary(object):
         tc += 1
         r += not Binary.testcase(
             tc,
-            Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
-            True,
+            Binary("10").to_twos_complement(),
+            Binary("10"),
         )
         tc += 1
-        print("This is it")
         r += not Binary.testcase(
             tc,
-            Binary("-10.01e-2")
-            .to_sci_exponential()
-            .compare_representation("-1.001e-1"),
-            True,
+            Binary("1010").to_twos_complement(),
+            Binary("1010"),
         )
-
+        tc += 1
+        r += not Binary.testcase(
+            tc,
+            Binary("-1").to_twos_complement(),
+            "1" * 12,
+        )
+        tc += 1
+        r += not Binary.testcase(
+            tc,
+            Binary(-1975).to_twos_complement(),
+            "100001001001",
+        )
         if r == 0:
             result = "Self-Test: 😃 All test cases passed ✅"
             ret = True
