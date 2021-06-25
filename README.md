@@ -45,6 +45,9 @@ If you are curious about floating point binary fractions, have a look at:
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
+If you are curious about Two's complement:
+- https://janmr.com/blog/2010/07/bitwise-operators-and-negative-numbers/
+- https://en.wikipedia.org/wiki/Two%27s_complement
 
 ## License:
 - GPL v3 or later
@@ -52,8 +55,8 @@ If you are curious about floating point binary fractions, have a look at:
 ## Features:
 - Python 3
 - constructors for various types: int, float, Fraction, Binary, str
-- supports many operators: +, -, *, /, //, %, **, not, ...
-- supports many methods: lshift, rshift, <<, >>, round, floor, ceil, ...
+- supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
+- supports many methods: lshift, rshift, not, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions

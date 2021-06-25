@@ -48,6 +48,9 @@ If you are curious about floating point binary fractions, have a look at:
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
+If you are curious about Two's complement:
+- https://janmr.com/blog/2010/07/bitwise-operators-and-negative-numbers/
+- https://en.wikipedia.org/wiki/Two%27s_complement
 
 ## License:
 - GPL v3 or later
@@ -55,8 +58,8 @@ If you are curious about floating point binary fractions, have a look at:
 ## Features:
 - Python 3
 - constructors for various types: int, float, Fraction, Binary, str
-- supports many operators: +, -, *, /, //, %, **, not, ...
-- supports many methods: lshift, rshift, <<, >>, round, floor, ceil, ...
+- supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
+- supports many methods: lshift, rshift, not, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
@@ -1912,6 +1915,63 @@ class Binary(object):
         """
         return Binary.xor(self, other)  # TODO
 
+    def __not__(self) -> bool:
+        """Return the 'boolean not' of self.
+
+        Method that implements the 'not' operand.
+        Do not confuse it with the 'bitwise not' operand ~.
+
+        If self is 0, then method returns True.
+        For all other values it returns False.
+
+        For example: not Binary(0) returns True.
+        For example: not Binary(3.5) returns False.
+
+        Parameters:
+        self (Binary): number
+
+        Returns:
+        Binary: 'boolean not' of number
+        """
+        # for integers it is defined as -(x+1). So ~9 is -10.
+        return not self._fraction
+
+    def test___not__(tc: int) -> tuple:
+        """Unit test a specific function or method.
+
+        Parameters:
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
+
+        Returns:
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
+        """
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, not Binary(9), False)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, not Binary(-10.5), False)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, not Binary(0), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, not Binary(0.0), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            not Binary(complex(1, 1))  # should fail
+        except TypeError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
+
     def __invert__(self):
         """Return the 'bitwise not' of self.
 
@@ -2201,6 +2261,8 @@ class Binary(object):
         pa, fa, tc = Binary.test_invert(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test___invert__(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test___not__(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
 
         # type should be Binary, not string
