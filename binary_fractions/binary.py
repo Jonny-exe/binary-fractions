@@ -908,7 +908,7 @@ class Binary(object):
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
         return Binary(result, False)
 
-    def get_components(value):
+    def get_components(value) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
 
         Example: -11.01e2 ==> (1, '11', '01', 2)
@@ -940,7 +940,7 @@ class Binary(object):
             fracpart = li[1]
         return (sign, intpart, fracpart, exp)
 
-    def get_twoscomplement_components(value, strict=False):
+    def get_twoscomplement_components(value, strict=False) -> tuple:
         """Return sign, intpart (indicates sign in first bit), fracpart, exp.
 
         strict==False: cleanup, remove unnecessary digits, do cleanup
@@ -992,7 +992,7 @@ class Binary(object):
             \s*
             (
                 (?=[01])                 # lookahead: a number (with at least one digit)
-                (?P<int>[01]+)           # a non-e,empty integer part with at least one digit
+                (?P<int>[01]+)           # non-empty integer part with at least 1 digit
                 (\.(?P<frac>[01]*))?     # followed by an optional fractional part
                 (E(?P<exp>[-+]?\d+))?    # followed by an optional exponent, or...
             )
@@ -1024,7 +1024,7 @@ class Binary(object):
                 intpart = "0" + intpart.lstrip("0")
         return (sign, intpart, fracpart, exp)
 
-    def components(self):
+    def components(self) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
 
         Example: -11.01e2 ==> (1, '11', '01', 2)
@@ -1061,7 +1061,7 @@ class Binary(object):
         Returns:
         bool: True if int, False otherwise (Fraction, float)
         """
-        return self._fraction == int(self._fraction):
+        return self._fraction == int(self._fraction)
 
     def istwoscomplement(value: str):
         """Determine if string is a valid twos-complement syntax.
@@ -1073,24 +1073,63 @@ class Binary(object):
         bool: is or is not valid twos-complement
         """
         try:
-            get_twoscomplement_components(value)
+            Binary.get_twoscomplement_components(value)
             # don't catch TypeError
         except ValueError:
             return False
         return True
 
-    def test_istwoscomplement(testcase_id: int):
+    def test_istwoscomplement(tc: int) -> tuple:
         """Unit test a specific function or method.
 
         Parameters:
-        None
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
 
         Returns:
-        tuple (str, int, int):
-            (name of function tested, number of tests passed, number of tests failed)
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
         """
-        # TODO
-        return (Binary.__FUNCTION__(), 1, 2)  # TODO
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, Binary.istwoscomplement("1"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        # TODO: just to tell you: the next line is NOT valid Python Syntax!!!
+        # pa, fa, tc = (pa + 1), fa, (tc + 1) if re else pa, (fa + 1), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("0"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("1.1"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("0.1"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("1.1e9"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("0.1e8"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("1110.1e-19"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("00001.1e-18"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("1.1e9"), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("8"), False)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.istwoscomplement("Hello"), False)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            Binary.istwoscomplement(1975)  # should fail
+        except TypeError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
 
     def adjusted(self):
         """Return the adjusted exponent of self.
@@ -1377,31 +1416,61 @@ class Binary(object):
             leader = intpart[0]
             intpart = (
                 leader + intpart.lstrip(leader)
-                if int(intpart) != int(leader)
+                if int(intpart) != int(leader)  # TODO: strange code, why no then part?
                 else leader
             )
             fracpart = fracpart.rstrip("0") if int(fracpart) != 0 else "0"
+        # TODO: next if looks wrong: are you respecting strict in this if?
         if int(fracpart) == 0:
             result = intpart
         else:
             result = intpart + "." + fracpart
+        # TODO: do you handle exp part?
         return result
 
-    def test_invert(testcase_id: int):
+    def test_invert(tc: int) -> tuple:
         """Unit test a specific function or method.
 
         Parameters:
-        None
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
 
         Returns:
-        tuple (str, int, int, int):
-            (name of function tested, number of tests passed, number of tests failed, testcase id)
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
         """
-        # TODO
-        fa = Binary.testcase(tc, Binary.invert("1001"), "0110")
-        tc += 1
-        return Binary.__FUNCTION__(), tf, 2, testcase_id  # TODO
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, Binary.invert("0001000"), "1110111")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.invert("0001000", strict=False), "10111")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.invert("1110110", strict=False), "01001")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.invert("0.1101", strict=True), "1.0010")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.invert("0.1101", strict=False), "1.001")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.invert("11.1101", strict=False), "0.001")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.invert("00.1101", strict=False), "1.001")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            Binary.invert(1975)  # should fail
+        except TypeError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
 
+    # TODO: fill=1  ??? bool?
     def to_twos_complement(self, fill=1) -> str:
         """Computes the representation as a string in twos-complement.
 
@@ -1424,7 +1493,12 @@ class Binary(object):
         Returns:
         str: binary string representation in twos-complement
         """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
         if self._fraction >= 0:
+            # TODO, BUG: we changed our mind, now '0' is a valid binary fraction
+            # TODO: BUG: as well as a valid twos-complement representation
+            # TODO, BUG: in short '0' or int 0 should return twos-complement '0'
             return "0" + self._value
 
         if _EXP in self._value:
@@ -1447,6 +1521,7 @@ class Binary(object):
             fracpart = "." + (fracl - len(fracpart)) * "0" + fracpart
         else:
             fracpart = ""
+        # TODO, BUG: we changed our mind, now 1 or 10 are valid twos-complement strings
         return "1" + intpart + fracpart
 
     def from_twos_complement(value, strict=False) -> str:
@@ -1458,7 +1533,9 @@ class Binary(object):
         strict False simplifies representation
         """
 
-        sign, intpart, fracpart, exp = Binary.get_twoscomplement_components(value, strict=strict)
+        sign, intpart, fracpart, exp = Binary.get_twoscomplement_components(
+            value, strict=strict
+        )
         if sign == 0:
             if strict:
                 return value
@@ -1484,7 +1561,6 @@ class Binary(object):
         if _EXP in value:
             result += f"e{exp}"
         return result
-        # TODO implement this function
 
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
@@ -1836,26 +1912,27 @@ class Binary(object):
         """
         return Binary.xor(self, other)  # TODO
 
-    def __not__(self):
-        """Return the bitwise not of self.
+    def __invert__(self):
+        """Return the 'bitwise not' of self.
 
         Method that implements the ~ operand.
         This is also called the 'invert' operand, or the 'bitwise not' operand.
 
-        For example, ~9 will return 10.
-        TODO: add more examples
+        It is only defined for integers. If self is not an integer it
+        will raise an exception. For integers ~ is defined as
+        ~n = -(n+1). For example, ~9 will return -10. ~-10 will return 9.
+        For more information, see also the invert() function.
 
         Parameters:
         self (Binary): number
 
         Returns:
-        Binary: bitwise not of number
+        Binary: 'bitwise not' of integer number
         """
-        # TODO:
         # for integers it is defined as -(x+1). So ~9 is -10.
-        if isint(self):
-            # TODO: use n = - (n+1) formula
-            return  # TODO
+        if Binary.isint(self):
+            # for integers ~ is defined as: ~n = - (n+1) formula
+            return Binary(-(self._fraction + 1))
         else:
             # For floating point numbers ~ is not defined. What would ~0.5 be?
             # It could be implemented but only if the number of fractional bits is
@@ -1867,9 +1944,58 @@ class Binary(object):
             # string. This avoids to computation of a number representation (float) of
             # an inverted (~) float.
 
-            # TODO: raise exception telling user that invert on float it not defined.
-            # TODO: Tell user they should use Binary.invert(Binary.to_twos_complement(self)) instead.
-            return None  # TODO
+            raise ValueError(
+                f"Invalid literal for Binary: {self._value}. "
+                "~ operand only allowed on integers or fractions. "
+                "To perform ~ on Binary, convert it to two's complement string"
+                "and then perform invert() on that string. In short, do this: "
+                "Binary.invert(Binary.to_twos_complement(value))."
+            )
+
+    def test___invert__(tc: int) -> tuple:
+        """Unit test a specific function or method.
+
+        Parameters:
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
+
+        Returns:
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
+        """
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, ~Binary(9), Binary(-10))
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, ~Binary(-10), Binary(9))
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, ~~Binary(-109), Binary(-109))
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, ~~Binary(9), Binary(9))
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            ~Binary("-10.5")  # should fail
+        except ValueError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            ~Binary(complex(1, 1))  # should fail
+        except TypeError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
 
     def __rshift__(self, ndigits: int):
         """Shifts number n digits (bits) to the right.
@@ -1964,6 +2090,8 @@ class Binary(object):
     def and_or(this, other, which):
         """Shifts number to the left n times # TODO
 
+        This is a function, not a method.
+
         Parameters:
         self (Binary): number to be shifted  # TODO
         ndigits (int): numner times to be shifted # TODO
@@ -1974,15 +2102,15 @@ class Binary(object):
         # TODO: make this work with negative numbers
         if not isinstance(this, Binary) or not isinstance(other, Binary):
             raise TypeError(
-                f"Arguments {self} {ndigits} must be of type Binary and Binary."  # TODO
+                f"Arguments {this} {other} must be of type Binary and Binary."
             )
         sign1, intpart1, fracpart1, exp1 = this.components()
         sign2, intpart2, fracpart2, exp2 = other.components()
         print("Fracpart: ", fracpart1, fracpart2)
 
-        def operation(a, b, l):
+        def operation(a, b, li):
             number = ""
-            for i in range(l):
+            for i in range(li):
                 if which == "and":
                     if a[i] == b[i]:
                         number += a[i]
@@ -2017,15 +2145,15 @@ class Binary(object):
 
     def __LINE__():
         try:
-            raise Exception
-        except:
+            raise ValueError("")
+        except ValueError:
             return sys.exc_info()[2].tb_frame.f_back.f_back.f_lineno
 
     def __FUNCTION__():
         try:
-            raise Exception
-        except:
-            return sys.exc_info()[2].tb_frame.f_back.f_code.co_name
+            raise ValueError("")
+        except ValueError:
+            return sys.exc_info()[2].tb_frame.f_back.f_back.f_code.co_name
 
     def testcase(id, input, expected_result):
         """Test a single test case. Compares input to expected result.
@@ -2045,8 +2173,11 @@ class Binary(object):
             ret = True
         else:
             result = f"in line {Binary.__LINE__()} failed ❌"
+            info = (
+                f" : unit test: {Binary.__FUNCTION__()}; "
+                + f"output: {input}; expected: {expected_result}"
+            )
             ret = False
-            info = f" : output: {input}; expected: {expected_result}"
         print(f"{result}{info}")
         return ret
 
@@ -2065,15 +2196,19 @@ class Binary(object):
         tp = 0  # tp ... accumulative total of tests passed
         tf = 0  # tf ... accumulative total of tests failed
 
-        # _, pa, fa, tc = print(f"{Binary.test_istwoscomplement(tc)}")  # TODO
-        # tp, tf, tc = tp + pa, tf + fa, tc + 1
+        pa, fa, tc = Binary.test_istwoscomplement(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test_invert(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test___invert__(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
 
         # type should be Binary, not string
         tf += not Binary.testcase(tc, "Binary" in str(type(Binary(5))), True)
         tc += 1
         try:
             Binary("102")  # should fail
-        except:
+        except ValueError:
             tf += not Binary.testcase(
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
@@ -2674,15 +2809,6 @@ class Binary(object):
         tc += 1
         tf += not Binary.testcase(tc, Binary("10").to_twos_complement(), Binary("10"))
 
-        tc += 10
-        tf += not Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
-        tc += 1
-        tf += not Binary.testcase(tc, Binary(0) & Binary(1), Binary(0))
-        tc += 1
-        tf += not Binary.testcase(tc, Binary("1000") & Binary("0"), Binary(0))
-        tc += 1
-        tf += not Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
-
         tf += not Binary.testcase(
             tc, Binary("1010").to_twos_complement(), Binary("1010")
         )
@@ -2698,21 +2824,8 @@ class Binary(object):
         tf += not Binary.testcase(
             tc, Binary("-1.0").to_twos_complement(fill=12), "1" * 13
         )
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("0001000"), "1110111")
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("0001000", strict=False), "10111")
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("1110110", strict=False), "01001")
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("0.1101", strict=True), "1.0010")
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("0.1101", strict=False), "1.001")
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("11.1101", strict=False), "0.001")
-        tc += 1
-        tf += not Binary.testcase(tc, Binary.invert("00.1101", strict=False), "1.001")
-        tc += 1
+
+        tc += 10
         tf += not Binary.testcase(tc, Binary("-1.0010").to_twos_complement(), "11.111")
         tc += 1
         tf += not Binary.testcase(tc, Binary("-0.0010").to_twos_complement(), "110.111")
@@ -2738,14 +2851,31 @@ class Binary(object):
         tc += 1
         tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11"), "0.11")
         tc += 1
-        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111")
+        tf += not Binary.testcase(
+            tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111"
+        )
         tc += 1
-        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11e-5"), "0.11e-5")
+        tf += not Binary.testcase(
+            tc, Binary.from_twos_complement("00.11e-5"), "0.11e-5"
+        )
         tc += 1
-        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111")
+        tf += not Binary.testcase(
+            tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111"
+        )
         tc += 1
-        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.00", strict=True), "00.00")
+        tf += not Binary.testcase(
+            tc, Binary.from_twos_complement("00.00", strict=True), "00.00"
+        )
+
+        tc += 10
+        tf += not Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
         tc += 1
+        tf += not Binary.testcase(tc, Binary(0) & Binary(1), Binary(0))
+        tc += 1
+        tf += not Binary.testcase(tc, Binary("1000") & Binary("0"), Binary(0))
+        tc += 1
+        tf += not Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
+
         if tf == 0:
             result = f"Self-Test: 😃 All {tp} test cases passed ✅"
             ret = True
