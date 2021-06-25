@@ -940,6 +940,90 @@ class Binary(object):
             fracpart = li[1]
         return (sign, intpart, fracpart, exp)
 
+    def get_twoscomplement_components(value, strict=False):
+        """Return sign, intpart (indicates sign in first bit), fracpart, exp.
+
+        strict==False: cleanup, remove unnecessary digits, do cleanup
+        strict==True: produce exact twos-complement, no cleanup or simplifications
+
+        Examples for strict:
+        Example: 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
+        Example: 0, input '0' returns (0, '0', '', 0).
+        Example: -1, input '1' returns (1, '1', '', 0).
+        Example: 1, input '01' returns (0, '01', '', 0).
+        Example: -0.5, input 1.1 returns (1, '1', '1', 0).
+        Example: neg. number, input 101.010e-4 returns (1, '101', '010', -4).
+        Example: pos number, input 0101.010e-2 returns (0, '0101', '010', -4).
+        Examples for not strict:
+        Example: 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
+        Example: 0, input '0' returns (0, '0', '', 0).
+        Example: -1, input '1' returns (1, '1', '', 0).
+        Example: 1, input '01' returns (0, '01', '', 0).
+        Example: -0.5, input 1.1 returns (1, '1', '1', 0).
+        Example: neg. number, input 111101.0100e-4 returns (1, '101', '01', -4).
+        Example: pos number, input 0000101.0100e-2 returns (0, '0101', '01', -4).
+
+        Parameters:
+        value (str): respresentation of a twos-complement string
+        strict (bool): if False simplify output by removing unnecessary digits
+
+        Returns:
+        tuple: tuple of sign, intpart, fracpart, exp
+        """
+        if not isinstance(value, str):
+            raise TypeError(f"Argument {value} must be of type str.")
+
+        # crud for parsing strings
+        #
+        # Regular expression used for parsing twos-complement strings.  Additional
+        # comments:
+        #
+        # 1. Uncomment the two '\s*' lines to allow leading and/or trailing
+        # whitespace.  But note that the specification disallows whitespace in
+        # a numeric string.
+        #
+        # 2. For finite numbers the body of the
+        # number before the optional exponent must have
+        # at least one binary digit.  The
+        # lookahead expression '(?=[01])' checks this.
+
+        _parser = re.compile(
+            r"""        # A twoscomplement string consists of:
+            \s*
+            (
+                (?=[01])                 # lookahead: a number (with at least one digit)
+                (?P<int>[01]+)           # a non-e,empty integer part with at least one digit
+                (\.(?P<frac>[01]*))?     # followed by an optional fractional part
+                (E(?P<exp>[-+]?\d+))?    # followed by an optional exponent, or...
+            )
+            \s*
+            \Z
+        """,
+            re.VERBOSE | re.IGNORECASE,
+        ).match
+
+        m = _parser(value)
+        if m is None:
+            raise ValueError(
+                f"Invalid literal for str: {value}."
+                + "Not a valid twos-complement string."
+            )
+        intpart = m.group("int")
+        fracpart = m.group("frac") or ""
+        exp = int(m.group("exp") or "0")
+        # according to parser int cannot be empty
+        if intpart[0] == "0":
+            sign = 0  # "+"
+        else:
+            sign = 1  # "-"
+        if not strict:
+            fracpart = fracpart.rstrip("0")
+            if sign:  # neg
+                intpart = "1" + intpart.lstrip("1")
+            else:  # pos
+                intpart = "0" + intpart.lstrip("0")
+        return (sign, intpart, fracpart, exp)
+
     def components(self):
         """Return sign, intpart (without sign), fracpart, exp.
 
@@ -972,13 +1056,41 @@ class Binary(object):
     def isint(self) -> bool:
         """Determines if binary fraction is an integer.
 
-            This is a utility function.
+        This is a utility function.
 
-            Returns:
-            bool: True if int, False otherwise (Fraction, float)
+        Returns:
+        bool: True if int, False otherwise (Fraction, float)
         """
-        # result = #TODO
-        return result
+        return self._fraction == int(self._fraction):
+
+    def istwoscomplement(value: str):
+        """Determine if string is a valid twos-complement syntax.
+
+        Parameters:
+        none
+
+        Returns:
+        bool: is or is not valid twos-complement
+        """
+        try:
+            get_twoscomplement_components(value)
+            # don't catch TypeError
+        except ValueError:
+            return False
+        return True
+
+    def test_istwoscomplement(testcase_id: int):
+        """Unit test a specific function or method.
+
+        Parameters:
+        None
+
+        Returns:
+        tuple (str, int, int):
+            (name of function tested, number of tests passed, number of tests failed)
+        """
+        # TODO
+        return (Binary.__FUNCTION__(), 1, 2)  # TODO
 
     def adjusted(self):
         """Return the adjusted exponent of self.
@@ -1075,7 +1187,7 @@ class Binary(object):
             if self_padded == other_padded:
                 return 0
             elif self_padded < other_padded:
-                return -(-1) ** self._sign
+                return -((-1) ** self._sign)
             else:
                 return (-1) ** self._sign
         elif self_adjusted > other_adjusted:
@@ -1188,57 +1300,57 @@ class Binary(object):
     def invert(value: str, strict=True) -> str:
         """Inverts (bitwise negates) string that is in twos-complement format.
 
-            This is a utility function.
-            It negates (flips) every bit in the string.
-            Input must be of format: twos-complement format.
+        This is a utility function.
+        It negates (flips) every bit in the string.
+        Input must be of format: twos-complement format.
 
-            The twos-complement format is as follows.
-                first bit: sign, 0 for +, 1 for -
-                1 or more integer bits
-                optional decimal point
-                0 or more fractional bits
-                optional exponent (e.g. e-12)
+        The twos-complement format is as follows.
+            first bit: sign, 0 for +, 1 for -
+            1 or more integer bits
+            optional decimal point
+            0 or more fractional bits
+            optional exponent (e.g. e-12)
 
-                [0,1][0,1]+.[0,1]*e[-][0-9]+
-                sign (required)
-                     integer bits (at least 1 bit required)
-                           decimal point (optional, one or none)
-                            fractional bits (optional, zero or more)
-                                exponent (optional, possible with sign -)
+            [0,1][0,1]+.[0,1]*e[-][0-9]+
+            sign (required)
+                 integer bits (at least 1 bit required)
+                       decimal point (optional, one or none)
+                        fractional bits (optional, zero or more)
+                            exponent (optional, possible with sign -)
 
 
-            Examples inputs are:
-                0...not valid, missing sign, or missing digits
-                1...not valid, missing sign, or missing digits
-                01...1, 010...2, 011...3
-                10..-0, 111110..-0
-                11...-1, 111...-1, 111111111...-1
-                110...-2, 1110...-2,
-                1101...-3, 111101...-3
-                01.1...1.5, 010.11...2.75,
-                111.1...-0.5, 111.11...-0.25
-                01.1e-4...1.5e-4, 010.11e-4...2.75e-4,
-                111.1e3...-0.5e3, 111.11e3...-0.25e3
+        Examples inputs are:
+            0...not valid, missing sign, or missing digits
+            1...not valid, missing sign, or missing digits
+            01...1, 010...2, 011...3
+            10..-0, 111110..-0
+            11...-1, 111...-1, 111111111...-1
+            110...-2, 1110...-2,
+            1101...-3, 111101...-3
+            01.1...1.5, 010.11...2.75,
+            111.1...-0.5, 111.11...-0.25
+            01.1e-4...1.5e-4, 010.11e-4...2.75e-4,
+            111.1e3...-0.5e3, 111.11e3...-0.25e3
 
-                invert('0') raises exception
-                invert('1') raises exception
-                invert('1..1') raises exception
-                invert('34') raises exception
-                invert('1ee2') raises exception
-                invert('1e') raises exception
-                invert('01') returns '10'
-                invert('10') returns '01'
-                invert('101010') returns '010101'
-                invert('0101010') returns '1010101'
-                invert('0101010e-34') returns '1010101e-34'
-                invert('101010e34') returns '0101010e34'
-                invert(invert('0101010e-34')) returns '0101010e-34'
-                invert(invert('101010e34')) returns '101010e34'
+            invert('0') raises exception
+            invert('1') raises exception
+            invert('1..1') raises exception
+            invert('34') raises exception
+            invert('1ee2') raises exception
+            invert('1e') raises exception
+            invert('01') returns '10'
+            invert('10') returns '01'
+            invert('101010') returns '010101'
+            invert('0101010') returns '1010101'
+            invert('0101010e-34') returns '1010101e-34'
+            invert('101010e34') returns '0101010e34'
+            invert(invert('0101010e-34')) returns '0101010e-34'
+            invert(invert('101010e34')) returns '101010e34'
 
-                invert(invert(n)) == for all valid n
+            invert(invert(n)) == for all valid n
 
-            Returns:
-            str: bitwise negated string, a twos-complement formated string
+        Returns:
+        str: bitwise negated string, a twos-complement formated string
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
@@ -1263,13 +1375,32 @@ class Binary(object):
 
         if not strict:
             leader = intpart[0]
-            intpart = leader + intpart.lstrip(leader) if int(intpart) != int(leader) else leader
+            intpart = (
+                leader + intpart.lstrip(leader)
+                if int(intpart) != int(leader)
+                else leader
+            )
             fracpart = fracpart.rstrip("0") if int(fracpart) != 0 else "0"
         if int(fracpart) == 0:
             result = intpart
         else:
             result = intpart + "." + fracpart
         return result
+
+    def test_invert(testcase_id: int):
+        """Unit test a specific function or method.
+
+        Parameters:
+        None
+
+        Returns:
+        tuple (str, int, int, int):
+            (name of function tested, number of tests passed, number of tests failed, testcase id)
+        """
+        # TODO
+        fa = Binary.testcase(tc, Binary.invert("1001"), "0110")
+        tc += 1
+        return Binary.__FUNCTION__(), tf, 2, testcase_id  # TODO
 
     def to_twos_complement(self, fill=1) -> str:
         """Computes the representation as a string in twos-complement.
@@ -1312,20 +1443,47 @@ class Binary(object):
         if fracpart != "" and int(fracpart) != 0:
             fracpart = fracpart.rstrip("0")
             fracl = len(fracpart)
-            print(fracpart)
             fracpart = bin(2 ** fracl - int(fracpart, 2))[2:]
-            print(fracl, len(fracpart), fracpart)
             fracpart = "." + (fracl - len(fracpart)) * "0" + fracpart
         else:
             fracpart = ""
         return "1" + intpart + fracpart
 
-    def from_twos_complement(value) -> str:
+    def from_twos_complement(value, strict=False) -> str:
         """The opposite of to_twos_complement() function:
 
         Converts '1101' to '-11' (-3)
         convert '1101.1e-2' to '-11.1e-2'  (-3.5/4)
+        strict True, leaves it as much as unchanged as possivle
+        strict False simplifies representation
         """
+
+        sign, intpart, fracpart, exp = Binary.get_twoscomplement_components(value, strict=strict)
+        if sign == 0:
+            if strict:
+                return value
+            result = intpart[1:] if len(intpart) > 1 else intpart
+            fracpart = fracpart.rstrip("0")
+        else:
+            result = "-"
+            intpart = intpart.lstrip("0") if "1" in intpart else intpart
+            intl = len(intpart)
+            intpart = bin(2 ** intl - int(intpart, 2))[2:]
+            result += intpart
+
+            if "1" in fracpart:
+                fracpart = fracpart.rstrip("0")
+                fracl = len(fracpart)
+                fracpart = bin(2 ** fracl - int(fracpart, 2))[2:]
+                fracpart = (fracl - len(fracpart)) * "0" + fracpart
+            else:
+                fracpart = ""
+
+        if fracpart.rstrip("0") != "" and not strict:
+            result += "." + fracpart
+        if _EXP in value:
+            result += f"e{exp}"
+        return result
         # TODO implement this function
 
     def compare_representation(self, other):
@@ -1863,6 +2021,12 @@ class Binary(object):
         except:
             return sys.exc_info()[2].tb_frame.f_back.f_back.f_lineno
 
+    def __FUNCTION__():
+        try:
+            raise Exception
+        except:
+            return sys.exc_info()[2].tb_frame.f_back.f_code.co_name
+
     def testcase(id, input, expected_result):
         """Test a single test case. Compares input to expected result.
 
@@ -1895,153 +2059,164 @@ class Binary(object):
         Returns:
         bool: True if all tests pass, False if any single test fails
         """
-        tc = 1000
-        r = 0  # failure count
+        tc = 1000  # tc ... test case
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        tp = 0  # tp ... accumulative total of tests passed
+        tf = 0  # tf ... accumulative total of tests failed
+
+        # _, pa, fa, tc = print(f"{Binary.test_istwoscomplement(tc)}")  # TODO
+        # tp, tf, tc = tp + pa, tf + fa, tc + 1
+
         # type should be Binary, not string
-        r += not Binary.testcase(tc, "Binary" in str(type(Binary(5))), True)
+        tf += not Binary.testcase(tc, "Binary" in str(type(Binary(5))), True)
         tc += 1
         try:
             Binary("102")  # should fail
         except:
-            r += not Binary.testcase(
+            tf += not Binary.testcase(
                 tc, "Expected exception occurred", "Expected exception occurred"
             )
         tc += 1
-        r += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815"))
+        tf += not Binary.testcase(tc, len(Binary.version()), len("20210622-103815"))
         tc += 1
-        r += not Binary.testcase(tc, isinstance(Binary.version(), str), True)
+        tf += not Binary.testcase(tc, isinstance(Binary.version(), str), True)
         tc += 1
-        r += not Binary.testcase(tc, Binary.version()[8], "-")
+        tf += not Binary.testcase(tc, Binary.version()[8], "-")
         tc += 1
-        r += not Binary.testcase(tc, float(Binary("0")), 0.0)
+        tf += not Binary.testcase(tc, float(Binary("0")), 0.0)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary("1.1")), 1.5)
+        tf += not Binary.testcase(tc, float(Binary("1.1")), 1.5)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary("-1.11")), -1.75)
+        tf += not Binary.testcase(tc, float(Binary("-1.11")), -1.75)
 
         tc += 10
-        r += not Binary.testcase(tc, Binary.binary_string_to_fraction("1"), Fraction(1))
+        tf += not Binary.testcase(
+            tc, Binary.binary_string_to_fraction("1"), Fraction(1)
+        )
         tc += 1
-        r += not Binary.testcase(tc, Binary.binary_string_to_fraction("0"), Fraction(0))
+        tf += not Binary.testcase(
+            tc, Binary.binary_string_to_fraction("0"), Fraction(0)
+        )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("0.1"), Fraction(0.5)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1"), Fraction(-1)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16)
         )
 
         tc += 10
-        r += not Binary.testcase(tc, Binary.fraction_to_string(0), "0")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(0), "0")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(1), "1")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(1), "1")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(2), "10")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(2), "10")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(13), "1101")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(13), "1101")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-0), "0")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-0), "0")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-1), "-1")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-1), "-1")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-2), "-10")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-2), "-10")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-13), "-1101")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-13), "-1101")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(0.0), "0")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(0.0), "0")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(1.0), "1")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(1.0), "1")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(2.0), "10")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(2.0), "10")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(13.0), "1101")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(13.0), "1101")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-0.0), "0")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-0.0), "0")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-1.0), "-1")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-1.0), "-1")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-2.0), "-10")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-2.0), "-10")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(-13.0), "-1101")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(-13.0), "-1101")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(0.0)), "0")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(0.0)), "0")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(1.0)), "1")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(1.0)), "1")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(2.0)), "10")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(2.0)), "10")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(13.0)), "1101")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(13.0)), "1101")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-0.0)), "0")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-0.0)), "0")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-1.0)), "-1")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-1.0)), "-1")
         tc += 1
-        r += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-2.0)), "-10")
+        tf += not Binary.testcase(tc, Binary.fraction_to_string(Fraction(-2.0)), "-10")
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.fraction_to_string(Fraction(-13.0)), "-1101"
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)),
             "1" + "0" * 99 + "1",
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
-            Binary.fraction_to_string(Fraction(-2 ** 100 - 2 ** 0)),
+            Binary.fraction_to_string(Fraction(-(2 ** 100) - 2 ** 0)),
             "-1" + "0" * 99 + "1",
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, 2 ** 101)),
             "0.1" + "0" * 99 + "1",
         )
         tc += 1
 
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, -1 * 2 ** 101)),
             "-0.1" + "0" * 99 + "1",
         )
         tc += 1
 
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.fraction_to_string(
                 Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10000
@@ -2050,7 +2225,7 @@ class Binary(object):
         )
 
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.fraction_to_string(
                 Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10
@@ -2059,7 +2234,7 @@ class Binary(object):
         )
 
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.fraction_to_string(
                 Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10, strict=True
@@ -2068,56 +2243,58 @@ class Binary(object):
         )
 
         tc += 10
-        r += not Binary.testcase(tc, Binary.string_to_fraction("0"), Fraction(0))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("0"), Fraction(0))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("1"), Fraction(1))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("1"), Fraction(1))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("-0"), Fraction(0))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("-0"), Fraction(0))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("-1"), Fraction(-1))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("-1"), Fraction(-1))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("11"), Fraction(3))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("11"), Fraction(3))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("-0.0"), Fraction(0))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("-0.0"), Fraction(0))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("1.0"), Fraction(1))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("1.0"), Fraction(1))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("1.1"), Fraction(3, 2))
+        tf += not Binary.testcase(tc, Binary.string_to_fraction("1.1"), Fraction(3, 2))
         tc += 1
-        r += not Binary.testcase(tc, Binary.string_to_fraction("-1.1"), Fraction(3, -2))
+        tf += not Binary.testcase(
+            tc, Binary.string_to_fraction("-1.1"), Fraction(3, -2)
+        )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary.string_to_fraction("-0.111"), Fraction(-0.875)
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 2 + "1"),
             Fraction(3 * 2 ** 3 + 1, 2 ** 4),
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 100 + "1"),
             Fraction(3 * 2 ** 101 + 1, 2 ** 102),
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary.string_to_fraction("1.1" + "0" * 1000 + "1"),
             Fraction(3 * 2 ** 1001 + 1, 2 ** 1002),
         )
 
         tc += 10
-        r += not Binary.testcase(tc, Binary(-3.5), "-11.1")
+        tf += not Binary.testcase(tc, Binary(-3.5), "-11.1")
         tc += 1
-        r += not Binary.testcase(tc, Binary(-3.5), "-0b11.1")
+        tf += not Binary.testcase(tc, Binary(-3.5), "-0b11.1")
         tc += 1
-        r += not Binary.testcase(tc, Binary(-3.5).np(), "-11.1")
+        tf += not Binary.testcase(tc, Binary(-3.5).np(), "-11.1")
         tc += 1
-        r += not Binary.testcase(tc, str(Binary(-3.5)), "-0b11.1")
+        tf += not Binary.testcase(tc, str(Binary(-3.5)), "-0b11.1")
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary(10.10).compare_representation(
                 "1010.0001100110011001100110011001100110011001100110011"
@@ -2125,13 +2302,13 @@ class Binary(object):
             True,
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("10.111").compare_representation("10.111"), True
         )
         tc += 1
-        r += not Binary.testcase(tc, Binary(5).compare_representation("101"), True)
+        tf += not Binary.testcase(tc, Binary(5).compare_representation("101"), True)
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary(8.3).compare_representation(
                 "1000.010011001100110011001100110011001100110011001101"
@@ -2139,27 +2316,27 @@ class Binary(object):
             True,
         )
         tc += 1
-        r += not Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
+        tf += not Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
         tc += 1
-        r += not Binary.testcase(tc, Binary(1.0).compare_representation("1"), True)
+        tf += not Binary.testcase(tc, Binary(1.0).compare_representation("1"), True)
         tc += 1
-        r += not Binary.testcase(tc, Binary(3.5).compare_representation("11.1"), True)
+        tf += not Binary.testcase(tc, Binary(3.5).compare_representation("11.1"), True)
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary(-13.75).compare_representation("-1101.11"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
             True,
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary(13.0 + 2 ** -30).compare_representation(
                 "1101.000000000000000000000000000001"
@@ -2167,7 +2344,7 @@ class Binary(object):
             True,
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary(13.0 + 2 ** -40).compare_representation(
                 "1101.0000000000000000000000000000000000000001"
@@ -2175,15 +2352,15 @@ class Binary(object):
             True,
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary(13.0 + 2 ** -50).compare_representation("1101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary(13.0 + 2 ** -60).compare_representation("1101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary(
                 13.0
@@ -2198,365 +2375,385 @@ class Binary(object):
             True,
         )
         tc += 10
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.1").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.10").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.101").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.11").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.110").round(1).compare_representation("1.1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.1101").round(1).compare_representation("10"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.1111").round(1).compare_representation("10"), True
         )
         tc += 10
-        r += not Binary.testcase(tc, Binary("1.1111").fill(1), "1.1111")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(1), "1.1111")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(4), "1.1111")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(4), "1.1111")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(5), "1.11110")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(5), "1.11110")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(6), "1.111100")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(6), "1.111100")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(1, True), "10.0")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(1, True), "10.0")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(4, True), "1.1111")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(4, True), "1.1111")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(5, True), "1.11110")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(5, True), "1.11110")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.1111").fill(6, True), "1.111100")
+        tf += not Binary.testcase(tc, Binary("1.1111").fill(6, True), "1.111100")
         tc += 1
-        r += not Binary.testcase(tc, Binary("1.0011").fill(1, True), "1.0")
+        tf += not Binary.testcase(tc, Binary("1.0011").fill(1, True), "1.0")
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary((1, (1, 0, 1, 0), -2)).compare_representation("-1010e-2"), True
         )
         tc += 10
-        r += not Binary.testcase(tc, float(Binary("-1")), -1.0)
+        tf += not Binary.testcase(tc, float(Binary("-1")), -1.0)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary("-1.1")), -1.5)
+        tf += not Binary.testcase(tc, float(Binary("-1.1")), -1.5)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary("1.001")), 1.125)
+        tf += not Binary.testcase(tc, float(Binary("1.001")), 1.125)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
+        tf += not Binary.testcase(tc, float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
+        tf += not Binary.testcase(tc, float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
         tc += 1
-        r += not Binary.testcase(tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
+        tf += not Binary.testcase(
+            tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316
+        )
         tc += 1
-        r += not Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
+        tf += not Binary.testcase(
+            tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323
+        )
 
         tc += 10
-        r += not Binary.testcase(tc, int(Binary("-1")), -1)
+        tf += not Binary.testcase(tc, int(Binary("-1")), -1)
         tc += 1
-        r += not Binary.testcase(tc, int(Binary("-1.111")), -1)
+        tf += not Binary.testcase(tc, int(Binary("-1.111")), -1)
         tc += 1
-        r += not Binary.testcase(tc, int(Binary("1.001")), 1)
+        tf += not Binary.testcase(tc, int(Binary("1.001")), 1)
         tc += 1
-        r += not Binary.testcase(tc, int(Binary((1, (1, 0, 1, 0), -2))), -2)
+        tf += not Binary.testcase(tc, int(Binary((1, (1, 0, 1, 0), -2))), -2)
         tc += 1
-        r += not Binary.testcase(tc, int(Binary(-13.0 - 2 ** -10)), -13)
+        tf += not Binary.testcase(tc, int(Binary(-13.0 - 2 ** -10)), -13)
         tc += 1
-        r += not Binary.testcase(tc, int(Binary(13.0 + 2 ** -20)), 13)
+        tf += not Binary.testcase(tc, int(Binary(13.0 + 2 ** -20)), 13)
         tc += 1
-        r += not Binary.testcase(tc, int(Binary(13.0 + 2 ** -30)), 13)
+        tf += not Binary.testcase(tc, int(Binary(13.0 + 2 ** -30)), 13)
 
         tc += 10
-        r += not Binary.testcase(tc, Binary(1) + Binary("1"), 2)
+        tf += not Binary.testcase(tc, Binary(1) + Binary("1"), 2)
         tc += 1
-        r += not Binary.testcase(tc, Binary(-1) + Binary("1"), 0)
+        tf += not Binary.testcase(tc, Binary(-1) + Binary("1"), 0)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
+        tf += not Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
 
         tc += 10
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
         )
         tc += 1
-        r += not Binary.testcase(tc, Binary(1) - Binary(1), 0)
+        tf += not Binary.testcase(tc, Binary(1) - Binary(1), 0)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0) - Binary(1), -1)
+        tf += not Binary.testcase(tc, Binary(0) - Binary(1), -1)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0.1) - Binary(0.2), -0.1)
+        tf += not Binary.testcase(tc, Binary(0.1) - Binary(0.2), -0.1)
         tc += 1
-        r += not Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
+        tf += not Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
 
         tc += 10
-        r += not Binary.testcase(tc, Binary(0) * Binary(1), 0)
+        tf += not Binary.testcase(tc, Binary(0) * Binary(1), 0)
         tc += 1
-        r += not Binary.testcase(tc, Binary(1) * Binary(1), 1)
+        tf += not Binary.testcase(tc, Binary(1) * Binary(1), 1)
         tc += 1
-        r += not Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
+        tf += not Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
         tc += 1
-        r += not Binary.testcase(tc, Binary(100) / Binary(Fraction(1, 10)), 1000)
+        tf += not Binary.testcase(tc, Binary(100) / Binary(Fraction(1, 10)), 1000)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0) / Binary(10), 0)
+        tf += not Binary.testcase(tc, Binary(0) / Binary(10), 0)
         tc += 1
-        r += not Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
+        tf += not Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
         tc += 1
-        r += not Binary.testcase(tc, Binary(10) // Binary(3), 3)
+        tf += not Binary.testcase(tc, Binary(10) // Binary(3), 3)
         tc += 1
-        r += not Binary.testcase(tc, Binary(7) // Binary(2), 3)
+        tf += not Binary.testcase(tc, Binary(7) // Binary(2), 3)
         tc += 1
-        r += not Binary.testcase(tc, Binary(8) // Binary(3), 2)
+        tf += not Binary.testcase(tc, Binary(8) // Binary(3), 2)
 
         tc += 10
-        r += not Binary.testcase(tc, Binary(1) >> 1, 0.5)
+        tf += not Binary.testcase(tc, Binary(1) >> 1, 0.5)
         tc += 1
-        r += not Binary.testcase(tc, Binary(2) >> 3, 0.25)
+        tf += not Binary.testcase(tc, Binary(2) >> 3, 0.25)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0.25) >> 1, Fraction(1, 8))
+        tf += not Binary.testcase(tc, Binary(0.25) >> 1, Fraction(1, 8))
         tc += 1
-        r += not Binary.testcase(tc, Binary("1e1") >> 1, 1)
+        tf += not Binary.testcase(tc, Binary("1e1") >> 1, 1)
 
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") >> 2, 5)
+        tf += not Binary.testcase(tc, Binary("101e2") >> 2, 5)
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") >> 3, Fraction(5, 2 ** 1))
+        tf += not Binary.testcase(tc, Binary("101e2") >> 3, Fraction(5, 2 ** 1))
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") >> 3, Binary(Fraction(5, 2 ** 1)))
+        tf += not Binary.testcase(tc, Binary("101e2") >> 3, Binary(Fraction(5, 2 ** 1)))
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") >> 4, Binary(Fraction(5, 2 ** 2)))
+        tf += not Binary.testcase(tc, Binary("101e2") >> 4, Binary(Fraction(5, 2 ** 2)))
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") >> 4, Binary("101e-2"))
+        tf += not Binary.testcase(tc, Binary("101e2") >> 4, Binary("101e-2"))
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") >> 20, Binary("101e-18"))
+        tf += not Binary.testcase(tc, Binary("101e2") >> 20, Binary("101e-18"))
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("101e2") >> 20, Binary(Fraction(5, 2 ** 18))
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e2") >> 2).compare_representation("101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e-2") >> 2).compare_representation("101e-4"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101") >> 2).compare_representation("1.01"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             (Binary("101") >> 20).compare_representation("0." + "0" * 17 + "101"),
             True,
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01e2") >> 0).compare_representation("101.01e2"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01e2") >> 1).compare_representation("101.01e1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01e2") >> 20).compare_representation("101.01e-18"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01") >> 2).compare_representation("1.0101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01") >> 1).compare_representation("10.101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01") >> 3).compare_representation("0.10101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             (Binary("101.01") >> 20).compare_representation("0." + "0" * 17 + "10101"),
             True,
         )
 
         tc += 10
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary("101e2").to_sci_exponential().compare_representation("1.01e4"),
             True,
         )
 
         tc += 10
-        r += not Binary.testcase(tc, Binary(1) << 1, 2)
+        tf += not Binary.testcase(tc, Binary(1) << 1, 2)
         tc += 1
-        r += not Binary.testcase(tc, Binary(2) << 3, 16)
+        tf += not Binary.testcase(tc, Binary(2) << 3, 16)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0.25) << 1, 0.5)
+        tf += not Binary.testcase(tc, Binary(0.25) << 1, 0.5)
         tc += 1
-        r += not Binary.testcase(tc, Binary(0.125) << 3, 1)
+        tf += not Binary.testcase(tc, Binary(0.125) << 3, 1)
         tc += 1
-        r += not Binary.testcase(tc, Binary("1e1") << 2, 8)
+        tf += not Binary.testcase(tc, Binary("1e1") << 2, 8)
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") << 2, 5 * 2 ** 4)
+        tf += not Binary.testcase(tc, Binary("101e2") << 2, 5 * 2 ** 4)
         tc += 1
-        r += not Binary.testcase(tc, Binary("101e2") << 20, 5 * 2 ** 22)
+        tf += not Binary.testcase(tc, Binary("101e2") << 20, 5 * 2 ** 22)
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e-2") << 2).compare_representation("101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e2") << 2).compare_representation("101e4"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101e2") << 20).compare_representation("101e22"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101") << 2).compare_representation("10100"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101") << 20).compare_representation("101" + "0" * 20), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01e2") << 2).compare_representation("101.01e4"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01e2") << 20).compare_representation("101.01e22"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01") << 2).compare_representation("10101"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01") << 1).compare_representation("1010.1"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, (Binary("101.01") << 3).compare_representation("101010"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             (Binary("101.01") << 20).compare_representation("10101" + "0" * 18),
             True,
         )
 
         tc += 10
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary("1.1").to_simple_exponential().compare_representation("11e-1"),
             True,
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
             True,
         )
         tc += 1
-        r += not Binary.testcase(tc, Binary("-0.01e-2") == Binary("-1e-4"), True)
+        tf += not Binary.testcase(tc, Binary("-0.01e-2") == Binary("-1e-4"), True)
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc,
             Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
             True,
         )
         tc += 1
-        r += not Binary.testcase(tc, Binary("10").to_twos_complement(), Binary("10"))
+        tf += not Binary.testcase(tc, Binary("10").to_twos_complement(), Binary("10"))
 
         tc += 10
-        r += not Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
+        tf += not Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
         tc += 1
-        r += not Binary.testcase(tc, Binary(0) & Binary(1), Binary(0))
+        tf += not Binary.testcase(tc, Binary(0) & Binary(1), Binary(0))
         tc += 1
-        r += not Binary.testcase(tc, Binary("1000") & Binary("0"), Binary(0))
+        tf += not Binary.testcase(tc, Binary("1000") & Binary("0"), Binary(0))
         tc += 1
-        r += not Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
+        tf += not Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
 
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("1010").to_twos_complement(), Binary("1010")
         )
         tc += 1
-        r += not Binary.testcase(tc, Binary("-1").to_twos_complement(fill=12), "1" * 13)
+        tf += not Binary.testcase(
+            tc, Binary("-1").to_twos_complement(fill=12), "1" * 13
+        )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary(-1975).to_twos_complement(fill=12), "1100001001001"
         )
         tc += 1
-        r += not Binary.testcase(
+        tf += not Binary.testcase(
             tc, Binary("-1.0").to_twos_complement(fill=12), "1" * 13
         )
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("0001000"), "1110111"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("0001000"), "1110111")
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("0001000", strict=False), "10111"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("0001000", strict=False), "10111")
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("1110110", strict=False), "01001"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("1110110", strict=False), "01001")
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("0.1101", strict=True), "1.0010"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("0.1101", strict=True), "1.0010")
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("0.1101", strict=False), "1.001"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("0.1101", strict=False), "1.001")
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("11.1101", strict=False), "0.001"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("11.1101", strict=False), "0.001")
         tc += 1
-        r += not Binary.testcase(
-            tc, Binary.invert("00.1101", strict=False), "1.001"
-        )
+        tf += not Binary.testcase(tc, Binary.invert("00.1101", strict=False), "1.001")
         tc += 1
-        r += not Binary.testcase(tc, Binary("-1.0010").to_twos_complement(), "11.111")
+        tf += not Binary.testcase(tc, Binary("-1.0010").to_twos_complement(), "11.111")
         tc += 1
-        r += not Binary.testcase(tc, Binary("-0.0010").to_twos_complement(), "110.111")
+        tf += not Binary.testcase(tc, Binary("-0.0010").to_twos_complement(), "110.111")
         tc += 1
-        r += not Binary.testcase(tc, Binary("-0.111").to_twos_complement(), "110.001")
+        tf += not Binary.testcase(tc, Binary("-0.111").to_twos_complement(), "110.001")
         tc += 1
-        r += not Binary.testcase(tc, Binary("-0.10").to_twos_complement(), "110.1")
-        if r == 0:
-            result = "Self-Test: 😃 All test cases passed ✅"
+        tf += not Binary.testcase(tc, Binary("-0.10").to_twos_complement(), "110.1")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("11"), "-1")
+
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("11.111"), "-1.001")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("110.111"), "-10.001")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("110.001"), "-10.111")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("110"), "-10")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("00"), "0")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("01"), "1")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11"), "0.11")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11e-5"), "0.11e-5")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111")
+        tc += 1
+        tf += not Binary.testcase(tc, Binary.from_twos_complement("00.00", strict=True), "00.00")
+        tc += 1
+        if tf == 0:
+            result = f"Self-Test: 😃 All {tp} test cases passed ✅"
             ret = True
         else:
-            plural = "" if r == 1 else "s"
-            result = f"Self-Test: {r} test case{plural} failed ❌"
+            plural = "" if tp == 1 else "s"
+            result = f"Self-Test: {tp} test case{plural} passed ✅"
+            plural = "" if tf == 1 else "s"
+            result = f"Self-Test: {tf} test case{plural} failed ❌"
             ret = False
         print(f"{result}")
         return ret
