@@ -821,7 +821,7 @@ class Binary(object):
     def twos_complement_to_not_exponential(value: str):
         sign, intpart, fracpart, exp = Binary.get_twoscomplement_components()
         # # TODO: you only wrote 2 lines of code???
-        return None # TODO
+        return None  # TODO
 
     def binary_string_to_fraction(value):
         """Convert string representation of binary to Fraction.
@@ -1154,7 +1154,6 @@ class Binary(object):
 
         return Binary(intpart + _EXP + str(exp), False)
 
-
     def test_to_simple_exponential(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -1185,7 +1184,6 @@ class Binary(object):
         )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def to_sci_exponential(self):
         """Convert to exp. representation with single binary digit before comma.
@@ -1246,7 +1244,6 @@ class Binary(object):
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
         return Binary(result, False)
 
-
     def test_to_sci_exponential(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -1281,7 +1278,6 @@ class Binary(object):
         )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def get_components(value) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
@@ -1659,7 +1655,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("-0.01e-2") == complex(1,1)  # should fail
+            Binary("-0.01e-2") == complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -1668,7 +1664,6 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def compare(self, other):
         """Compare self to other. Return a Binary value.
@@ -2140,7 +2135,6 @@ class Binary(object):
         # TODO, BUG: we changed our mind, now 1 or 10 are valid twos-complement strings
         return "1" + intpart + fracpart
 
-
     def test_to_twos_complement(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -2182,8 +2176,7 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-
-    def from_twos_complement(value:str, strict=False) -> str:
+    def from_twos_complement(value: str, strict=False) -> str:
         """The opposite of to_twos_complement() function:
 
         This is a utility function.
@@ -2226,7 +2219,6 @@ class Binary(object):
         if _EXP in value:
             result += f"e{exp}"
         return result
-
 
     def test_from_twos_complement(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -2292,8 +2284,6 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
-
 
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
@@ -2557,7 +2547,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction + other._fraction)
 
-
     def test___add__(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -2584,7 +2573,7 @@ class Binary(object):
         re = Binary.testcase(tc, Binary("-1.1") + Binary("0.1"), -1)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("102") + "103" # should fail
+            Binary("102") + "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2593,7 +2582,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) + complex(1, 1) # should fail
+            Binary(1) + complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2618,7 +2607,6 @@ class Binary(object):
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction - other._fraction)
-
 
     def test___sub__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -2650,7 +2638,7 @@ class Binary(object):
         re = Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("102") - "103" # should fail
+            Binary("102") - "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2659,7 +2647,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) - complex(1, 1) # should fail
+            Binary(1) - complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2685,7 +2673,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction * other._fraction)
 
-
     def test___mul__(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -2710,7 +2697,7 @@ class Binary(object):
         re = Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("102") * "103" # should fail
+            Binary("102") * "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2719,7 +2706,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) * complex(1, 1) # should fail
+            Binary(1) * complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2745,7 +2732,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction / other._fraction)
 
-
     def test___truediv__(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -2770,7 +2756,7 @@ class Binary(object):
         re = Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("102") / "103" # should fail
+            Binary("102") / "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2779,7 +2765,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) / complex(1, 1) # should fail
+            Binary(1) / complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2788,7 +2774,6 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def __floordiv__(self, other):
         """Floor division operation
@@ -2805,7 +2790,6 @@ class Binary(object):
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction // other._fraction)
-
 
     def test___floordiv__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -2831,7 +2815,7 @@ class Binary(object):
         re = Binary.testcase(tc, Binary(8) // Binary(3), 2)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("102") // "103" # should fail
+            Binary("102") // "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2840,7 +2824,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) // complex(1, 1) # should fail
+            Binary(1) // complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2866,7 +2850,6 @@ class Binary(object):
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction % other._fraction)
-
 
     def test___mod__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -2896,7 +2879,7 @@ class Binary(object):
         re = Binary.testcase(tc, Binary("-101.0") % Binary("-1.1"), -0.5)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("102") % "103" # should fail
+            Binary("102") % "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2905,7 +2888,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) % complex(1, 1) # should fail
+            Binary(1) % complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -2914,7 +2897,6 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def __abs__(self):
         """Compute absolute value.
@@ -2930,7 +2912,6 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(abs(self._fraction))
-
 
     def test___abs__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -2961,7 +2942,6 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-
     def __ceil__(self):
         """Perform math ceiling operation.
 
@@ -2977,7 +2957,6 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
-
 
     def test___ceil__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -3008,7 +2987,6 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-
     def __floor__(self):
         """Perform math floor operation.
 
@@ -3024,7 +3002,6 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.floor(self._fraction))
-
 
     def test___floor__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -3054,7 +3031,6 @@ class Binary(object):
         re = Binary.testcase(tc, math.floor(Binary("-101.1")), math.floor(-5.5))
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def __lt__(self, other):
         """Less than operation.
@@ -3153,7 +3129,6 @@ class Binary(object):
             self, other, "and"
         )  # TODO , do you really need the and_or function?
 
-
     def test___and__(tc: int) -> tuple:
         """Unit test a specific function or method.
 
@@ -3179,7 +3154,7 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         re = Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
         try:
-            Binary("102") & "103" # should fail
+            Binary("102") & "103"  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -3188,7 +3163,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) & complex(1, 1) # should fail
+            Binary(1) & complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -3197,8 +3172,6 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
-
 
     def __or__(self, other):
         """Return the bitwise or of self and other.
@@ -3401,7 +3374,7 @@ class Binary(object):
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
         if ndigits < 0:
-            raise ValueError(                f"negative shift count"            )
+            raise ValueError(f"negative shift count")
 
         if _EXP in self._value:
             sign, intpart, fracpart, exp = Binary.get_components(self._value)
@@ -3422,7 +3395,6 @@ class Binary(object):
             shifted_fracpart = intpart[len(intpart) - ndigits :] + fracpart
             shifted = Binary.clean(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
-
 
     def test___rshift__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -3520,7 +3492,7 @@ class Binary(object):
         )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("10") >> -3 # should fail
+            Binary("10") >> -3  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -3529,7 +3501,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) >> complex(1, 1) # should fail
+            Binary(1) >> complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -3538,7 +3510,6 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
-
 
     def __lshift__(self, ndigits: int):
         """Shifts number n digits (bits) to the left.
@@ -3564,7 +3535,7 @@ class Binary(object):
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
         if ndigits < 0:
-            raise ValueError(                f"negative shift count"            )
+            raise ValueError(f"negative shift count")
         if "e" in self._value:
             sign, intpart, fracpart, exp = Binary.get_components(self._value)
             shifted = (
@@ -3586,7 +3557,6 @@ class Binary(object):
             shifted_fracpart = fracpart[ndigits:]
             shifted = Binary.clean(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
-
 
     def test___lshift__(tc: int) -> tuple:
         """Unit test a specific function or method.
@@ -3666,7 +3636,7 @@ class Binary(object):
         )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary("10") << -3 # should fail
+            Binary("10") << -3  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -3675,7 +3645,7 @@ class Binary(object):
             re = Binary.testcase(tc, "No exception", txt)
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary(1) << complex(1, 1) # should fail
+            Binary(1) << complex(1, 1)  # should fail
         except TypeError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -3685,10 +3655,9 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-
     # is this necessary? can't we just call the corresponding function from Fractions?
     # can't we just call binary operands on Fractions and not implement anything?
-    def and_or(this, other, which): # TODO is this function still used? Still needed?
+    def and_or(this, other, which):  # TODO is this function still used? Still needed?
         """Shifts number to the left n times # TODO
 
         This is a function, not a method.
@@ -3867,7 +3836,7 @@ class Binary(object):
             plural = "" if tp == 1 else "s"
             result = f"Self-Test: {tp} test case{plural} passed ✅"
             plural = "" if tf == 1 else "s"
-            result = f"Self-Test: {tf} test case{plural} failed ❌"
+            result += f"Self-Test: {tf} test case{plural} failed ❌"
             ret = False
         print(f"{result}")
         return ret
