@@ -38,10 +38,13 @@ binary strings.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
 - Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
+- two's complement representation possible too:
+'11.11' for -1.25, or '-0b1.01'.
 
 Many operations and transformations are offered.
-You can sum, subtract, multiply, divide, compute power of, etc.
-of long floating-point binary fractions.
+You can sum, subtract, multiply, and divide long floating-point binary
+fractions. You can compute power of them, shift them left, shift them right,
+etc.
 
 Basic representation of binary fractions and binary floats:
 A binary fraction is a subset of binary floats. Basically, a binary fraction
@@ -82,14 +85,15 @@ If you are curious about Two's complement:
 - Python 3
 - constructors for various types: int, float, Fraction, Binary, str
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
-- supports many methods: lshift, rshift, not, round, floor, ceil, ...
+- supports many methods: not, abs, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented. Please read the documentation inside the source code
+- well documented.
+    - Please read the documentation inside the source code
   ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
-  Or look at the pydoc-generated documentation in
+    - Or look at the pydoc-generated documentation in
   [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 
 
@@ -244,6 +248,9 @@ _BINARY_RELATIVE_TOLERANCE = 1e-10
 _BINARY_PRECISION = 128  # number of binary digits to the right of decimal point
 _PREFIX = "0b"
 _EXP = "e"
+_NAN = "NaN"
+_INF = "Inf"
+_NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
 _BINARY_VERSION = "20210622-155037"  # format: date +%Y%m%d-%H%M%S
 
@@ -259,7 +266,8 @@ _BINARY_VERSION = "20210622-155037"  # format: date +%Y%m%d-%H%M%S
 class Binary(object):
     """Floating point class for binary fractions and arithmetic."""
 
-    def __new__(cls, value: [int, float, str, Fraction] = "0", simplify: bool = True):
+    def __new__(cls, value: [int, float, str, Fraction] = "0",
+        simplify: bool = True, warn_on_float: bool = False):
         """Constructor.
 
         Use __new__ and not __init__ because it is immutable.
@@ -274,6 +282,10 @@ class Binary(object):
         value (int, float, str): value of number
         simplify (bool): if True try to simplify string representation
             if False, try to leave the string representation as much as is
+        warn_on_float (bool): if True print a warning statement to stdout to
+            warn about possible loss in precision in case of conversion from
+            float to Binary.
+            If False, print no warning to stdout.
 
         Returns:
         Binary: created immutable instance
@@ -316,7 +328,8 @@ class Binary(object):
 
         global _BINARY_WARNED_ABOUT_FLOAT
         self = super(Binary, cls).__new__(cls)
-        self._is_special = False
+        self._is_special = False # TODO
+        self._warn_on_float = warn_on_float
         self._fraction = Fraction()
         # TODO: not yet implemented, indicate if operations were lossless
         self._is_lossless = False
@@ -372,9 +385,9 @@ class Binary(object):
                 if diag is not None:
                     # NaN
                     if m.group("signal"):
-                        self._value = "NaN"  # N
+                        self._value = _NAN  # "NaN"  # N
                     else:
-                        self._value = "NaN"  # n
+                        self._value = _NAN  # "NaN"  # n
                 else:
                     # infinity
                     self._value = sign + "Infinity"  # F
@@ -424,7 +437,7 @@ class Binary(object):
                         )
                 if value[2] in ("n", "N"):
                     # NaN: digits form the diagnostic
-                    self._value = "NaN"
+                    self._value = _NAN  # "NaN"
                     self._is_special = True
                 elif isinstance(value[2], int):
                     # finite number: digits give the coefficient
@@ -448,6 +461,7 @@ class Binary(object):
             self._fraction = value._fraction
             self._is_lossless = value._is_lossless
             self._is_special = value._is_special
+            self._self.warn_on_float = value._self.warn_on_float
             return self
 
         if isinstance(value, Fraction):
@@ -466,9 +480,19 @@ class Binary(object):
 
         # from a float
         if isinstance(value, float):
-            if not _BINARY_WARNED_ABOUT_FLOAT:
-                _BINARY_WARNED_ABOUT_FLOAT = True
-                print("Warning: mixing floats and Binary")
+            if math.isnan(value):
+                return Binary(_NAN)
+            if value == float("inf"):
+                return Binary(_INF)
+            if value == float("-inf"):
+                return Binary(_NINF)
+            if value != int(value): # not an integer
+                if not _BINARY_WARNED_ABOUT_FLOAT:
+                    _BINARY_WARNED_ABOUT_FLOAT = True
+                    if self._warn_on_float:
+                        print("Warning: possible loss of precision "
+                            "due to mixing floats and Binary. "
+                            "Consider using Fraction instead of float.")
             self._fraction = Fraction(value)
             self._value = Binary.fraction_to_string(value)
             self._sign = 1 if value < 0 else 0
@@ -567,14 +591,15 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         re = Binary.testcase(tc, Binary.version()[8], "-")
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.version()[0:2], "20") # YY
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-    def from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE):
-        """Convert from float to Binary.
+    def from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE) -> str:
+        """Convert from float to Binary string of type string.
 
-        utility function
-        float --> Binary
-        could also use method float.hex()
+        This is a utility function. It converts from
+        float to Binary (float --> Binary).
 
         Parameters:
         value (float): value of number
@@ -582,10 +607,17 @@ class Binary(object):
             relates to precision
 
         Returns:
-        str: string representation of Binary
+        str: string representation of Binary string
         """
+        # alternative implementation: could also use method float.hex()
         if not isinstance(value, float):
             raise TypeError(f"Argument {value} must be of type float.")
+        if value == float("inf"):
+            return "inf"  # lowercase like in float class
+        elif value == float("-inf"):
+            return "-inf"  # lowercase like in float class
+        elif math.isnan(value): # NOT CORRECT: value == float("-nan"):
+            return "nan"  # lowercase like in float class
         if value >= 0:
             sign = ""
         else:
@@ -606,13 +638,149 @@ class Binary(object):
             else:
                 fracpart += "0"
             i += 1
-        return Binary.clean(sign + intpart + "." + fracpart)
+        return Binary.clean(sign + _PREFIX + intpart + "." + fracpart)
 
-    def __float__(self):
+
+    def test_from_float(tc: int) -> tuple:
+        """Unit test a specific function or method.
+
+        Parameters:
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
+
+        Returns:
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
+        """
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, Binary.from_float(float("inf")), "inf")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.from_float(float("-inf")), "-inf")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.from_float(float("-nan")), "nan")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.from_float(-3.5), "-0b11.1")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.from_float(-0.0), "0b0")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.from_float(8.25), "0b1000.01")
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            Binary.from_float("1")  # should fail
+        except TypeError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
+
+
+    def to_float(value: str) -> [float, int]:
+        """Convert from Binary string to float or integer.
+
+        This is a utility function that converts
+        a Binary string to a float or integer
+        (Binary string --> float or integer).
+
+        Parameters:
+        value (str): binary string representation of number
+
+        Returns:
+        float or integer: number as float or integer
+        """
+        if not isinstance(value, str):
+            raise TypeError(f"Argument {value} must be of type str.")
+        # Alternative implementation:
+        # could also use inverse of method float.hex()
+        if value.lower() == "inf" or value.lower() == "infinity":
+            return float("inf")
+        elif value.lower() == "-inf" or value.lower() == "-infinity":
+            return float("-inf")
+        elif value.lower() == "nan" or value.lower() == "-nan":
+            return float("nan")
+        value = Binary.to_not_exponential(value)
+        li = value.split(".")
+        intpart = li[0]
+        result = int(intpart, 2)
+        if result < 0:
+            sign = -1
+        else:
+            sign = 1
+        if len(li) == 1:
+            fracpart = ""
+            return result  # an integer
+        else:
+            fracpart = li[1]
+        le = len(fracpart)
+        for i in range(le):
+            if fracpart[i] == "1":
+                result += (2 ** -(i + 1)) * sign
+        return result  # float
+
+
+
+    def test_to_float(tc: int) -> tuple:
+        """Unit test a specific function or method.
+
+        Parameters:
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
+
+        Returns:
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
+        """
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, Binary.to_float("inf"), float("inf"))
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.to_float("-inf"), float("-inf"))
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, math.isnan(Binary.to_float("-nan")), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.to_float("-0b11.1"), -3.5)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.to_float("0b0"), 0)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary.to_float("0b1000.01"), 8.25)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            Binary.to_float("2")  # should fail
+        except ValueError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        try:
+            Binary.to_float(1)  # should fail
+        except TypeError:
+            txt = "Expected exception occurred"
+            re = Binary.testcase(tc, txt, txt)
+        else:
+            txt = "Exception was expected, but it did not occur."
+            re = Binary.testcase(tc, "No exception", txt)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
+
+
+    def __float__(self) -> [float, int]:
         """Convert from Binary to float.
 
-        method
-        Binary --> float or integer
+        This is a method that convert Binary to float (or if possible to
+        integer). (Binary --> float or integer)
 
         Returns:
         float: number as float or integer
@@ -621,6 +789,8 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if self.isinfinity():
             result = float("Inf")
+        elif self.isnan():
+            result = float("NaN")
         else:
             result = float(self._fraction)
         # alternative implementation of float
@@ -725,44 +895,8 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-    def to_float(value: str):
-        """Convert from Binary string to float or integer.
 
-        utility function
-        Binary string --> float or integer
-        could also use inverse of method float.hex()
-
-        Parameters:
-        value (str): binary string representation of number
-
-        Returns:
-        float or integer: number as float or integer
-        """
-        if not isinstance(value, str):
-            raise TypeError(f"Argument {value} must be of type str.")
-        # print(f"not normalized is {value}")
-        value = Binary.to_not_exponential(value)
-        # print(f"normalized is {value}")
-        li = value.split(".")
-        intpart = li[0]
-        result = int(intpart, 2)
-        if result < 0:
-            sign = -1
-        else:
-            sign = 1
-        # print(f"int result is {result}")
-        if len(li) == 1:
-            fracpart = ""
-            return result  # an integer
-        else:
-            fracpart = li[1]
-
-        # print(f"fracpart is {fracpart}")
-        le = len(fracpart)
-        for i in range(le):
-            if fracpart[i] == "1":
-                result += (2 ** -(i + 1)) * sign
-        return result  # float
+    ## TODO Alfred did the revision until here ZZZ
 
     def clean(value: str) -> str:
         """Clean up string representation.
@@ -776,6 +910,8 @@ class Binary(object):
         Returns:
         str: binary string representation of number
         """
+        if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
+            return value
         if "." in value:
             result = value.rstrip("0").rstrip(".")
         elif "1" in value:
@@ -1435,7 +1571,7 @@ class Binary(object):
         return Binary.get_components(self._value)
 
     def isinfinity(self):
-        """Determine if object is Infinity.
+        """Determine if object is positive or negative Infinity.
 
         Parameters:
         none
@@ -1445,7 +1581,78 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return "Inf" in self._value
+        return _INF in self._value
+
+
+    def isnegativeinfinity(self):
+        """Determine if object is Negative Infinity.
+
+        Parameters:
+        none
+
+        Returns:
+        bool: is or is not negative infinity
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return _NINF in self._value
+
+
+    def ispositiveinfinity(self):
+        """Determine if object is Positive Infinity.
+
+        Parameters:
+        none
+
+        Returns:
+        bool: is or is not positive infinity
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return _INF in self._value and not _NINF in self._value
+
+
+    def isnan(self):
+        """Determine if object is not-a-number (NaN).
+
+        Parameters:
+        none
+
+        Returns:
+        bool: is or is not a NaN (division by zero)
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return _NAN in self._value  # "NaN"
+
+
+    def test_isnan(tc: int) -> tuple:
+        """Unit test a specific function or method.
+
+        Parameters:
+        tc (int): first test case id to be used
+
+        Returns the next available, unused test case id.
+        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
+        6 is the next available test case id (= last used testcase id + 1).
+
+        Returns:
+        tuple (int, int, int):
+            (number of tests passed,number of tests failed,
+            last used testcase id)
+        """
+        pa = 0  # pa ... number of tests passed
+        fa = 0  # fa ... number of tests failed
+        re = Binary.testcase(tc, Binary(-3.5).isnan(), False)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary(float("nan")).isnan(), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary("Nan").isnan(), True)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        re = Binary.testcase(tc, Binary("10.1").isnan(), False)
+        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
+        return (pa, fa, tc)
+
 
     def isint(self) -> bool:
         """Determines if binary fraction is an integer.
@@ -3699,7 +3906,7 @@ class Binary(object):
             )
         sign1, intpart1, fracpart1, exp1 = this.components()
         sign2, intpart2, fracpart2, exp2 = other.components()
-        print("Fracpart: ", fracpart1, fracpart2)
+        # print("Fracpart: ", fracpart1, fracpart2)
 
         def operation(a, b, li):
             number = ""
@@ -3793,6 +4000,14 @@ class Binary(object):
         tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test_version(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test_from_float(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test_to_float(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test___float__(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test___int__(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test_binary_string_to_fraction(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test_fraction_to_string(tc)
@@ -3803,11 +4018,9 @@ class Binary(object):
         tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test_fill(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___float__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___int__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test_compare_representation(tc)
+        tp, tf, tc = tp + pa, tf + fa, tc + 9
+        pa, fa, tc = Binary.test_isnan(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
         pa, fa, tc = Binary.test_istwoscomplement(tc)
         tp, tf, tc = tp + pa, tf + fa, tc + 9
@@ -3857,7 +4070,7 @@ class Binary(object):
             ret = True
         else:
             plural = "" if tp == 1 else "s"
-            result = f"Self-Test: {tp} test case{plural} passed ✅"
+            result = f"Self-Test: {tp} test case{plural} passed ✅\n"
             plural = "" if tf == 1 else "s"
             result += f"Self-Test: {tf} test case{plural} failed ❌"
             ret = False
@@ -3868,9 +4081,9 @@ class Binary(object):
 # Useful Constants (internal use only)
 
 """ Reusable defaults """
-_Infinity = Binary("Inf")
-_NegativeInfinity = Binary("-Inf")
-_NaN = Binary("NaN")
+_Infinity = Binary(_INF)  # "Inf"
+_NegativeInfinity = Binary(_NINF)  # "-Inf"
+_NaN = Binary(_NAN) # "NaN"
 _Zero = Binary(0)
 _One = Binary(1)
 _NegativeOne = Binary(-1)

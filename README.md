@@ -35,10 +35,13 @@ binary strings.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
 - Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
+- two's complement representation possible too:
+'11.11' for -1.25, or '-0b1.01'.
 
 Many operations and transformations are offered.
-You can sum, subtract, multiply, divide, compute power of, etc.
-of long floating-point binary fractions.
+You can sum, subtract, multiply, and divide long floating-point binary
+fractions. You can compute power of them, shift them left, shift them right,
+etc.
 
 Basic representation of binary fractions and binary floats:
 A binary fraction is a subset of binary floats. Basically, a binary fraction
@@ -79,14 +82,15 @@ If you are curious about Two's complement:
 - Python 3
 - constructors for various types: int, float, Fraction, Binary, str
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
-- supports many methods: lshift, rshift, not, round, floor, ceil, ...
+- supports many methods: not, abs, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented. Please read the documentation inside the source code
+- well documented.
+    - Please read the documentation inside the source code
   ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
-  Or look at the pydoc-generated documentation in
+    - Or look at the pydoc-generated documentation in
   [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 
 
