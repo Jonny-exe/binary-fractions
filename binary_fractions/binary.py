@@ -3,7 +3,7 @@
 
 """# Floating-point Binary Fractions: Do math in base 2!
 
-[logo](binary-fractions.svg)
+![logo](binary-fractions.svg)
 
 ```
  █████      ███
