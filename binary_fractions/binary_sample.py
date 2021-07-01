@@ -3,7 +3,7 @@
 """Sample program using the Binary class and module."""
 
 from binary import Binary
-import math  # isclose()
+import math
 
 bf1str: str = "-1.01"  # -1.25
 bf2str: str = "10.1"  # 2.5
