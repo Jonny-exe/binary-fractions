@@ -99,6 +99,10 @@ If you are curious about Two's complement:
 
 ## Sample usage, Example calls:
 
+Please have a look at the short example program that uses the
+`Binary` class and module. See file
+[binary_sample.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_sample.py).
+
 ```
 $ python # sample usage, examples
 >>> from binary import Binary
@@ -230,7 +234,6 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 - File Format: linted/beautified with black
 
 Enjoy :heart: !
-```
 
 """
 
@@ -252,7 +255,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210622-155037"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210701-075037"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -1039,9 +1042,9 @@ class Binary(object):
             raise TypeError(f"Argument {self_value} must be of type Binary or str.")
         if isinstance(self_value, Binary):
             return Binary.to_not_exponential(self_value._value, True)
-        if self_value == '':
+        if self_value == "":
             raise ValueError(f"Argument {self_value} must be empty string.")
-        value:str = self_value # it is a string
+        value: str = self_value  # it is a string
         # print(f"before normalize {value}")
         if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
             return value
@@ -1055,7 +1058,7 @@ class Binary(object):
 
             li = intfracpart.split(".")
             intpart = li[0]
-            intpart = '0' if intpart == '' else intpart
+            intpart = "0" if intpart == "" else intpart
             if len(li) == 1:
                 fracpart = ""
             else:
@@ -1073,7 +1076,7 @@ class Binary(object):
                     result = intpart + "." + fracpart
             else:  # exp < 0
                 if lenintpart <= abs(exp):
-                    if intpart[0] == '-':
+                    if intpart[0] == "-":
                         intpart = "0" * (abs(exp) - lenintpart + 1) + intpart[1:]
                         result = "-0." + intpart + fracpart
                     else:
@@ -1137,24 +1140,38 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-0")), "0b0")
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("11.01e-2")), "0b0.1101")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("11.01e-2")), "0b0.1101"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-11.01e-2")), "-0b0.1101")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("-11.01e-2")), "-0b0.1101"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-11.01e-3")), "-0b0.01101")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("-11.01e-3")), "-0b0.01101"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-11.01e-4")), "-0b0.001101")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("-11.01e-4")), "-0b0.001101"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         re = Binary.testcase(tc, Binary.to_not_exponential(Binary("11.01e2")), "0b1101")
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-11.01e+2")), "-0b1101")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("-11.01e+2")), "-0b1101"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("11.01e4")), "0b110100")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("11.01e4")), "0b110100"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-11.01e+4")), "-0b110100")
+        re = Binary.testcase(
+            tc, Binary.to_not_exponential(Binary("-11.01e+4")), "-0b110100"
+        )
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         try:
-            Binary.to_not_exponential('')  # should fail
+            Binary.to_not_exponential("")  # should fail
         except ValueError:
             txt = "Expected exception occurred"
             re = Binary.testcase(tc, txt, txt)
@@ -1364,7 +1381,7 @@ class Binary(object):
     ## TODO Alfred did the revision until here ZZZ
 
     # how is this different from string_to_fraction()
-    def binary_string_to_fraction(value:str) -> Fraction:
+    def binary_string_to_fraction(value: str) -> Fraction:
         """Convert string representation of binary to Fraction.
 
         utility function
@@ -2477,7 +2494,6 @@ class Binary(object):
         """
         return self._fraction
 
-
     def string_to_fraction(value: str) -> Fraction:
         """Convert string representation to Fraction.
 
@@ -3528,7 +3544,6 @@ class Binary(object):
         pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
         return (pa, fa, tc)
 
-
     def __pow__(self, other):
         """Powwer of operation.
 
@@ -3550,8 +3565,10 @@ class Binary(object):
         # <class 'complex'>
 
         if isinstance(po, complex):
-            raise ValueError(f"Argument {self} to the power of {other} is a "
-                "complex number which cannot be represented as a Binary.")
+            raise ValueError(
+                f"Argument {self} to the power of {other} is a "
+                "complex number which cannot be represented as a Binary."
+            )
         return Binary(po)
 
     # (-3.4)**(-3.4) should raise Exception
@@ -3560,8 +3577,6 @@ class Binary(object):
     # (-3.4)**(+4.0) should work
     # (+3.4)**(+3.4) should work
     # (+3.4)**(-3.4) should work
-
-
 
     def __abs__(self):
         """Compute absolute value.
@@ -3855,7 +3870,7 @@ class Binary(object):
         return Binary._or(self, other)  # TODO
 
     def _or(self, other):
-        return  None # TODO
+        return None  # TODO
 
     def __xor__(self, other):
         """Return the bitwise or of self and other.

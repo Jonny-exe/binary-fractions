@@ -96,6 +96,10 @@ If you are curious about Two's complement:
 
 ## Sample usage, Example calls:
 
+Please have a look at the short example program that uses the
+`Binary` class and module. See file
+[binary_sample.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_sample.py).
+
 ```
 $ python # sample usage, examples
 >>> from binary import Binary
@@ -227,4 +231,3 @@ Binary(1101111111111111111111111111111111111111111111111111111111111111100100000
 - File Format: linted/beautified with black
 
 Enjoy :heart: !
-```
