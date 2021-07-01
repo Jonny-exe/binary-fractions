@@ -2,8 +2,8 @@
 
 """Testing the Binary class and module."""
 
-from binary import Binary
+from binary import TestBinary
 
-Binary.selftest()  # run self-test test cases
+TestBinary().selftest()  # run self-test test cases
 
 # End of file

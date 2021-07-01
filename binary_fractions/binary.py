@@ -245,6 +245,7 @@ from fractions import Fraction
 import math  # isclose()
 import re
 import sys
+import unittest
 
 _BINARY_WARNED_ABOUT_FLOAT = False
 _BINARY_RELATIVE_TOLERANCE = 1e-10
@@ -255,7 +256,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210701-145538"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210701-193153"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -264,6 +265,10 @@ _BINARY_VERSION = "20210701-145538"  # format: date +%Y%m%d-%H%M%S
 # https://github.com/python/cpython/blob/3.9/Lib/fractions.py
 # https://docs.python.org/3/library/fractions.html
 # https://github.com/bradley101/fraction/blob/master/fraction/Fraction.py
+
+##########################################################################
+# CLASS BINARY
+##########################################################################
 
 
 class Binary(object):
@@ -510,65 +515,6 @@ class Binary(object):
         # any other types
         raise TypeError(f"Cannot convert {value} to Binary")
 
-    def test___new__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-
-        # type should be Binary, not string
-        re = Binary.testcase(tc, "Binary" in str(type(Binary(5))), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, isinstance(Binary.version(), str), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary("0")), 0.0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary("1.1")), 1.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary("-1.11")), -1.75)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(-3.5), "-11.1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(-3.5), "-0b11.1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, str(Binary(-3.5)), "-0b11.1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary((1, (1, 0, 1, 0), -2)).compare_representation("-1010e-2"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(complex(1, 1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def version() -> str:
         """Give version number.
 
@@ -578,31 +524,6 @@ class Binary(object):
         str: version number as date in format "YYMMDD-HHMMSS", e.g. "20210622-103815"
         """
         return _BINARY_VERSION
-
-    def test_version(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, len(Binary.version()), len("20210622-103815"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.version()[8], "-")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.version()[0:2], "20")  # YY
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE) -> str:
         """Convert from float to Binary string of type string.
@@ -650,46 +571,6 @@ class Binary(object):
         result = sign + _PREFIX + intpart + "." + fracpart
         return Binary.simplify(result, add_prefix=True)
 
-    def test_from_float(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.from_float(float("inf")), "inf")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_float(float("-inf")), "-inf")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_float(float("-nan")), "nan")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_float(-3.5), "-0b11.1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_float(-0.0), "0b0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_float(8.25), "0b1000.01")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.from_float("1")  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def to_float(value: str) -> [float, int]:
         """Convert from Binary string to float or integer.
 
@@ -732,55 +613,6 @@ class Binary(object):
                 result += (2 ** -(i + 1)) * sign
         return result  # float
 
-    def test_to_float(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.to_float("inf"), float("inf"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_float("-inf"), float("-inf"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.isnan(Binary.to_float("-nan")), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_float("-0b11.1"), -3.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_float("0b0"), 0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_float("0b1000.01"), 8.25)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.to_float("2")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.to_float(1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __float__(self) -> [float, int]:
         """Convert from Binary to float.
 
@@ -802,41 +634,6 @@ class Binary(object):
         # result = Binary.to_float(self._value)
         return result  # float or integer
 
-    def test___float__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, float(Binary("-1")), -1.0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary("-1.1")), -1.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary("1.001")), 1.125)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, float(Binary("Inf")), float("Inf"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __int__(self):
         """Convert from Binary to int.
 
@@ -857,48 +654,6 @@ class Binary(object):
         # alternative implementation of float
         # result = Binary.to_float(self._value)
         return result  # float or integer
-
-    def test___int__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, int(Binary("-1")), -1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, int(Binary("-1.111")), -1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, int(Binary("1.001")), 1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, int(Binary((1, (1, 0, 1, 0), -2))), -2)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, int(Binary(-13.0 - 2 ** -10)), -13)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, int(Binary(13.0 + 2 ** -20)), 13)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, int(Binary(13.0 + 2 ** -30)), 13)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            int(Binary("Inf"))  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def simplify(value: str, add_prefix: bool = False) -> str:
         """Simplify string representation.
@@ -943,75 +698,6 @@ class Binary(object):
                 return signstr + pre + intpart + _EXP + str(exp)
             else:
                 return signstr + pre + intpart + "." + fracpart + _EXP + str(exp)
-
-    def test_simplify(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.simplify("-0"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-000"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-000.00"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-000.00e-10"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-1e-0"), "-1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-010"), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-0010"), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-0010.00"), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-0010.00e-10"), "-10e-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-101.01e-0"), "-101.01")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-1e-0", True), "-0b1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-010", True), "-0b10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-0010", True), "-0b10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-0010.00", True), "-0b10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("-0010.00e-10", True), "-0b10e-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.simplify("101.01e-0", True), "0b101.01")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.simplify(1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.simplify(Binary("Inf"))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def to_not_exponential(self_value, add_prefix: bool = False) -> str:
         """Normalize string representation. Remove exponent part.
@@ -1095,101 +781,6 @@ class Binary(object):
         # print(f"after normalize {result}")
         return result
 
-    def test_to_not_exponential(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.to_not_exponential("-0"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("11.01e-2"), "0.1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("-11.01e-2"), "-0.1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("-11.01e-3"), "-0.01101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("-11.01e-4"), "-0.001101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("11.01e2"), "1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("-11.01e+2"), "-1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("11.01e4"), "110100")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("-11.01e+4"), "-110100")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential("11.01e4", True), "0b110100")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential("-11.01e+4", True), "-0b110100"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("Inf")), "Infinity")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("-0")), "0b0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("11.01e-2")), "0b0.1101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("-11.01e-2")), "-0b0.1101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("-11.01e-3")), "-0b0.01101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("-11.01e-4")), "-0b0.001101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.to_not_exponential(Binary("11.01e2")), "0b1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("-11.01e+2")), "-0b1101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("11.01e4")), "0b110100"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.to_not_exponential(Binary("-11.01e+4")), "-0b110100"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.to_not_exponential("")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.to_not_exponential(1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def twos_complement_to_not_exponential(value: str) -> str:
         """Remove exponent part from twos-complement string.
 
@@ -1239,145 +830,6 @@ class Binary(object):
         sign, intpart, fracpart, exp = Binary.get_twoscomplement_components(value)
         return None  # TODO
 
-    def test_twos_complement_to_not_exponential(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.twos_complement_to_not_exponential("0"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e-2"), "0.1101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e-3"), "0.01101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e-4"), "0.001101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e2"), "01101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e+2"), "01101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e4"), "0110100"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e-4"), "0.001101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("011.01e-2"), "0.1101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("0.1e-1"), "0.01"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.111e0"), "1.111"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.11e0"), "1.11"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.1e0"), "1.1"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.twos_complement_to_not_exponential("1.e0"), "1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.e1"), "10"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.01e2"), "101"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.01e1"), "10.1"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1.011e2"), "101.1"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1111000e-0"), "1000"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1111000e-3"), "1"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1111000000.e-3"), "1000"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1111000e+3"), "1000000"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1111e+3"), "1000"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.twos_complement_to_not_exponential("1111.1e+3"), "100"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.twos_complement_to_not_exponential("")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.twos_complement_to_not_exponential("-0b10")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.twos_complement_to_not_exponential(1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     ## TODO Alfred did the revision until here ZZZ
 
     # how is this different from string_to_fraction()
@@ -1399,80 +851,6 @@ class Binary(object):
         else:
             result = Fraction((-1) ** sign * int(intpart + fracpart, 2), 2 ** -exp)
         return result
-
-    def test_binary_string_to_fraction(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-
-        re = Binary.testcase(tc, Binary.binary_string_to_fraction("1"), Fraction(1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.binary_string_to_fraction("0"), Fraction(0))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.binary_string_to_fraction("0.1"), Fraction(0.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.binary_string_to_fraction("-1"), Fraction(-1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.binary_string_to_fraction("102")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.binary_string_to_fraction(Binary(1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __round__(self):
         """Normalize and round number to n digits after comma.
@@ -1571,61 +949,6 @@ class Binary(object):
         value = self._value
         return Binary.fill_to(value, ndigits, strict)
 
-    def test_fill(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary("1.1111").fill(1), "1.1111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(4), "1.1111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(5), "1.11110")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(6), "1.111100")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(1, True), "10.0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(4, True), "1.1111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(5, True), "1.11110")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.1111").fill(6, True), "1.111100")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1.0011").fill(1, True), "1.0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.fill(1, "1")  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1).fill(-1)  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def fill_to(value, ndigits=0, strict=False):
         """Normalize and fill number to n digits after comma.
 
@@ -1712,37 +1035,6 @@ class Binary(object):
 
         return Binary(intpart + _EXP + str(exp), False)
 
-    def test_to_simple_exponential(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(
-            tc,
-            Binary("1.1").to_simple_exponential().compare_representation("11e-1"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def to_sci_exponential(self):
         """Convert to exp. representation with single binary digit before comma.
 
@@ -1801,41 +1093,6 @@ class Binary(object):
         else:
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
         return Binary(result, False)
-
-    def test_to_sci_exponential(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(
-            tc,
-            Binary("101e2").to_sci_exponential().compare_representation("1.01e4"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def get_components(value: str) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
@@ -2030,33 +1287,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return _NAN in self._value  # "NaN"
 
-    def test_isnan(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(-3.5).isnan(), False)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(float("nan")).isnan(), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("Nan").isnan(), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("10.1").isnan(), False)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def isint(self) -> bool:
         """Determines if binary fraction is an integer.
 
@@ -2082,58 +1312,6 @@ class Binary(object):
         except ValueError:
             return False
         return True
-
-    def test_istwoscomplement(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.istwoscomplement("1"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        # TODO: just to tell you: the next line is NOT valid Python Syntax!!!
-        # pa, fa, tc = (pa + 1), fa, (tc + 1) if re else pa, (fa + 1), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("0"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("1.1"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("0.1"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("1.1e9"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("0.1e8"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("1110.1e-19"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("00001.1e-18"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("1.1e9"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("8"), False)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.istwoscomplement("Hello"), False)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.istwoscomplement(1975)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def adjusted(self):
         """Return the adjusted exponent of self.
@@ -2259,45 +1437,6 @@ class Binary(object):
         """Implement ==. See _cmp() for details."""
         return self._cmp(other) == 0
 
-    def test___eq__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary("-0.01e-2") == Binary("-1e-4"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("-0.01e-2") == "102"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("-0.01e-2") == complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def compare(self, other):
         """Compare self to other. Return a Binary value.
 
@@ -2355,130 +1494,6 @@ class Binary(object):
                 i += 1
         return "".join(result) if strict else Binary.simplify("".join(result))
 
-    def test_fraction_to_string(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.fraction_to_string(0), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(1), "1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(2), "10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(13), "1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-0), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-1), "-1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-2), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-13), "-1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(0.0), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(1.0), "1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(2.0), "10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(13.0), "1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-0.0), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-1.0), "-1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-2.0), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(-13.0), "-1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(0.0)), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(1.0)), "1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(2.0)), "10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(13.0)), "1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(-0.0)), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(-1.0)), "-1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(-2.0)), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.fraction_to_string(Fraction(-13.0)), "-1101")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)),
-            "1" + "0" * 99 + "1",
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(Fraction(-(2 ** 100) - 2 ** 0)),
-            "-1" + "0" * 99 + "1",
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, 2 ** 101)),
-            "0.1" + "0" * 99 + "1",
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, -1 * 2 ** 101)),
-            "-0.1" + "0" * 99 + "1",
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(
-                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10000
-            ),
-            "-0.1" + "0" * 999 + "1",
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(
-                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10
-            ),
-            "-0.1",
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.fraction_to_string(
-                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10, strict=True
-            ),
-            "-0.1" + "0" * 9,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.fraction_to_string(Binary(1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     # TODO:add member variable such as is_exact to indicate if lossless or not
 
     def fraction(self) -> Fraction:
@@ -2515,83 +1530,6 @@ class Binary(object):
             if c == "1":
                 result += Fraction(1, 2 ** (i + 1))
         return result if sign == 0 else -result
-
-    def test_string_to_fraction(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.fraction_to_string(0), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("0"), Fraction(0))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("1"), Fraction(1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("-0"), Fraction(0))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("-1"), Fraction(-1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("11"), Fraction(3))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("-0.0"), Fraction(0))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("1.0"), Fraction(1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("1.1"), Fraction(3, 2))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("-1.1"), Fraction(3, -2))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.string_to_fraction("-0.111"), Fraction(-0.875))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.string_to_fraction("1.1" + "0" * 2 + "1"),
-            Fraction(3 * 2 ** 3 + 1, 2 ** 4),
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.string_to_fraction("1.1" + "0" * 100 + "1"),
-            Fraction(3 * 2 ** 101 + 1, 2 ** 102),
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary.string_to_fraction("1.1" + "0" * 1000 + "1"),
-            Fraction(3 * 2 ** 1001 + 1, 2 ** 1002),
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.string_to_fraction("102")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.fraction_to_string(Binary(1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def invert(value: str, strict=True) -> str:
         """Inverts (bitwise negates) string that is in twos-complement format.
@@ -2685,48 +1623,6 @@ class Binary(object):
         # TODO: do you handle exp part?
         return result
 
-    def test_invert(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.invert("0001000"), "1110111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.invert("0001000", strict=False), "10111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.invert("1110110", strict=False), "01001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.invert("0.1101", strict=True), "1.0010")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.invert("0.1101", strict=False), "1.001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.invert("11.1101", strict=False), "0.001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.invert("00.1101", strict=False), "1.001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.invert(1975)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     # TODO: fill=1  ??? bool?
     def to_twos_complement(self, fill=1) -> str:
         """Computes the representation as a string in twos-complement.
@@ -2781,47 +1677,6 @@ class Binary(object):
         # TODO, BUG: we changed our mind, now 1 or 10 are valid twos-complement strings
         return "1" + intpart + fracpart
 
-    def test_to_twos_complement(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary("10").to_twos_complement(), Binary("10"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1010").to_twos_complement(), Binary("1010"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-1").to_twos_complement(fill=12), "1" * 13)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary(-1975).to_twos_complement(fill=12), "1100001001001"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-1.0").to_twos_complement(fill=12), "1" * 13)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-1.0010").to_twos_complement(), "11.111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-0.0010").to_twos_complement(), "110.111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-0.111").to_twos_complement(), "110.001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-0.10").to_twos_complement(), "110.1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("11"), "-1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def from_twos_complement(value: str, strict=False) -> str:
         """The opposite of to_twos_complement() function:
 
@@ -2866,71 +1721,6 @@ class Binary(object):
             result += f"e{exp}"
         return result
 
-    def test_from_twos_complement(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary.from_twos_complement("11.111"), "-1.001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("110.111"), "-10.001")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("110.001"), "-10.111")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("110"), "-10")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("00"), "0")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("01"), "1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("00.11"), "0.11")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary.from_twos_complement("00.11e-5"), "0.11e-5")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.from_twos_complement("00.11111111111110"), "0.1111111111111"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary.from_twos_complement("00.00", strict=True), "00.00"
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.from_twos_complement("102")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.from_twos_complement(Binary(1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def compare_representation(self, other):
         """Compare representation of self to representation of other string.
 
@@ -2953,143 +1743,6 @@ class Binary(object):
             return str(self._value) == other
         else:
             return str(self._value) == str(other)
-
-    def test_compare_representation(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(
-            tc,
-            Binary(10.10).compare_representation(
-                "1010.0001100110011001100110011001100110011001100110011"
-            ),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("10.111").compare_representation("10.111"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(5).compare_representation("101"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary(8.3).compare_representation(
-                "1000.010011001100110011001100110011001100110011001101"
-            ),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0.0).compare_representation("0"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(1.0).compare_representation("1"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(3.5).compare_representation("11.1"), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary(-13.75).compare_representation("-1101.11"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary(13.0 + 2 ** -30).compare_representation(
-                "1101.000000000000000000000000000001"
-            ),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary(13.0 + 2 ** -40).compare_representation(
-                "1101.0000000000000000000000000000000000000001"
-            ),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary(13.0 + 2 ** -50).compare_representation("1101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary(13.0 + 2 ** -60).compare_representation("1101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            Binary(
-                13.0
-                + 2 ** -10
-                + 2 ** -20
-                + 2 ** -30
-                + 2 ** -40
-                + 2 ** -50
-                + 2 ** -60
-                + 2 ** -70
-            ).compare_representation("1101.0000000001000000000100000000010000000001"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.1").round(1).compare_representation("1.1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.10").round(1).compare_representation("1.1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.101").round(1).compare_representation("1.1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.11").round(1).compare_representation("1.1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.110").round(1).compare_representation("1.1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.1101").round(1).compare_representation("10"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, Binary("1.1111").round(1).compare_representation("10"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.compare_representation(1, "1")  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __repr__(self):
         """Represent self."""
@@ -3129,36 +1782,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return str(self._value)
 
-    def test_np(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(-3.5).np(), "-11.1")
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary.np("1")  # should fail, 1 arg too much
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __str__(self) -> str:
         """Stringify self.
 
@@ -3193,51 +1816,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction + other._fraction)
 
-    def test___add__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(1) + Binary("1"), 2)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(-1) + Binary("1"), 0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0.5) + Binary(0.5), 1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-1.1") + Binary("0.1"), -1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102") + "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) + complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __sub__(self, other):
         """Subtract operation.
 
@@ -3253,55 +1831,6 @@ class Binary(object):
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction - other._fraction)
-
-    def test___sub__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(
-            tc, Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(1) - Binary(1), 0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0) - Binary(1), -1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0.1) - Binary(0.2), -0.1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(1) - Binary(0.5), 0.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102") - "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) - complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __mul__(self, other):
         """Multiply operation.
@@ -3319,49 +1848,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction * other._fraction)
 
-    def test___mul__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(0) * Binary(1), 0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(1) * Binary(1), 1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(100) * Binary(Fraction(1, 10)), 10)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102") * "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) * complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __truediv__(self, other):
         """True division operation
 
@@ -3377,49 +1863,6 @@ class Binary(object):
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction / other._fraction)
-
-    def test___truediv__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(100) / Binary(Fraction(1, 10)), 1000)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0) / Binary(10), 0)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(1) / Binary(2), 0.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102") / "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) / complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __floordiv__(self, other):
         """Floor division operation
@@ -3437,49 +1880,6 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction // other._fraction)
 
-    def test___floordiv__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(10) // Binary(3), 3)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(7) // Binary(2), 3)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(8) // Binary(3), 2)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102") // "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) // complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __mod__(self, other):
         """Compute modular operation
 
@@ -3496,53 +1896,6 @@ class Binary(object):
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction % other._fraction)
-
-    def test___mod__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(5) % Binary(3), 2)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(7) % Binary(4), 3)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("111") % Binary("11"), 1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(5.0) % Binary(1.5), 0.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("-101.0") % Binary("-1.1"), -0.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("102") % "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) % complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __pow__(self, other):
         """Powwer of operation.
@@ -3571,6 +1924,7 @@ class Binary(object):
             )
         return Binary(po)
 
+    # TODO: for testing pow
     # (-3.4)**(-3.4) should raise Exception
     # (-3.4)**(-4.0) should work
     # (-3.4)**(+3.4) should raise Exception
@@ -3593,35 +1947,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(abs(self._fraction))
 
-    def test___abs__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, abs(Binary(5)), 5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, abs(Binary(-7)), 7)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, abs(Binary("111")), 7)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, abs(Binary(-1.5)), 1.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, abs(Binary("-101.1")), 5.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __ceil__(self):
         """Perform math ceiling operation.
 
@@ -3638,35 +1963,6 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
 
-    def test___ceil__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, math.ceil(Binary(5)), math.ceil(5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.ceil(Binary(-7)), math.ceil(-7))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.ceil(Binary("111")), math.ceil(7))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.ceil(Binary(-1.5)), math.ceil(-1.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.ceil(Binary("-101.1")), math.ceil(-5.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __floor__(self):
         """Perform math floor operation.
 
@@ -3682,35 +1978,6 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.floor(self._fraction))
-
-    def test___floor__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, math.floor(Binary(5)), math.floor(5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.floor(Binary(-7)), math.floor(-7))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.floor(Binary("111")), math.floor(7))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.floor(Binary(-1.5)), math.floor(-1.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, math.floor(Binary("-101.1")), math.floor(-5.5))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __lt__(self, other):
         """Less than operation.
@@ -3809,50 +2076,6 @@ class Binary(object):
             self, other, "and"
         )  # TODO , do you really need the and_or function?
 
-    def test___and__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(1) & Binary(1), Binary(1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0) & Binary(1), Binary(0))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1000") & Binary("0"), Binary(0))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1010") & Binary("10"), Binary("10"))
-        try:
-            Binary("102") & "103"  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) & complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __or__(self, other):
         """Return the bitwise or of self and other.
 
@@ -3910,42 +2133,6 @@ class Binary(object):
         # for integers it is defined as -(x+1). So ~9 is -10.
         return not self._fraction
 
-    def test___not__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, not Binary(9), False)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, not Binary(-10.5), False)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, not Binary(0), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, not Binary(0.0), True)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            not Binary(complex(1, 1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
-
     def __invert__(self):
         """Return the 'bitwise not' of self.
 
@@ -3985,51 +2172,6 @@ class Binary(object):
                 "and then perform invert() on that string. In short, do this: "
                 "Binary.invert(Binary.to_twos_complement(value))."
             )
-
-    def test___invert__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, ~Binary(9), Binary(-10))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, ~Binary(-10), Binary(9))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, ~~Binary(-109), Binary(-109))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, ~~Binary(9), Binary(9))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            ~Binary("-10.5")  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            ~Binary(complex(1, 1))  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def __rshift__(self, ndigits: int):
         """Shifts number n digits (bits) to the right.
@@ -4076,121 +2218,6 @@ class Binary(object):
             shifted_fracpart = intpart[len(intpart) - ndigits :] + fracpart
             shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
-
-    def test___rshift__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(1) >> 1, 0.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(2) >> 3, 0.25)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0.25) >> 1, Fraction(1, 8))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1e1") >> 1, 1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 2, 5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 3, Fraction(5, 2 ** 1))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 3, Binary(Fraction(5, 2 ** 1)))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 4, Binary(Fraction(5, 2 ** 2)))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 4, Binary("101e-2"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 20, Binary("101e-18"))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") >> 20, Binary(Fraction(5, 2 ** 18)))
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e2") >> 2).compare_representation("101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e-2") >> 2).compare_representation("101e-4"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e2") >> 20).compare_representation("101e-18"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101") >> 2).compare_representation("1.01"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            (Binary("101") >> 20).compare_representation("0." + "0" * 17 + "101"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01e2") >> 0).compare_representation("101.01e2"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01e2") >> 1).compare_representation("101.01e1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01e2") >> 20).compare_representation("101.01e-18"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01") >> 2).compare_representation("1.0101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01") >> 1).compare_representation("10.101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01") >> 3).compare_representation("0.10101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            (Binary("101.01") >> 20).compare_representation("0." + "0" * 17 + "10101"),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("10") >> -3  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) >> complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     def lrotate(self, ndigits: int):
         # # TODO:
@@ -4246,103 +2273,6 @@ class Binary(object):
             shifted_fracpart = fracpart[ndigits:]
             shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
-
-    def test___lshift__(tc: int) -> tuple:
-        """Unit test a specific function or method.
-
-        Parameters:
-        tc (int): first test case id to be used
-
-        Returns the next available, unused test case id.
-        If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-        6 is the next available test case id (= last used testcase id + 1).
-
-        Returns:
-        tuple (int, int, int):
-            (number of tests passed,number of tests failed,
-            last used testcase id)
-        """
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        re = Binary.testcase(tc, Binary(1) << 1, 2)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(2) << 3, 16)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0.25) << 1, 0.5)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary(0.125) << 3, 1)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("1e1") << 2, 8)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") << 2, 5 * 2 ** 4)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(tc, Binary("101e2") << 20, 5 * 2 ** 22)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e-2") << 2).compare_representation("101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e2") << 2).compare_representation("101e4"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101e2") << 20).compare_representation("101e22"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101") << 2).compare_representation("10100"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101") << 20).compare_representation("101" + "0" * 20), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01e2") << 2).compare_representation("101.01e4"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01e2") << 20).compare_representation("101.01e22"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01") << 2).compare_representation("10101"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01") << 1).compare_representation("1010.1"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc, (Binary("101.01") << 3).compare_representation("101010"), True
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        re = Binary.testcase(
-            tc,
-            (Binary("101.01") << 20).compare_representation("10101" + "0" * 18),
-            True,
-        )
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary("10") << -3  # should fail
-        except ValueError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        try:
-            Binary(1) << complex(1, 1)  # should fail
-        except TypeError:
-            txt = "Expected exception occurred"
-            re = Binary.testcase(tc, txt, txt)
-        else:
-            txt = "Exception was expected, but it did not occur."
-            re = Binary.testcase(tc, "No exception", txt)
-        pa, fa, tc = ((pa + 1) if re else pa), (fa if re else (fa + 1)), (tc + 1)
-        return (pa, fa, tc)
 
     # is this necessary? can't we just call the corresponding function from Fractions?
     # can't we just call binary operands on Fractions and not implement anything?
@@ -4402,46 +2332,20 @@ class Binary(object):
             result = "0"
         return Binary(Binary.simplify(result))
 
-    def __LINE__():
-        try:
-            raise ValueError("")
-        except ValueError:
-            return sys.exc_info()[2].tb_frame.f_back.f_back.f_lineno
 
-    def __FUNCTION__():
-        try:
-            raise ValueError("")
-        except ValueError:
-            return sys.exc_info()[2].tb_frame.f_back.f_back.f_code.co_name
+##########################################################################
+# CLASS TESTBINARY
+##########################################################################
 
-    def testcase(id, input, expected_result):
-        """Test a single test case. Compares input to expected result.
 
-        Parameters:
-        id (str): name of test case
-        input: result of testcase
-        expected_result: expected result
+class TestBinary(unittest.TestCase):
+    """Unit testing of class Binary."""
 
-        Returns:
-        bool: True if test passes, False if test fails
-        """
-        print(f"Test case {id} ", end="")
-        info = ""
-        if input == expected_result:
-            result = "passed ✅"
-            ret = True
-        else:
-            result = f"in line {Binary.__LINE__()} failed ❌"
-            info = (
-                f" : unit test: {Binary.__FUNCTION__()}; "
-                + f"output: {input}; expected: {expected_result}"
-            )
-            ret = False
-        print(f"{result}{info}")
-        return ret
-
-    def selftest():
+    def selftest(self) -> bool:
         """Perform self test by running various test cases.
+
+        Binary uses module unittest for unit testing.
+        See https://docs.python.org/3/library/unittest.html for details.
 
         Parameters:
         none
@@ -4449,101 +2353,723 @@ class Binary(object):
         Returns:
         bool: True if all tests pass, False if any single test fails
         """
-        tc = 1000  # tc ... test case
-        pa = 0  # pa ... number of tests passed
-        fa = 0  # fa ... number of tests failed
-        tp = 0  # tp ... accumulative total of tests passed
-        tf = 0  # tf ... accumulative total of tests failed
-
-        pa, fa, tc = Binary.test___new__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_version(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_from_float(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_to_float(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___float__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___int__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_simplify(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_binary_string_to_fraction(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_fraction_to_string(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_string_to_fraction(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_np(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_fill(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_compare_representation(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_isnan(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_istwoscomplement(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_invert(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___invert__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___eq__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___not__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___add__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___sub__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___mul__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___truediv__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___floordiv__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___mod__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___abs__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___ceil__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___floor__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___rshift__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___lshift__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test___and__(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_to_not_exponential(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_to_sci_exponential(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_to_simple_exponential(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_to_twos_complement(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_from_twos_complement(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-        pa, fa, tc = Binary.test_twos_complement_to_not_exponential(tc)
-        tp, tf, tc = tp + pa, tf + fa, tc + 9
-
-        if tf == 0:
-            result = f"Self-Test: 😃 All {tp} test cases passed ✅"
+        # default would be: unittest.main()
+        # This would run all testcase, print resultsm and terminates program.
+        # But this would not allow further inspection or tuning.
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestBinary)
+        test_result = unittest.TextTestRunner().run(suite)
+        err = len(test_result.errors)
+        fail = len(test_result.failures)
+        skip = len(test_result.skipped)
+        run = test_result.testsRun
+        ttl = suite.countTestCases()
+        success = test_result.wasSuccessful()
+        print("")
+        print(f"Test results are: ")
+        print(f"    Total number of unit tests = {ttl}")
+        print(f"    Tests executed             = {run}")
+        print(f"    Tests skipped              = {skip}")
+        print(f"    Tests failed               = {fail}")
+        print(f"    Tests with error           = {err}")
+        if success:
+            result = f"Self-Test: 😃 All {run} out of {ttl} unit tests passed ✅"
             ret = True
         else:
-            plural = "" if tp == 1 else "s"
-            result = f"Self-Test: {tp} test case{plural} passed ✅\n"
-            plural = "" if tf == 1 else "s"
-            result += f"Self-Test: {tf} test case{plural} failed ❌"
+            plural = "" if run - err - fail == 1 else "s"
+            result = f"Self-Test: {run-err-fail} unit test{plural} passed ✅\n"
+            plural = "" if err + fail == 1 else "s"
+            result += f"Self-Test: {err+fail} unit test{plural} failed   ❌"
             ret = False
         print(f"{result}")
         return ret
 
+    def test___new__(self):
+        """Testing the constructor."""
+        self.assertIsInstance(Binary(1), Binary)
+        self.assertIsInstance(Binary(1.5), Binary)
+        self.assertIsInstance(Binary("0110"), Binary)
+        self.assertIsInstance(Binary("0110.010e-23"), Binary)
+        self.assertTrue("Binary" in str(type(Binary(5))))
+        self.assertEqual(float(Binary("0")), 0.0)
+        self.assertEqual(float(Binary("1.1")), 1.5)
+        self.assertEqual(float(Binary("-1.11")), -1.75)
+        self.assertEqual(Binary(-3.5), "-11.1")
+        self.assertEqual(Binary(-3.5), "-0b11.1")
+        self.assertEqual(str(Binary(-3.5)), "-0b11.1")
+        self.assertEqual(
+            Binary((1, (1, 0, 1, 0), -2)).compare_representation("-1010e-2"), True
+        )
+        with self.assertRaises(ValueError):
+            Binary("102")  # should fail
+        with self.assertRaises(TypeError):
+            Binary(complex(1, 1))  # should fail
 
+    def test_version(self):
+        """Testing the version method."""
+        self.assertIsInstance(Binary.version(), str)
+        self.assertEqual(len(Binary.version()), len("20210622-103815"))
+        self.assertEqual(Binary.version()[8], "-")
+        self.assertEqual(Binary.version()[0:2], "20")  # YY
+
+    def test_from_float(self):
+        """Testing from_float() function."""
+        self.assertEqual(Binary.from_float(float("inf")), "inf")
+        self.assertEqual(Binary.from_float(float("-inf")), "-inf")
+        self.assertEqual(Binary.from_float(float("-nan")), "nan")
+        self.assertEqual(Binary.from_float(-3.5), "-0b11.1")
+        self.assertEqual(Binary.from_float(-0.0), "0b0")
+        self.assertEqual(Binary.from_float(8.25), "0b1000.01")
+        with self.assertRaises(TypeError):
+            Binary.from_float("1")  # should fail
+
+    def test_to_float(self):
+        """Test to_float() function."""
+        self.assertEqual(Binary.to_float("inf"), float("inf"))
+        self.assertEqual(Binary.to_float("-inf"), float("-inf"))
+        self.assertEqual(math.isnan(Binary.to_float("-nan")), True)
+        self.assertEqual(Binary.to_float("-0b11.1"), -3.5)
+        self.assertEqual(Binary.to_float("0b0"), 0)
+        self.assertEqual(Binary.to_float("0b1000.01"), 8.25)
+        with self.assertRaises(ValueError):
+            Binary.to_float("2")  # should fail
+
+    def test___float__(self):
+        """Test __float__() method."""
+        self.assertEqual(float(Binary("-1")), -1.0)
+        self.assertEqual(float(Binary("-1.1")), -1.5)
+        self.assertEqual(float(Binary("1.001")), 1.125)
+        self.assertEqual(float(Binary((1, (1, 0, 1, 0), -2))), -2.5)
+        self.assertEqual(float(Binary(-13.0 - 2 ** -10)), -13.0009765625)
+        self.assertEqual(float(Binary(13.0 + 2 ** -20)), 13.000000953674316)
+        self.assertEqual(float(Binary(13.0 + 2 ** -30)), 13.000000000931323)
+        self.assertEqual(float(Binary("Inf")), float("Inf"))
+
+    def test___int__(self):
+        """Test __int__() method."""
+        self.assertEqual(int(Binary("-1")), -1)
+        self.assertEqual(int(Binary("-1.111")), -1)
+        self.assertEqual(int(Binary("1.001")), 1)
+        self.assertEqual(int(Binary((1, (1, 0, 1, 0), -2))), -2)
+        self.assertEqual(int(Binary(-13.0 - 2 ** -10)), -13)
+        self.assertEqual(int(Binary(13.0 + 2 ** -20)), 13)
+        self.assertEqual(int(Binary(13.0 + 2 ** -30)), 13)
+        with self.assertRaises(ValueError):
+            int(Binary("Inf"))  # should fail
+
+    def test_simplify(self):
+        """Test function simplify()."""
+        self.assertEqual(Binary.simplify("-0"), "0")
+        self.assertEqual(Binary.simplify("-000"), "0")
+        self.assertEqual(Binary.simplify("-000.00"), "0")
+        self.assertEqual(Binary.simplify("-000.00e-10"), "0")
+        self.assertEqual(Binary.simplify("-1e-0"), "-1")
+        self.assertEqual(Binary.simplify("-010"), "-10")
+        self.assertEqual(Binary.simplify("-0010"), "-10")
+        self.assertEqual(Binary.simplify("-0010.00"), "-10")
+        self.assertEqual(Binary.simplify("-0010.00e-10"), "-10e-10")
+        self.assertEqual(Binary.simplify("-101.01e-0"), "-101.01")
+        self.assertEqual(Binary.simplify("-1e-0", True), "-0b1")
+        self.assertEqual(Binary.simplify("-010", True), "-0b10")
+        self.assertEqual(Binary.simplify("-0010", True), "-0b10")
+        self.assertEqual(Binary.simplify("-0010.00", True), "-0b10")
+        self.assertEqual(Binary.simplify("-0010.00e-10", True), "-0b10e-10")
+        self.assertEqual(Binary.simplify("101.01e-0", True), "0b101.01")
+        with self.assertRaises(TypeError):
+            Binary.simplify(1)  # should fail
+        with self.assertRaises(TypeError):
+            Binary.simplify(Binary("Inf"))  # should fail
+
+    def test_to_not_exponential(self):
+        """Test function/method."""
+        self.assertEqual(Binary.to_not_exponential("-0"), "0")
+        self.assertEqual(Binary.to_not_exponential("11.01e-2"), "0.1101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e-2"), "-0.1101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e-3"), "-0.01101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e-4"), "-0.001101")
+        self.assertEqual(Binary.to_not_exponential("11.01e2"), "1101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e+2"), "-1101")
+        self.assertEqual(Binary.to_not_exponential("11.01e4"), "110100")
+        self.assertEqual(Binary.to_not_exponential("-11.01e+4"), "-110100")
+        self.assertEqual(Binary.to_not_exponential("11.01e4", True), "0b110100")
+        self.assertEqual(Binary.to_not_exponential("-11.01e+4", True), "-0b110100")
+        self.assertEqual(Binary.to_not_exponential(Binary("Inf")), "Infinity")
+        self.assertEqual(Binary.to_not_exponential(Binary("-0")), "0b0")
+        self.assertEqual(Binary.to_not_exponential(Binary("11.01e-2")), "0b0.1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-2")), "-0b0.1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-3")), "-0b0.01101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-4")), "-0b0.001101")
+        self.assertEqual(Binary.to_not_exponential(Binary("11.01e2")), "0b1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e+2")), "-0b1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("11.01e4")), "0b110100")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e+4")), "-0b110100")
+        with self.assertRaises(ValueError):
+            Binary.to_not_exponential("")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.to_not_exponential(1)  # should fail
+
+    def test_twos_complement_to_not_exponential(self):
+        """Test function/method."""
+        self.assertEqual(Binary.twos_complement_to_not_exponential("0"), "0")
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e-2"), "0.1101"
+        )
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e-3"), "0.01101"
+        )
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e-4"), "0.001101"
+        )
+        self.assertEqual(Binary.twos_complement_to_not_exponential("011.01e2"), "01101")
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e+2"), "01101"
+        )
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e4"), "0110100"
+        )
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e-4"), "0.001101"
+        )
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("011.01e-2"), "0.1101"
+        )
+        self.assertEqual(Binary.twos_complement_to_not_exponential("0.1e-1"), "0.01")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.111e0"), "1.111")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.11e0"), "1.11")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.1e0"), "1.1")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.e0"), "1")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.e1"), "10")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.01e2"), "101")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.01e1"), "10.1")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1.011e2"), "101.1")
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("1111000e-0"), "1000"
+        )
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1111000e-3"), "1")
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("1111000000.e-3"), "1000"
+        )
+        self.assertEqual(
+            Binary.twos_complement_to_not_exponential("1111000e+3"), "1000000"
+        )
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1111e+3"), "1000")
+        self.assertEqual(Binary.twos_complement_to_not_exponential("1111.1e+3"), "100")
+        with self.assertRaises(ValueError):
+            Binary.twos_complement_to_not_exponential("")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.twos_complement_to_not_exponential("-0b10")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.twos_complement_to_not_exponential(1)  # should fail
+
+    def test_binary_string_to_fraction(self):
+        """Test function/method."""
+        self.assertEqual(Binary.binary_string_to_fraction("1"), Fraction(1))
+        self.assertEqual(Binary.binary_string_to_fraction("0"), Fraction(0))
+        self.assertEqual(Binary.binary_string_to_fraction("0.1"), Fraction(0.5))
+        self.assertEqual(Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
+        self.assertEqual(Binary.binary_string_to_fraction("1.1"), Fraction(1.5))
+        self.assertEqual(Binary.binary_string_to_fraction("-1"), Fraction(-1))
+        self.assertEqual(Binary.binary_string_to_fraction("-0.1"), Fraction(-0.5))
+        self.assertEqual(Binary.binary_string_to_fraction("-1.1"), Fraction(-1.5))
+        self.assertEqual(Binary.binary_string_to_fraction("-1.1e2"), Fraction(-6))
+        self.assertEqual(Binary.binary_string_to_fraction("-1.1e0"), Fraction(-1.5))
+        self.assertEqual(Binary.binary_string_to_fraction("1.1e-3"), Fraction(3, 16))
+        self.assertEqual(Binary.binary_string_to_fraction("-1.1e-3"), Fraction(-3, 16))
+        with self.assertRaises(ValueError):
+            Binary.binary_string_to_fraction("102")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.binary_string_to_fraction(Binary(1))  # should fail
+
+    def test_fill(self):
+        """Test function/method."""
+        self.assertEqual(Binary("1.1111").fill(1), "1.1111")
+        self.assertEqual(Binary("1.1111").fill(4), "1.1111")
+        self.assertEqual(Binary("1.1111").fill(5), "1.11110")
+        self.assertEqual(Binary("1.1111").fill(6), "1.111100")
+        self.assertEqual(Binary("1.1111").fill(1, True), "10.0")
+        self.assertEqual(Binary("1.1111").fill(4, True), "1.1111")
+        self.assertEqual(Binary("1.1111").fill(5, True), "1.11110")
+        self.assertEqual(Binary("1.1111").fill(6, True), "1.111100")
+        self.assertEqual(Binary("1.0011").fill(1, True), "1.0")
+        with self.assertRaises(TypeError):
+            Binary.fill(1, "1")  # should fail
+        with self.assertRaises(ValueError):
+            Binary(1).fill(-1)  # should fail
+
+    def test_to_simple_exponential(self):
+        """Test function/method."""
+        self.assertEqual(
+            Binary("1.1").to_simple_exponential().compare_representation("11e-1"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
+            True,
+        )
+
+    def test_to_sci_exponential(self):
+        """Test function/method."""
+        self.assertEqual(
+            Binary("101e2").to_sci_exponential().compare_representation("1.01e4"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
+        )
+        self.assertEqual(
+            Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
+            True,
+        )
+
+    def test_isnan(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).isnan(), False)
+        self.assertEqual(Binary(float("nan")).isnan(), True)
+        self.assertEqual(Binary("Nan").isnan(), True)
+        self.assertEqual(Binary("10.1").isnan(), False)
+
+    def test_istwoscomplement(self):
+        """Test function/method."""
+        self.assertEqual(Binary.istwoscomplement("1"), True)
+        # TODO: just to tell you: the next line is NOT valid Python Syntax!!!
+        # pa, fa, tc = (pa + 1), fa, (tc + 1) if re else pa, (fa + 1), (tc + 1)
+        self.assertEqual(Binary.istwoscomplement("0"), True)
+        self.assertEqual(Binary.istwoscomplement("1.1"), True)
+        self.assertEqual(Binary.istwoscomplement("0.1"), True)
+        self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
+        self.assertEqual(Binary.istwoscomplement("0.1e8"), True)
+        self.assertEqual(Binary.istwoscomplement("1110.1e-19"), True)
+        self.assertEqual(Binary.istwoscomplement("00001.1e-18"), True)
+        self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
+        self.assertEqual(Binary.istwoscomplement("8"), False)
+        self.assertEqual(Binary.istwoscomplement("Hello"), False)
+        with self.assertRaises(TypeError):
+            Binary.istwoscomplement(1975)  # should fail
+
+    def test___eq__(self):
+        """Test function/method."""
+        self.assertEqual(Binary("-0.01e-2") == Binary("-1e-4"), True)
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") == "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") == complex(1, 1)  # should fail
+
+    def test_fraction_to_string(self):
+        """Test function/method."""
+        self.assertEqual(Binary.fraction_to_string(0), "0")
+        self.assertEqual(Binary.fraction_to_string(1), "1")
+        self.assertEqual(Binary.fraction_to_string(2), "10")
+        self.assertEqual(Binary.fraction_to_string(13), "1101")
+        self.assertEqual(Binary.fraction_to_string(-0), "0")
+        self.assertEqual(Binary.fraction_to_string(-1), "-1")
+        self.assertEqual(Binary.fraction_to_string(-2), "-10")
+        self.assertEqual(Binary.fraction_to_string(-13), "-1101")
+        self.assertEqual(Binary.fraction_to_string(0.0), "0")
+        self.assertEqual(Binary.fraction_to_string(1.0), "1")
+        self.assertEqual(Binary.fraction_to_string(2.0), "10")
+        self.assertEqual(Binary.fraction_to_string(13.0), "1101")
+        self.assertEqual(Binary.fraction_to_string(-0.0), "0")
+        self.assertEqual(Binary.fraction_to_string(-1.0), "-1")
+        self.assertEqual(Binary.fraction_to_string(-2.0), "-10")
+        self.assertEqual(Binary.fraction_to_string(-13.0), "-1101")
+        self.assertEqual(Binary.fraction_to_string(Fraction(0.0)), "0")
+        self.assertEqual(Binary.fraction_to_string(Fraction(1.0)), "1")
+        self.assertEqual(Binary.fraction_to_string(Fraction(2.0)), "10")
+        self.assertEqual(Binary.fraction_to_string(Fraction(13.0)), "1101")
+        self.assertEqual(Binary.fraction_to_string(Fraction(-0.0)), "0")
+        self.assertEqual(Binary.fraction_to_string(Fraction(-1.0)), "-1")
+        self.assertEqual(Binary.fraction_to_string(Fraction(-2.0)), "-10")
+        self.assertEqual(Binary.fraction_to_string(Fraction(-13.0)), "-1101")
+        self.assertEqual(
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)),
+            "1" + "0" * 99 + "1",
+        )
+        self.assertEqual(
+            Binary.fraction_to_string(Fraction(-(2 ** 100) - 2 ** 0)),
+            "-1" + "0" * 99 + "1",
+        )
+        self.assertEqual(
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, 2 ** 101)),
+            "0.1" + "0" * 99 + "1",
+        )
+        self.assertEqual(
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0, -1 * 2 ** 101)),
+            "-0.1" + "0" * 99 + "1",
+        )
+        self.assertEqual(
+            Binary.fraction_to_string(
+                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10000
+            ),
+            "-0.1" + "0" * 999 + "1",
+        )
+        self.assertEqual(
+            Binary.fraction_to_string(
+                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10
+            ),
+            "-0.1",
+        )
+        self.assertEqual(
+            Binary.fraction_to_string(
+                Fraction(2 ** 1000 + 2 ** 0, -1 * 2 ** 1001), ndigits=10, strict=True
+            ),
+            "-0.1" + "0" * 9,
+        )
+        with self.assertRaises(TypeError):
+            Binary.fraction_to_string(Binary(1))  # should fail
+
+    def test_string_to_fraction(self):
+        """Test function/method."""
+        self.assertEqual(Binary.fraction_to_string(0), "0")
+        self.assertEqual(Binary.string_to_fraction("0"), Fraction(0))
+        self.assertEqual(Binary.string_to_fraction("1"), Fraction(1))
+        self.assertEqual(Binary.string_to_fraction("-0"), Fraction(0))
+        self.assertEqual(Binary.string_to_fraction("-1"), Fraction(-1))
+        self.assertEqual(Binary.string_to_fraction("11"), Fraction(3))
+        self.assertEqual(Binary.string_to_fraction("-0.0"), Fraction(0))
+        self.assertEqual(Binary.string_to_fraction("1.0"), Fraction(1))
+        self.assertEqual(Binary.string_to_fraction("1.1"), Fraction(3, 2))
+        self.assertEqual(Binary.string_to_fraction("-1.1"), Fraction(3, -2))
+        self.assertEqual(Binary.string_to_fraction("-0.111"), Fraction(-0.875))
+        self.assertEqual(
+            Binary.string_to_fraction("1.1" + "0" * 2 + "1"),
+            Fraction(3 * 2 ** 3 + 1, 2 ** 4),
+        )
+        self.assertEqual(
+            Binary.string_to_fraction("1.1" + "0" * 100 + "1"),
+            Fraction(3 * 2 ** 101 + 1, 2 ** 102),
+        )
+        self.assertEqual(
+            Binary.string_to_fraction("1.1" + "0" * 1000 + "1"),
+            Fraction(3 * 2 ** 1001 + 1, 2 ** 1002),
+        )
+        with self.assertRaises(ValueError):
+            Binary.string_to_fraction("102")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.fraction_to_string(Binary(1))  # should fail
+
+    def test_invert(self):
+        """Test function/method."""
+        self.assertEqual(Binary.invert("0001000"), "1110111")
+        self.assertEqual(Binary.invert("0001000", strict=False), "10111")
+        self.assertEqual(Binary.invert("1110110", strict=False), "01001")
+        self.assertEqual(Binary.invert("0.1101", strict=True), "1.0010")
+        self.assertEqual(Binary.invert("0.1101", strict=False), "1.001")
+        self.assertEqual(Binary.invert("11.1101", strict=False), "0.001")
+        self.assertEqual(Binary.invert("00.1101", strict=False), "1.001")
+        with self.assertRaises(TypeError):
+            Binary.invert(1975)  # should fail
+
+    def test_to_twos_complement(self):
+        """Test function/method."""
+        self.assertEqual(Binary("10").to_twos_complement(), Binary("10"))
+        self.assertEqual(Binary("1010").to_twos_complement(), Binary("1010"))
+        self.assertEqual(Binary("-1").to_twos_complement(fill=12), "1" * 13)
+        self.assertEqual(Binary(-1975).to_twos_complement(fill=12), "1100001001001")
+        self.assertEqual(Binary("-1.0").to_twos_complement(fill=12), "1" * 13)
+        self.assertEqual(Binary("-1.0010").to_twos_complement(), "11.111")
+        self.assertEqual(Binary("-0.0010").to_twos_complement(), "110.111")
+        self.assertEqual(Binary("-0.111").to_twos_complement(), "110.001")
+        self.assertEqual(Binary("-0.10").to_twos_complement(), "110.1")
+        self.assertEqual(Binary.from_twos_complement("11"), "-1")
+
+    def test_from_twos_complement(self):
+        """Test function/method."""
+        self.assertEqual(Binary.from_twos_complement("11.111"), "-1.001")
+        self.assertEqual(Binary.from_twos_complement("110.111"), "-10.001")
+        self.assertEqual(Binary.from_twos_complement("110.001"), "-10.111")
+        self.assertEqual(Binary.from_twos_complement("110"), "-10")
+        self.assertEqual(Binary.from_twos_complement("00"), "0")
+        self.assertEqual(Binary.from_twos_complement("01"), "1")
+        self.assertEqual(Binary.from_twos_complement("00.11"), "0.11")
+        self.assertEqual(
+            Binary.from_twos_complement("00.11111111111110"), "0.1111111111111"
+        )
+        self.assertEqual(Binary.from_twos_complement("00.11e-5"), "0.11e-5")
+        self.assertEqual(
+            Binary.from_twos_complement("00.11111111111110"), "0.1111111111111"
+        )
+        self.assertEqual(Binary.from_twos_complement("00.00", strict=True), "00.00")
+        with self.assertRaises(ValueError):
+            Binary.from_twos_complement("102")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.from_twos_complement(Binary(1))  # should fail
+
+    def test_compare_representation(self):
+        """Test function/method."""
+        self.assertEqual(
+            Binary(10.10).compare_representation(
+                "1010.0001100110011001100110011001100110011001100110011"
+            ),
+            True,
+        )
+        self.assertEqual(Binary("10.111").compare_representation("10.111"), True)
+        self.assertEqual(Binary(5).compare_representation("101"), True)
+        self.assertEqual(
+            Binary(8.3).compare_representation(
+                "1000.010011001100110011001100110011001100110011001101"
+            ),
+            True,
+        )
+        self.assertEqual(Binary(0.0).compare_representation("0"), True)
+        self.assertEqual(Binary(1.0).compare_representation("1"), True)
+        self.assertEqual(Binary(3.5).compare_representation("11.1"), True)
+        self.assertEqual(Binary(-13.75).compare_representation("-1101.11"), True)
+        self.assertEqual(
+            Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
+        )
+        self.assertEqual(
+            Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
+            True,
+        )
+        self.assertEqual(
+            Binary(13.0 + 2 ** -30).compare_representation(
+                "1101.000000000000000000000000000001"
+            ),
+            True,
+        )
+        self.assertEqual(
+            Binary(13.0 + 2 ** -40).compare_representation(
+                "1101.0000000000000000000000000000000000000001"
+            ),
+            True,
+        )
+        self.assertEqual(Binary(13.0 + 2 ** -50).compare_representation("1101"), True)
+        self.assertEqual(Binary(13.0 + 2 ** -60).compare_representation("1101"), True)
+        self.assertEqual(
+            Binary(
+                13.0
+                + 2 ** -10
+                + 2 ** -20
+                + 2 ** -30
+                + 2 ** -40
+                + 2 ** -50
+                + 2 ** -60
+                + 2 ** -70
+            ).compare_representation("1101.0000000001000000000100000000010000000001"),
+            True,
+        )
+        self.assertEqual(Binary("1.1").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.10").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.101").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.11").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.110").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.1101").round(1).compare_representation("10"), True)
+        self.assertEqual(Binary("1.1111").round(1).compare_representation("10"), True)
+        with self.assertRaises(TypeError):
+            Binary.compare_representation(1, "1")  # should fail
+
+    def test_np(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).np(), "-11.1")
+        with self.assertRaises(TypeError):
+            Binary.np("1")  # should fail, 1 arg too much
+
+    def test___add__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(1) + Binary("1"), 2)
+        self.assertEqual(Binary(-1) + Binary("1"), 0)
+        self.assertEqual(Binary(0.5) + Binary(0.5), 1)
+        self.assertEqual(Binary("-1.1") + Binary("0.1"), -1)
+        with self.assertRaises(ValueError):
+            Binary("102") + "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) + complex(1, 1)  # should fail
+
+    def test___sub__(self):
+        """Test function/method."""
+        self.assertEqual(
+            Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
+        )
+        self.assertEqual(Binary(1) - Binary(1), 0)
+        self.assertEqual(Binary(0) - Binary(1), -1)
+        self.assertEqual(Binary(0.1) - Binary(0.2), -0.1)
+        self.assertEqual(Binary(1) - Binary(0.5), 0.5)
+        with self.assertRaises(ValueError):
+            Binary("102") - "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) - complex(1, 1)  # should fail
+
+    def test___mul__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(0) * Binary(1), 0)
+        self.assertEqual(Binary(1) * Binary(1), 1)
+        self.assertEqual(Binary(100) * Binary(Fraction(1, 10)), 10)
+        with self.assertRaises(ValueError):
+            Binary("102") * "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) * complex(1, 1)  # should fail
+
+    def test___truediv__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(100) / Binary(Fraction(1, 10)), 1000)
+        self.assertEqual(Binary(0) / Binary(10), 0)
+        self.assertEqual(Binary(1) / Binary(2), 0.5)
+        with self.assertRaises(ValueError):
+            Binary("102") / "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) / complex(1, 1)  # should fail
+
+    def test___floordiv__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(10) // Binary(3), 3)
+        self.assertEqual(Binary(7) // Binary(2), 3)
+        self.assertEqual(Binary(8) // Binary(3), 2)
+        with self.assertRaises(ValueError):
+            Binary("102") // "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) // complex(1, 1)  # should fail
+
+    def test___mod__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(5) % Binary(3), 2)
+        self.assertEqual(Binary(7) % Binary(4), 3)
+        self.assertEqual(Binary("111") % Binary("11"), 1)
+        self.assertEqual(Binary(5.0) % Binary(1.5), 0.5)
+        self.assertEqual(Binary("-101.0") % Binary("-1.1"), -0.5)
+        with self.assertRaises(ValueError):
+            Binary("102") % "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) % complex(1, 1)  # should fail
+
+    def test___abs__(self):
+        """Test function/method."""
+        self.assertEqual(abs(Binary(5)), 5)
+        self.assertEqual(abs(Binary(-7)), 7)
+        self.assertEqual(abs(Binary("111")), 7)
+        self.assertEqual(abs(Binary(-1.5)), 1.5)
+        self.assertEqual(abs(Binary("-101.1")), 5.5)
+
+    def test___ceil__(self):
+        """Test function/method."""
+        self.assertEqual(math.ceil(Binary(5)), math.ceil(5))
+        self.assertEqual(math.ceil(Binary(-7)), math.ceil(-7))
+        self.assertEqual(math.ceil(Binary("111")), math.ceil(7))
+        self.assertEqual(math.ceil(Binary(-1.5)), math.ceil(-1.5))
+        self.assertEqual(math.ceil(Binary("-101.1")), math.ceil(-5.5))
+
+    def test___floor__(self):
+        """Test function/method."""
+        self.assertEqual(math.floor(Binary(5)), math.floor(5))
+        self.assertEqual(math.floor(Binary(-7)), math.floor(-7))
+        self.assertEqual(math.floor(Binary("111")), math.floor(7))
+        self.assertEqual(math.floor(Binary(-1.5)), math.floor(-1.5))
+        self.assertEqual(math.floor(Binary("-101.1")), math.floor(-5.5))
+
+    def test___and__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(1) & Binary(1), Binary(1))
+        self.assertEqual(Binary(0) & Binary(1), Binary(0))
+        self.assertEqual(Binary("1000") & Binary("0"), Binary(0))
+        self.assertEqual(Binary("1010") & Binary("10"), Binary("10"))
+        with self.assertRaises(ValueError):
+            Binary("102") & "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) & complex(1, 1)  # should fail
+
+    def test___not__(self):
+        """Test function/method."""
+        self.assertEqual(not Binary(9), False)
+        self.assertEqual(not Binary(-10.5), False)
+        self.assertEqual(not Binary(0), True)
+        self.assertEqual(not Binary(0.0), True)
+        with self.assertRaises(TypeError):
+            not Binary(complex(1, 1))  # should fail
+
+    def test___invert__(self):
+        """Test function/method."""
+        self.assertEqual(~Binary(9), Binary(-10))
+        self.assertEqual(~Binary(-10), Binary(9))
+        self.assertEqual(~~Binary(-109), Binary(-109))
+        self.assertEqual(~~Binary(9), Binary(9))
+        with self.assertRaises(ValueError):
+            ~Binary("-10.5")  # should fail
+        with self.assertRaises(TypeError):
+            ~Binary(complex(1, 1))  # should fail
+
+    def test___rshift__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(1) >> 1, 0.5)
+        self.assertEqual(Binary(2) >> 3, 0.25)
+        self.assertEqual(Binary(0.25) >> 1, Fraction(1, 8))
+        self.assertEqual(Binary("1e1") >> 1, 1)
+        self.assertEqual(Binary("101e2") >> 2, 5)
+        self.assertEqual(Binary("101e2") >> 3, Fraction(5, 2 ** 1))
+        self.assertEqual(Binary("101e2") >> 3, Binary(Fraction(5, 2 ** 1)))
+        self.assertEqual(Binary("101e2") >> 4, Binary(Fraction(5, 2 ** 2)))
+        self.assertEqual(Binary("101e2") >> 4, Binary("101e-2"))
+        self.assertEqual(Binary("101e2") >> 20, Binary("101e-18"))
+        self.assertEqual(Binary("101e2") >> 20, Binary(Fraction(5, 2 ** 18)))
+        self.assertEqual(
+            (Binary("101e2") >> 20).compare_representation("101e-18"), True
+        )
+        self.assertEqual((Binary("101e2") >> 2).compare_representation("101"), True)
+        self.assertEqual((Binary("101e-2") >> 2).compare_representation("101e-4"), True)
+        self.assertEqual(
+            (Binary("101e2") >> 20).compare_representation("101e-18"), True
+        )
+        self.assertEqual((Binary("101") >> 2).compare_representation("1.01"), True)
+        self.assertEqual(
+            (Binary("101") >> 20).compare_representation("0." + "0" * 17 + "101"), True
+        )
+        self.assertEqual(
+            (Binary("101.01e2") >> 0).compare_representation("101.01e2"), True
+        )
+        self.assertEqual(
+            (Binary("101.01e2") >> 1).compare_representation("101.01e1"), True
+        )
+        self.assertEqual(
+            (Binary("101.01e2") >> 20).compare_representation("101.01e-18"), True
+        )
+        self.assertEqual((Binary("101.01") >> 2).compare_representation("1.0101"), True)
+        self.assertEqual((Binary("101.01") >> 1).compare_representation("10.101"), True)
+        self.assertEqual(
+            (Binary("101.01") >> 3).compare_representation("0.10101"), True
+        )
+        self.assertEqual(
+            (Binary("101.01") >> 20).compare_representation("0." + "0" * 17 + "10101"),
+            True,
+        )
+        with self.assertRaises(ValueError):
+            Binary("10") >> -3  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) >> complex(1, 1)  # should fail
+
+    def test___lshift__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(1) << 1, 2)
+        self.assertEqual(Binary(2) << 3, 16)
+        self.assertEqual(Binary(0.25) << 1, 0.5)
+        self.assertEqual(Binary(0.125) << 3, 1)
+        self.assertEqual(Binary("1e1") << 2, 8)
+        self.assertEqual(Binary("101e2") << 2, 5 * 2 ** 4)
+        self.assertEqual(Binary("101e2") << 20, 5 * 2 ** 22)
+        self.assertEqual((Binary("101e-2") << 2).compare_representation("101"), True)
+        self.assertEqual((Binary("101e2") << 2).compare_representation("101e4"), True)
+        self.assertEqual((Binary("101e2") << 20).compare_representation("101e22"), True)
+        self.assertEqual((Binary("101") << 2).compare_representation("10100"), True)
+        self.assertEqual(
+            (Binary("101") << 20).compare_representation("101" + "0" * 20), True
+        )
+        self.assertEqual(
+            (Binary("101.01e2") << 2).compare_representation("101.01e4"), True
+        )
+        self.assertEqual(
+            (Binary("101.01e2") << 20).compare_representation("101.01e22"), True
+        )
+        self.assertEqual((Binary("101.01") << 2).compare_representation("10101"), True)
+        self.assertEqual((Binary("101.01") << 1).compare_representation("1010.1"), True)
+        self.assertEqual((Binary("101.01") << 3).compare_representation("101010"), True)
+        self.assertEqual(
+            (Binary("101.01") << 20).compare_representation("10101" + "0" * 18), True
+        )
+        with self.assertRaises(ValueError):
+            Binary("10") << -3  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) << complex(1, 1)  # should fail
+
+
+##########################################################################
 # Useful Constants (internal use only)
+##########################################################################
 
 """ Reusable defaults """
 _Infinity = Binary(_INF)  # "Inf"

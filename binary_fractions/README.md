@@ -3,35 +3,22 @@
 * [binary](#binary)
   * [Binary](#binary.Binary)
     * [\_\_new\_\_](#binary.Binary.__new__)
-    * [test\_\_\_new\_\_](#binary.Binary.test___new__)
     * [version](#binary.Binary.version)
-    * [test\_version](#binary.Binary.test_version)
     * [from\_float](#binary.Binary.from_float)
-    * [test\_from\_float](#binary.Binary.test_from_float)
     * [to\_float](#binary.Binary.to_float)
-    * [test\_to\_float](#binary.Binary.test_to_float)
     * [\_\_float\_\_](#binary.Binary.__float__)
-    * [test\_\_\_float\_\_](#binary.Binary.test___float__)
     * [\_\_int\_\_](#binary.Binary.__int__)
-    * [test\_\_\_int\_\_](#binary.Binary.test___int__)
     * [simplify](#binary.Binary.simplify)
-    * [test\_simplify](#binary.Binary.test_simplify)
     * [to\_not\_exponential](#binary.Binary.to_not_exponential)
-    * [test\_to\_not\_exponential](#binary.Binary.test_to_not_exponential)
     * [twos\_complement\_to\_not\_exponential](#binary.Binary.twos_complement_to_not_exponential)
-    * [test\_twos\_complement\_to\_not\_exponential](#binary.Binary.test_twos_complement_to_not_exponential)
     * [binary\_string\_to\_fraction](#binary.Binary.binary_string_to_fraction)
-    * [test\_binary\_string\_to\_fraction](#binary.Binary.test_binary_string_to_fraction)
     * [\_\_round\_\_](#binary.Binary.__round__)
     * [round](#binary.Binary.round)
     * [round\_to](#binary.Binary.round_to)
     * [fill](#binary.Binary.fill)
-    * [test\_fill](#binary.Binary.test_fill)
     * [fill\_to](#binary.Binary.fill_to)
     * [to\_simple\_exponential](#binary.Binary.to_simple_exponential)
-    * [test\_to\_simple\_exponential](#binary.Binary.test_to_simple_exponential)
     * [to\_sci\_exponential](#binary.Binary.to_sci_exponential)
-    * [test\_to\_sci\_exponential](#binary.Binary.test_to_sci_exponential)
     * [get\_components](#binary.Binary.get_components)
     * [get\_twoscomplement\_components](#binary.Binary.get_twoscomplement_components)
     * [components](#binary.Binary.components)
@@ -39,71 +26,84 @@
     * [isnegativeinfinity](#binary.Binary.isnegativeinfinity)
     * [ispositiveinfinity](#binary.Binary.ispositiveinfinity)
     * [isnan](#binary.Binary.isnan)
-    * [test\_isnan](#binary.Binary.test_isnan)
     * [isint](#binary.Binary.isint)
     * [istwoscomplement](#binary.Binary.istwoscomplement)
-    * [test\_istwoscomplement](#binary.Binary.test_istwoscomplement)
     * [adjusted](#binary.Binary.adjusted)
     * [\_\_eq\_\_](#binary.Binary.__eq__)
-    * [test\_\_\_eq\_\_](#binary.Binary.test___eq__)
     * [compare](#binary.Binary.compare)
     * [fraction\_to\_string](#binary.Binary.fraction_to_string)
-    * [test\_fraction\_to\_string](#binary.Binary.test_fraction_to_string)
     * [fraction](#binary.Binary.fraction)
     * [string\_to\_fraction](#binary.Binary.string_to_fraction)
-    * [test\_string\_to\_fraction](#binary.Binary.test_string_to_fraction)
     * [invert](#binary.Binary.invert)
-    * [test\_invert](#binary.Binary.test_invert)
     * [to\_twos\_complement](#binary.Binary.to_twos_complement)
-    * [test\_to\_twos\_complement](#binary.Binary.test_to_twos_complement)
     * [from\_twos\_complement](#binary.Binary.from_twos_complement)
-    * [test\_from\_twos\_complement](#binary.Binary.test_from_twos_complement)
     * [compare\_representation](#binary.Binary.compare_representation)
-    * [test\_compare\_representation](#binary.Binary.test_compare_representation)
     * [\_\_repr\_\_](#binary.Binary.__repr__)
     * [no\_prefix](#binary.Binary.no_prefix)
     * [np](#binary.Binary.np)
-    * [test\_np](#binary.Binary.test_np)
     * [\_\_str\_\_](#binary.Binary.__str__)
     * [\_\_add\_\_](#binary.Binary.__add__)
-    * [test\_\_\_add\_\_](#binary.Binary.test___add__)
     * [\_\_sub\_\_](#binary.Binary.__sub__)
-    * [test\_\_\_sub\_\_](#binary.Binary.test___sub__)
     * [\_\_mul\_\_](#binary.Binary.__mul__)
-    * [test\_\_\_mul\_\_](#binary.Binary.test___mul__)
     * [\_\_truediv\_\_](#binary.Binary.__truediv__)
-    * [test\_\_\_truediv\_\_](#binary.Binary.test___truediv__)
     * [\_\_floordiv\_\_](#binary.Binary.__floordiv__)
-    * [test\_\_\_floordiv\_\_](#binary.Binary.test___floordiv__)
     * [\_\_mod\_\_](#binary.Binary.__mod__)
-    * [test\_\_\_mod\_\_](#binary.Binary.test___mod__)
     * [\_\_pow\_\_](#binary.Binary.__pow__)
     * [\_\_abs\_\_](#binary.Binary.__abs__)
-    * [test\_\_\_abs\_\_](#binary.Binary.test___abs__)
     * [\_\_ceil\_\_](#binary.Binary.__ceil__)
-    * [test\_\_\_ceil\_\_](#binary.Binary.test___ceil__)
     * [\_\_floor\_\_](#binary.Binary.__floor__)
-    * [test\_\_\_floor\_\_](#binary.Binary.test___floor__)
     * [\_\_lt\_\_](#binary.Binary.__lt__)
     * [\_\_gt\_\_](#binary.Binary.__gt__)
     * [\_\_le\_\_](#binary.Binary.__le__)
     * [\_\_ge\_\_](#binary.Binary.__ge__)
     * [\_\_bool\_\_](#binary.Binary.__bool__)
     * [\_\_and\_\_](#binary.Binary.__and__)
-    * [test\_\_\_and\_\_](#binary.Binary.test___and__)
     * [\_\_or\_\_](#binary.Binary.__or__)
     * [\_\_xor\_\_](#binary.Binary.__xor__)
     * [\_\_not\_\_](#binary.Binary.__not__)
-    * [test\_\_\_not\_\_](#binary.Binary.test___not__)
     * [\_\_invert\_\_](#binary.Binary.__invert__)
-    * [test\_\_\_invert\_\_](#binary.Binary.test___invert__)
     * [\_\_rshift\_\_](#binary.Binary.__rshift__)
-    * [test\_\_\_rshift\_\_](#binary.Binary.test___rshift__)
     * [\_\_lshift\_\_](#binary.Binary.__lshift__)
-    * [test\_\_\_lshift\_\_](#binary.Binary.test___lshift__)
     * [and\_or](#binary.Binary.and_or)
-    * [testcase](#binary.Binary.testcase)
-    * [selftest](#binary.Binary.selftest)
+  * [TestBinary](#binary.TestBinary)
+    * [selftest](#binary.TestBinary.selftest)
+    * [test\_\_\_new\_\_](#binary.TestBinary.test___new__)
+    * [test\_version](#binary.TestBinary.test_version)
+    * [test\_from\_float](#binary.TestBinary.test_from_float)
+    * [test\_to\_float](#binary.TestBinary.test_to_float)
+    * [test\_\_\_float\_\_](#binary.TestBinary.test___float__)
+    * [test\_\_\_int\_\_](#binary.TestBinary.test___int__)
+    * [test\_simplify](#binary.TestBinary.test_simplify)
+    * [test\_to\_not\_exponential](#binary.TestBinary.test_to_not_exponential)
+    * [test\_twos\_complement\_to\_not\_exponential](#binary.TestBinary.test_twos_complement_to_not_exponential)
+    * [test\_binary\_string\_to\_fraction](#binary.TestBinary.test_binary_string_to_fraction)
+    * [test\_fill](#binary.TestBinary.test_fill)
+    * [test\_to\_simple\_exponential](#binary.TestBinary.test_to_simple_exponential)
+    * [test\_to\_sci\_exponential](#binary.TestBinary.test_to_sci_exponential)
+    * [test\_isnan](#binary.TestBinary.test_isnan)
+    * [test\_istwoscomplement](#binary.TestBinary.test_istwoscomplement)
+    * [test\_\_\_eq\_\_](#binary.TestBinary.test___eq__)
+    * [test\_fraction\_to\_string](#binary.TestBinary.test_fraction_to_string)
+    * [test\_string\_to\_fraction](#binary.TestBinary.test_string_to_fraction)
+    * [test\_invert](#binary.TestBinary.test_invert)
+    * [test\_to\_twos\_complement](#binary.TestBinary.test_to_twos_complement)
+    * [test\_from\_twos\_complement](#binary.TestBinary.test_from_twos_complement)
+    * [test\_compare\_representation](#binary.TestBinary.test_compare_representation)
+    * [test\_np](#binary.TestBinary.test_np)
+    * [test\_\_\_add\_\_](#binary.TestBinary.test___add__)
+    * [test\_\_\_sub\_\_](#binary.TestBinary.test___sub__)
+    * [test\_\_\_mul\_\_](#binary.TestBinary.test___mul__)
+    * [test\_\_\_truediv\_\_](#binary.TestBinary.test___truediv__)
+    * [test\_\_\_floordiv\_\_](#binary.TestBinary.test___floordiv__)
+    * [test\_\_\_mod\_\_](#binary.TestBinary.test___mod__)
+    * [test\_\_\_abs\_\_](#binary.TestBinary.test___abs__)
+    * [test\_\_\_ceil\_\_](#binary.TestBinary.test___ceil__)
+    * [test\_\_\_floor\_\_](#binary.TestBinary.test___floor__)
+    * [test\_\_\_and\_\_](#binary.TestBinary.test___and__)
+    * [test\_\_\_not\_\_](#binary.TestBinary.test___not__)
+    * [test\_\_\_invert\_\_](#binary.TestBinary.test___invert__)
+    * [test\_\_\_rshift\_\_](#binary.TestBinary.test___rshift__)
+    * [test\_\_\_lshift\_\_](#binary.TestBinary.test___lshift__)
 
 <a name="binary"></a>
 # binary
@@ -383,30 +383,6 @@ string representation as close to the original as possible.
 
 - `Binary` - created immutable instance
 
-<a name="binary.Binary.test___new__"></a>
-#### test\_\_\_new\_\_
-
-```python
- | test___new__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.version"></a>
 #### version
 
@@ -421,30 +397,6 @@ Is a utility function.
 **Returns**:
 
 - `str` - version number as date in format "YYMMDD-HHMMSS", e.g. "20210622-103815"
-
-<a name="binary.Binary.test_version"></a>
-#### test\_version
-
-```python
- | test_version(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.from_float"></a>
 #### from\_float
@@ -469,30 +421,6 @@ float to Binary (float --> Binary).
 
 - `str` - string representation of Binary string
 
-<a name="binary.Binary.test_from_float"></a>
-#### test\_from\_float
-
-```python
- | test_from_float(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.to_float"></a>
 #### to\_float
 
@@ -515,30 +443,6 @@ a Binary string to a float or integer
 
   float or integer: number as float or integer
 
-<a name="binary.Binary.test_to_float"></a>
-#### test\_to\_float
-
-```python
- | test_to_float(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__float__"></a>
 #### \_\_float\_\_
 
@@ -555,30 +459,6 @@ integer). (Binary --> float or integer)
 
 - `float` - number as float or integer
 
-<a name="binary.Binary.test___float__"></a>
-#### test\_\_\_float\_\_
-
-```python
- | test___float__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__int__"></a>
 #### \_\_int\_\_
 
@@ -594,30 +474,6 @@ Binary --> float or integer
 **Returns**:
 
 - `float` - number as integer
-
-<a name="binary.Binary.test___int__"></a>
-#### test\_\_\_int\_\_
-
-```python
- | test___int__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.simplify"></a>
 #### simplify
@@ -645,30 +501,6 @@ Example: converts '11.0' to '11' or '0011.0e-0' to '11'.
 **Returns**:
 
 - `str` - simplified binary string representation of number
-
-<a name="binary.Binary.test_simplify"></a>
-#### test\_simplify
-
-```python
- | test_simplify(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.to_not_exponential"></a>
 #### to\_not\_exponential
@@ -703,30 +535,6 @@ Example: converts '11.01e-2' to '0.1101'
 **Returns**:
 
 - `str` - binary string representation of number
-
-<a name="binary.Binary.test_to_not_exponential"></a>
-#### test\_to\_not\_exponential
-
-```python
- | test_to_not_exponential(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.twos_complement_to_not_exponential"></a>
 #### twos\_complement\_to\_not\_exponential
@@ -764,30 +572,6 @@ Example: converts -2.5, '1.011e2' to '101.1'.
 
 - `str` - binary string representation of number
 
-<a name="binary.Binary.test_twos_complement_to_not_exponential"></a>
-#### test\_twos\_complement\_to\_not\_exponential
-
-```python
- | test_twos_complement_to_not_exponential(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.binary_string_to_fraction"></a>
 #### binary\_string\_to\_fraction
 
@@ -807,30 +591,6 @@ utility function
 **Returns**:
 
 - `Fraction` - value as fraction
-
-<a name="binary.Binary.test_binary_string_to_fraction"></a>
-#### test\_binary\_string\_to\_fraction
-
-```python
- | test_binary_string_to_fraction(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__round__"></a>
 #### \_\_round\_\_
@@ -918,30 +678,6 @@ This is a method. See also function fill_to().
 
 - `Binary` - binary string representation of number
 
-<a name="binary.Binary.test_fill"></a>
-#### test\_fill
-
-```python
- | test_fill(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.fill_to"></a>
 #### fill\_to
 
@@ -988,30 +724,6 @@ The result has no decimal point.
 
 - `Binary` - binary string representation of number
 
-<a name="binary.Binary.test_to_simple_exponential"></a>
-#### test\_to\_simple\_exponential
-
-```python
- | test_to_simple_exponential(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.to_sci_exponential"></a>
 #### to\_sci\_exponential
 
@@ -1033,30 +745,6 @@ The result has only 1 digit before decimal point.
 **Returns**:
 
 - `Binary` - binary string representation of number
-
-<a name="binary.Binary.test_to_sci_exponential"></a>
-#### test\_to\_sci\_exponential
-
-```python
- | test_to_sci_exponential(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.get_components"></a>
 #### get\_components
@@ -1210,30 +898,6 @@ Determine if object is not-a-number (NaN).
 
 - `bool` - is or is not a NaN (division by zero)
 
-<a name="binary.Binary.test_isnan"></a>
-#### test\_isnan
-
-```python
- | test_isnan(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.isint"></a>
 #### isint
 
@@ -1267,30 +931,6 @@ Determine if string is a valid twos-complement syntax.
 
 - `bool` - is or is not valid twos-complement
 
-<a name="binary.Binary.test_istwoscomplement"></a>
-#### test\_istwoscomplement
-
-```python
- | test_istwoscomplement(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.adjusted"></a>
 #### adjusted
 
@@ -1317,30 +957,6 @@ Return the adjusted exponent of self.
 ```
 
 Implement ==. See _cmp() for details.
-
-<a name="binary.Binary.test___eq__"></a>
-#### test\_\_\_eq\_\_
-
-```python
- | test___eq__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.compare"></a>
 #### compare
@@ -1387,30 +1003,6 @@ utility function
 
 - `str` - binary number in string representation
 
-<a name="binary.Binary.test_fraction_to_string"></a>
-#### test\_fraction\_to\_string
-
-```python
- | test_fraction_to_string(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.fraction"></a>
 #### fraction
 
@@ -1450,30 +1042,6 @@ utility function.
 **Returns**:
 
 - `Fraction` - binary number in Fraction representation
-
-<a name="binary.Binary.test_string_to_fraction"></a>
-#### test\_string\_to\_fraction
-
-```python
- | test_string_to_fraction(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.invert"></a>
 #### invert
@@ -1537,30 +1105,6 @@ invert(invert(n)) == for all valid n
 
 - `str` - bitwise negated string, a twos-complement formated string
 
-<a name="binary.Binary.test_invert"></a>
-#### test\_invert
-
-```python
- | test_invert(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.to_twos_complement"></a>
 #### to\_twos\_complement
 
@@ -1595,30 +1139,6 @@ This is a method returning a string.
 
 - `str` - binary string representation in twos-complement
 
-<a name="binary.Binary.test_to_twos_complement"></a>
-#### test\_to\_twos\_complement
-
-```python
- | test_to_twos_complement(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.from_twos_complement"></a>
 #### from\_twos\_complement
 
@@ -1636,30 +1156,6 @@ strict True, leaves it as much as unchanged as possivle
 strict False simplifies representation
 
 input "value" is string.
-
-<a name="binary.Binary.test_from_twos_complement"></a>
-#### test\_from\_twos\_complement
-
-```python
- | test_from_twos_complement(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.compare_representation"></a>
 #### compare\_representation
@@ -1682,30 +1178,6 @@ Returns integer.
 **Returns**:
 
 - `int` - -1 s<o, 0 equal, 1 s>o
-
-<a name="binary.Binary.test_compare_representation"></a>
-#### test\_compare\_representation
-
-```python
- | test_compare_representation(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__repr__"></a>
 #### \_\_repr\_\_
@@ -1759,30 +1231,6 @@ Note that there is no '0b' prefix.
 
 - `str` - without prefix
 
-<a name="binary.Binary.test_np"></a>
-#### test\_np
-
-```python
- | test_np(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__str__"></a>
 #### \_\_str\_\_
 
@@ -1826,30 +1274,6 @@ Method that implements the * operand.
 
 - `Binary` - addittion of the two numbers
 
-<a name="binary.Binary.test___add__"></a>
-#### test\_\_\_add\_\_
-
-```python
- | test___add__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__sub__"></a>
 #### \_\_sub\_\_
 
@@ -1870,30 +1294,6 @@ Method that implements the - operand.
 **Returns**:
 
 - `Binary` - subtraction of the two numbers
-
-<a name="binary.Binary.test___sub__"></a>
-#### test\_\_\_sub\_\_
-
-```python
- | test___sub__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__mul__"></a>
 #### \_\_mul\_\_
@@ -1916,30 +1316,6 @@ Method that implements the * operand.
 
 - `Binary` - multiplication of the two numbers
 
-<a name="binary.Binary.test___mul__"></a>
-#### test\_\_\_mul\_\_
-
-```python
- | test___mul__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__truediv__"></a>
 #### \_\_truediv\_\_
 
@@ -1960,30 +1336,6 @@ Method that implements the / operand.
 **Returns**:
 
 - `Binary` - true division of the two numbers
-
-<a name="binary.Binary.test___truediv__"></a>
-#### test\_\_\_truediv\_\_
-
-```python
- | test___truediv__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__floordiv__"></a>
 #### \_\_floordiv\_\_
@@ -2006,30 +1358,6 @@ Method that implements the // operand.
 
 - `Binary` - floor division of the two numbers
 
-<a name="binary.Binary.test___floordiv__"></a>
-#### test\_\_\_floordiv\_\_
-
-```python
- | test___floordiv__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__mod__"></a>
 #### \_\_mod\_\_
 
@@ -2051,30 +1379,6 @@ Method that implements the % operand.
 **Returns**:
 
 - `Binary` - modulation of the two numbers
-
-<a name="binary.Binary.test___mod__"></a>
-#### test\_\_\_mod\_\_
-
-```python
- | test___mod__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__pow__"></a>
 #### \_\_pow\_\_
@@ -2117,30 +1421,6 @@ Method that implements absolute value, i.e. the positive value.
 
 - `Binary` - Absolute of the number
 
-<a name="binary.Binary.test___abs__"></a>
-#### test\_\_\_abs\_\_
-
-```python
- | test___abs__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__ceil__"></a>
 #### \_\_ceil\_\_
 
@@ -2162,30 +1442,6 @@ For example, '1.11' will return '10'.
 
 - `Binary` - ceiling of the number
 
-<a name="binary.Binary.test___ceil__"></a>
-#### test\_\_\_ceil\_\_
-
-```python
- | test___ceil__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__floor__"></a>
 #### \_\_floor\_\_
 
@@ -2206,30 +1462,6 @@ For example, '1.11' will return '1'.
 **Returns**:
 
 - `Binary` - floor of the number
-
-<a name="binary.Binary.test___floor__"></a>
-#### test\_\_\_floor\_\_
-
-```python
- | test___floor__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__lt__"></a>
 #### \_\_lt\_\_
@@ -2358,30 +1590,6 @@ For example, '11.1' ^ '10.1' will return '10.1'
 
 - `Binary` - bitwise and of the two numbers
 
-<a name="binary.Binary.test___and__"></a>
-#### test\_\_\_and\_\_
-
-```python
- | test___and__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__or__"></a>
 #### \_\_or\_\_
 
@@ -2455,30 +1663,6 @@ For example: not Binary(3.5) returns False.
 
 - `Binary` - 'boolean not' of number
 
-<a name="binary.Binary.test___not__"></a>
-#### test\_\_\_not\_\_
-
-```python
- | test___not__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__invert__"></a>
 #### \_\_invert\_\_
 
@@ -2504,30 +1688,6 @@ For more information, see also the invert() function.
 **Returns**:
 
 - `Binary` - 'bitwise not' of integer number
-
-<a name="binary.Binary.test___invert__"></a>
-#### test\_\_\_invert\_\_
-
-```python
- | test___invert__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
 
 <a name="binary.Binary.__rshift__"></a>
 #### \_\_rshift\_\_
@@ -2557,30 +1717,6 @@ moved to the left.
 
 - `Binary` - right shifted number
 
-<a name="binary.Binary.test___rshift__"></a>
-#### test\_\_\_rshift\_\_
-
-```python
- | test___rshift__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.__lshift__"></a>
 #### \_\_lshift\_\_
 
@@ -2609,30 +1745,6 @@ moved to the right.
 
 - `Binary` - left shifted number
 
-<a name="binary.Binary.test___lshift__"></a>
-#### test\_\_\_lshift\_\_
-
-```python
- | test___lshift__(tc: int) -> tuple
-```
-
-Unit test a specific function or method.
-
-**Arguments**:
-
-- `tc` _int_ - first test case id to be used
-
-  Returns the next available, unused test case id.
-  If input tc was 3 and test 3, 4 and 5, were done, then 6 will be returned.
-  6 is the next available test case id (= last used testcase id + 1).
-
-
-**Returns**:
-
-  tuple (int, int, int):
-  (number of tests passed,number of tests failed,
-  last used testcase id)
-
 <a name="binary.Binary.and_or"></a>
 #### and\_or
 
@@ -2654,34 +1766,26 @@ This is a function, not a method.
 
 - `Binary` - shifted number # TODO
 
-<a name="binary.Binary.testcase"></a>
-#### testcase
+<a name="binary.TestBinary"></a>
+## TestBinary Objects
 
 ```python
- | testcase(id, input, expected_result)
+class TestBinary(unittest.TestCase)
 ```
 
-Test a single test case. Compares input to expected result.
+Unit testing of class Binary.
 
-**Arguments**:
-
-- `id` _str_ - name of test case
-- `input` - result of testcase
-- `expected_result` - expected result
-
-
-**Returns**:
-
-- `bool` - True if test passes, False if test fails
-
-<a name="binary.Binary.selftest"></a>
+<a name="binary.TestBinary.selftest"></a>
 #### selftest
 
 ```python
- | selftest()
+ | selftest() -> bool
 ```
 
 Perform self test by running various test cases.
+
+Binary uses module unittest for unit testing.
+See https://docs.python.org/3/library/unittest.html for details.
 
 **Arguments**:
 
@@ -2691,4 +1795,337 @@ Perform self test by running various test cases.
 **Returns**:
 
 - `bool` - True if all tests pass, False if any single test fails
+
+<a name="binary.TestBinary.test___new__"></a>
+#### test\_\_\_new\_\_
+
+```python
+ | test___new__()
+```
+
+Testing the constructor.
+
+<a name="binary.TestBinary.test_version"></a>
+#### test\_version
+
+```python
+ | test_version()
+```
+
+Testing the version method.
+
+<a name="binary.TestBinary.test_from_float"></a>
+#### test\_from\_float
+
+```python
+ | test_from_float()
+```
+
+Testing from_float() function.
+
+<a name="binary.TestBinary.test_to_float"></a>
+#### test\_to\_float
+
+```python
+ | test_to_float()
+```
+
+Test to_float() function.
+
+<a name="binary.TestBinary.test___float__"></a>
+#### test\_\_\_float\_\_
+
+```python
+ | test___float__()
+```
+
+Test __float__() method.
+
+<a name="binary.TestBinary.test___int__"></a>
+#### test\_\_\_int\_\_
+
+```python
+ | test___int__()
+```
+
+Test __int__() method.
+
+<a name="binary.TestBinary.test_simplify"></a>
+#### test\_simplify
+
+```python
+ | test_simplify()
+```
+
+Test function simplify().
+
+<a name="binary.TestBinary.test_to_not_exponential"></a>
+#### test\_to\_not\_exponential
+
+```python
+ | test_to_not_exponential()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_twos_complement_to_not_exponential"></a>
+#### test\_twos\_complement\_to\_not\_exponential
+
+```python
+ | test_twos_complement_to_not_exponential()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_binary_string_to_fraction"></a>
+#### test\_binary\_string\_to\_fraction
+
+```python
+ | test_binary_string_to_fraction()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_fill"></a>
+#### test\_fill
+
+```python
+ | test_fill()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_to_simple_exponential"></a>
+#### test\_to\_simple\_exponential
+
+```python
+ | test_to_simple_exponential()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_to_sci_exponential"></a>
+#### test\_to\_sci\_exponential
+
+```python
+ | test_to_sci_exponential()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_isnan"></a>
+#### test\_isnan
+
+```python
+ | test_isnan()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_istwoscomplement"></a>
+#### test\_istwoscomplement
+
+```python
+ | test_istwoscomplement()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___eq__"></a>
+#### test\_\_\_eq\_\_
+
+```python
+ | test___eq__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_fraction_to_string"></a>
+#### test\_fraction\_to\_string
+
+```python
+ | test_fraction_to_string()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_string_to_fraction"></a>
+#### test\_string\_to\_fraction
+
+```python
+ | test_string_to_fraction()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_invert"></a>
+#### test\_invert
+
+```python
+ | test_invert()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_to_twos_complement"></a>
+#### test\_to\_twos\_complement
+
+```python
+ | test_to_twos_complement()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_from_twos_complement"></a>
+#### test\_from\_twos\_complement
+
+```python
+ | test_from_twos_complement()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_compare_representation"></a>
+#### test\_compare\_representation
+
+```python
+ | test_compare_representation()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_np"></a>
+#### test\_np
+
+```python
+ | test_np()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___add__"></a>
+#### test\_\_\_add\_\_
+
+```python
+ | test___add__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___sub__"></a>
+#### test\_\_\_sub\_\_
+
+```python
+ | test___sub__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___mul__"></a>
+#### test\_\_\_mul\_\_
+
+```python
+ | test___mul__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___truediv__"></a>
+#### test\_\_\_truediv\_\_
+
+```python
+ | test___truediv__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___floordiv__"></a>
+#### test\_\_\_floordiv\_\_
+
+```python
+ | test___floordiv__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___mod__"></a>
+#### test\_\_\_mod\_\_
+
+```python
+ | test___mod__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___abs__"></a>
+#### test\_\_\_abs\_\_
+
+```python
+ | test___abs__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___ceil__"></a>
+#### test\_\_\_ceil\_\_
+
+```python
+ | test___ceil__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___floor__"></a>
+#### test\_\_\_floor\_\_
+
+```python
+ | test___floor__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___and__"></a>
+#### test\_\_\_and\_\_
+
+```python
+ | test___and__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___not__"></a>
+#### test\_\_\_not\_\_
+
+```python
+ | test___not__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___invert__"></a>
+#### test\_\_\_invert\_\_
+
+```python
+ | test___invert__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___rshift__"></a>
+#### test\_\_\_rshift\_\_
+
+```python
+ | test___rshift__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___lshift__"></a>
+#### test\_\_\_lshift\_\_
+
+```python
+ | test___lshift__()
+```
+
+Test function/method.
 
