@@ -10,8 +10,9 @@
     * [\_\_int\_\_](#binary.Binary.__int__)
     * [simplify](#binary.Binary.simplify)
     * [to\_not\_exponential](#binary.Binary.to_not_exponential)
-    * [twos\_complement\_to\_not\_exponential](#binary.Binary.twos_complement_to_not_exponential)
-    * [binary\_string\_to\_fraction](#binary.Binary.binary_string_to_fraction)
+    * [twoscomplement\_to\_not\_exponential](#binary.Binary.twoscomplement_to_not_exponential)
+    * [to\_fraction](#binary.Binary.to_fraction)
+    * [to\_fraction\_alternative\_implementation](#binary.Binary.to_fraction_alternative_implementation)
     * [\_\_round\_\_](#binary.Binary.__round__)
     * [round](#binary.Binary.round)
     * [round\_to](#binary.Binary.round_to)
@@ -33,10 +34,9 @@
     * [compare](#binary.Binary.compare)
     * [fraction\_to\_string](#binary.Binary.fraction_to_string)
     * [fraction](#binary.Binary.fraction)
-    * [string\_to\_fraction](#binary.Binary.string_to_fraction)
     * [invert](#binary.Binary.invert)
-    * [to\_twos\_complement](#binary.Binary.to_twos_complement)
-    * [from\_twos\_complement](#binary.Binary.from_twos_complement)
+    * [to\_twoscomplement](#binary.Binary.to_twoscomplement)
+    * [from\_twoscomplement](#binary.Binary.from_twoscomplement)
     * [compare\_representation](#binary.Binary.compare_representation)
     * [\_\_repr\_\_](#binary.Binary.__repr__)
     * [no\_prefix](#binary.Binary.no_prefix)
@@ -75,8 +75,10 @@
     * [test\_\_\_int\_\_](#binary.TestBinary.test___int__)
     * [test\_simplify](#binary.TestBinary.test_simplify)
     * [test\_to\_not\_exponential](#binary.TestBinary.test_to_not_exponential)
-    * [test\_twos\_complement\_to\_not\_exponential](#binary.TestBinary.test_twos_complement_to_not_exponential)
-    * [test\_binary\_string\_to\_fraction](#binary.TestBinary.test_binary_string_to_fraction)
+    * [test\_twoscomplement\_to\_not\_exponential](#binary.TestBinary.test_twoscomplement_to_not_exponential)
+    * [test\_to\_fraction](#binary.TestBinary.test_to_fraction)
+    * [test\_round](#binary.TestBinary.test_round)
+    * [test\_round\_to](#binary.TestBinary.test_round_to)
     * [test\_fill](#binary.TestBinary.test_fill)
     * [test\_to\_simple\_exponential](#binary.TestBinary.test_to_simple_exponential)
     * [test\_to\_sci\_exponential](#binary.TestBinary.test_to_sci_exponential)
@@ -84,10 +86,9 @@
     * [test\_istwoscomplement](#binary.TestBinary.test_istwoscomplement)
     * [test\_\_\_eq\_\_](#binary.TestBinary.test___eq__)
     * [test\_fraction\_to\_string](#binary.TestBinary.test_fraction_to_string)
-    * [test\_string\_to\_fraction](#binary.TestBinary.test_string_to_fraction)
     * [test\_invert](#binary.TestBinary.test_invert)
-    * [test\_to\_twos\_complement](#binary.TestBinary.test_to_twos_complement)
-    * [test\_from\_twos\_complement](#binary.TestBinary.test_from_twos_complement)
+    * [test\_to\_twoscomplement](#binary.TestBinary.test_to_twoscomplement)
+    * [test\_from\_twoscomplement](#binary.TestBinary.test_from_twoscomplement)
     * [test\_compare\_representation](#binary.TestBinary.test_compare_representation)
     * [test\_np](#binary.TestBinary.test_np)
     * [test\_\_\_add\_\_](#binary.TestBinary.test___add__)
@@ -536,11 +537,11 @@ Example: converts '11.01e-2' to '0.1101'
 
 - `str` - binary string representation of number
 
-<a name="binary.Binary.twos_complement_to_not_exponential"></a>
-#### twos\_complement\_to\_not\_exponential
+<a name="binary.Binary.twoscomplement_to_not_exponential"></a>
+#### twoscomplement\_to\_not\_exponential
 
 ```python
- | twos_complement_to_not_exponential(value: str) -> str
+ | twoscomplement_to_not_exponential(value: str, length: int = -1) -> str
 ```
 
 Remove exponent part from twos-complement string.
@@ -550,6 +551,9 @@ Do NOT use it on binary fractions strings!
 This function does not validate the input string.
 Input string is assumed to be a syntactically valid twos-complement string.
 Invalid input strings can lead to undefined results.
+
+See to_twoscomplement() function description for more details
+on twos-complement format.
 
 It removes the exponent, and returns a fully "decimal" twos-complement string.
 Example: converts '011.01e-2' to '0.1101'.
@@ -566,22 +570,43 @@ Example: converts -2.5, '1.011e2' to '101.1'.
 **Arguments**:
 
 - `value` _str_ - binary string representation of number
+- `length` _int_ - the length of the returned number. -1 is don't care.
 
 
 **Returns**:
 
 - `str` - binary string representation of number
 
-<a name="binary.Binary.binary_string_to_fraction"></a>
-#### binary\_string\_to\_fraction
+<a name="binary.Binary.to_fraction"></a>
+#### to\_fraction
 
 ```python
- | binary_string_to_fraction(value: str) -> Fraction
+ | to_fraction(value: str) -> Fraction
 ```
 
-Convert string representation of binary to Fraction.
+Convert string representation of Binary to Fraction.
 
-utility function
+This is a utility function.
+
+**Arguments**:
+
+- `value` _str_ - binary number as string
+
+
+**Returns**:
+
+- `Fraction` - value as fraction
+
+<a name="binary.Binary.to_fraction_alternative_implementation"></a>
+#### to\_fraction\_alternative\_implementation
+
+```python
+ | to_fraction_alternative_implementation(value: str) -> Fraction
+```
+
+Convert string representation of Binary to Fraction.
+
+This is a utility function.
 
 **Arguments**:
 
@@ -599,13 +624,13 @@ utility function
  | __round__()
 ```
 
-Normalize and round number to n digits after comma.
+Normalize and round number to 0 digits after comma.
 
-method, see round_to()
+A method. See also function round_to().
 
 **Arguments**:
 
-- `ndigits` _int_ - number of digits after comma, precision
+  None
 
 
 **Returns**:
@@ -621,7 +646,7 @@ method, see round_to()
 
 Normalize and round number to n digits after comma.
 
-method, see round_to()
+A method. See also function round_to().
 
 **Arguments**:
 
@@ -636,15 +661,15 @@ method, see round_to()
 #### round\_to
 
 ```python
- | round_to(value, ndigits=0)
+ | round_to(value: str, ndigits: int = 0) -> str
 ```
 
 Normalize and round number to n digits after comma.
 
-utility function
-Example: convert '11.01e-2' to '0.11' with ndigits==2
-convert '0.1' to '0' with ndigits==0
-convert '0.10000001' to '1' with ndigits==0
+This is a utility function.
+Example: converts '11.01e-2' to '0.11' with ndigits==2.
+Converts '0.1' to '0' with ndigits==0.
+Converts '0.10000001' to '1' with ndigits==0.
 
 **Arguments**:
 
@@ -682,7 +707,7 @@ This is a method. See also function fill_to().
 #### fill\_to
 
 ```python
- | fill_to(value, ndigits=0, strict=False)
+ | fill_to(value, ndigits=0, strict=False) -> str
 ```
 
 Normalize and fill number to n digits after comma.
@@ -775,6 +800,9 @@ Example: -11.01e2 ==> (1, '11', '01', 2)
 
 Return sign, intpart (indicates sign in first bit), fracpart, exp.
 
+See to_twoscomplement() function description for more details
+on twos-complement format.
+
 strict==False: cleanup, remove unnecessary digits, do cleanup
 strict==True: produce exact twos-complement, no cleanup or simplifications
 
@@ -787,7 +815,8 @@ Example: -0.5, input 1.1 returns (1, '1', '1', 0).
 Example: neg. number, input 101.010e-4 returns (1, '101', '010', -4).
 Example: pos number, input 0101.010e-2 returns (0, '0101', '010', -4).
 Examples for not strict:
-Example: 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
+Example: -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
+Example: -3.25*4, input '11111111.0111e4' returns (1, '1', '0111', 4).
 Example: 0, input '0' returns (0, '0', '', 0).
 Example: -1, input '1' returns (1, '1', '', 0).
 Example: 1, input '01' returns (0, '01', '', 0).
@@ -1023,26 +1052,6 @@ A method to get the Binary as a Fraction.
 
 - `Fraction` - binary number in Fraction representation
 
-<a name="binary.Binary.string_to_fraction"></a>
-#### string\_to\_fraction
-
-```python
- | string_to_fraction(value: str) -> Fraction
-```
-
-Convert string representation to Fraction.
-
-utility function.
-
-**Arguments**:
-
-- `value` _str_ - binary number in string representation
-
-
-**Returns**:
-
-- `Fraction` - binary number in Fraction representation
-
 <a name="binary.Binary.invert"></a>
 #### invert
 
@@ -1055,21 +1064,7 @@ Inverts (bitwise negates) string that is in twos-complement format.
 This is a utility function.
 It negates (flips) every bit in the string.
 Input must be of format: twos-complement format.
-
-The twos-complement format is as follows.
-first bit: sign, 0 for +, 1 for -
-1 or more integer bits
-optional decimal point
-0 or more fractional bits
-optional exponent (e.g. e-12)
-
-[0,1][0,1]+.[0,1]*e[-][0-9]+
-sign (required)
-integer bits (at least 1 bit required)
-decimal point (optional, one or none)
-fractional bits (optional, zero or more)
-exponent (optional, possible with sign -)
-
+Do NOT use this function on negative binary fractions strings.
 
 Examples inputs are:
 0...not valid, missing sign, or missing digits
@@ -1105,14 +1100,59 @@ invert(invert(n)) == for all valid n
 
 - `str` - bitwise negated string, a twos-complement formated string
 
-<a name="binary.Binary.to_twos_complement"></a>
-#### to\_twos\_complement
+<a name="binary.Binary.to_twoscomplement"></a>
+#### to\_twoscomplement
 
 ```python
- | to_twos_complement(fill=1) -> str
+ | to_twoscomplement(fill=1) -> str
 ```
 
 Computes the representation as a string in twos-complement.
+
+If you are curious about Two's complement:
+- https://janmr.com/blog/2010/07/bitwise-operators-and-negative-numbers/
+- https://en.wikipedia.org/wiki/Two%27s_complement
+
+The twos-complement format is as follows.
+there is sign bit per se
+positive numbers must have a leading 0 to be recognized as positive
+hence positive numbers by definition always start with a 0
+negative numbers always start with a 1
+negative numbers can have an arbitrary number of additional leading 1s
+positive numbers can have an arbitrary number of additional leading 0s
+0 or more decimal bits
+optional decimal point
+0 or more fractional bits
+optional exponent in decimal (e.g. e-12)
+
+[0,1]+[.][0,1]*e[-,+][0-9]+
+integer bits (at least 1 bit required, leading bit indicates pos or neg)
+decimal point (optional, one or none)
+fractional bits (optional, zero or more)
+exponent (optional, possible with sign -)
+
+decimal |   binary fraction | twos-complement
+---------------------------------------------
+-6      |       -110        | 1010
+-5      |       -101        | 1011
+-4      |       -100        | 100
+-3      |       -11         | 101
+-2      |       -10         | 10
+-1      |       -1          | 1
+0       |       0           | 0
+1       |       1           | 01
+2       |       10          | 010
+3       |       11          | 011
+4       |       100         | 0100
+5       |       101         | 0101
+0.5     |       0.1         | 0.1
+0.25    |       0.01        | 0.01
+-0.5    |       -0.1        | 1.1
+-0.25   |       -0.01       | 1.11
+-0.125  |       -0.001      | 1.111
+-1.5    |       -1.1        | 10.1
+-2.5    |       -10.1       | 101.1
+
 
 This is a method returning a string.
 
@@ -1139,16 +1179,19 @@ This is a method returning a string.
 
 - `str` - binary string representation in twos-complement
 
-<a name="binary.Binary.from_twos_complement"></a>
-#### from\_twos\_complement
+<a name="binary.Binary.from_twoscomplement"></a>
+#### from\_twoscomplement
 
 ```python
- | from_twos_complement(value: str, strict=False) -> str
+ | from_twoscomplement(value: str, strict=False) -> str
 ```
 
-The opposite of to_twos_complement() function:
+The opposite of to_twoscomplement() function:
 
 This is a utility function.
+
+See to_twoscomplement() function description for more details
+on twos-complement format.
 
 Converts '1101' to '-11' (-3)
 convert '1101.1e-2' to '-11.1e-2'  (-3.5/4)
@@ -1868,23 +1911,41 @@ Test function simplify().
 
 Test function/method.
 
-<a name="binary.TestBinary.test_twos_complement_to_not_exponential"></a>
-#### test\_twos\_complement\_to\_not\_exponential
+<a name="binary.TestBinary.test_twoscomplement_to_not_exponential"></a>
+#### test\_twoscomplement\_to\_not\_exponential
 
 ```python
- | test_twos_complement_to_not_exponential()
+ | test_twoscomplement_to_not_exponential()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_binary_string_to_fraction"></a>
-#### test\_binary\_string\_to\_fraction
+<a name="binary.TestBinary.test_to_fraction"></a>
+#### test\_to\_fraction
 
 ```python
- | test_binary_string_to_fraction()
+ | test_to_fraction()
 ```
 
 Test function/method.
+
+<a name="binary.TestBinary.test_round"></a>
+#### test\_round
+
+```python
+ | test_round()
+```
+
+Test function/method for rounding.
+
+<a name="binary.TestBinary.test_round_to"></a>
+#### test\_round\_to
+
+```python
+ | test_round_to()
+```
+
+Test function/method for rounding.
 
 <a name="binary.TestBinary.test_fill"></a>
 #### test\_fill
@@ -1949,15 +2010,6 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestBinary.test_string_to_fraction"></a>
-#### test\_string\_to\_fraction
-
-```python
- | test_string_to_fraction()
-```
-
-Test function/method.
-
 <a name="binary.TestBinary.test_invert"></a>
 #### test\_invert
 
@@ -1967,20 +2019,20 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestBinary.test_to_twos_complement"></a>
-#### test\_to\_twos\_complement
+<a name="binary.TestBinary.test_to_twoscomplement"></a>
+#### test\_to\_twoscomplement
 
 ```python
- | test_to_twos_complement()
+ | test_to_twoscomplement()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_from_twos_complement"></a>
-#### test\_from\_twos\_complement
+<a name="binary.TestBinary.test_from_twoscomplement"></a>
+#### test\_from\_twoscomplement
 
 ```python
- | test_from_twos_complement()
+ | test_from_twoscomplement()
 ```
 
 Test function/method.
