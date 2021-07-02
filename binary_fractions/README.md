@@ -82,8 +82,16 @@
     * [test\_fill](#binary.TestBinary.test_fill)
     * [test\_to\_simple\_exponential](#binary.TestBinary.test_to_simple_exponential)
     * [test\_to\_sci\_exponential](#binary.TestBinary.test_to_sci_exponential)
-    * [test\_isnan](#binary.TestBinary.test_isnan)
     * [test\_istwoscomplement](#binary.TestBinary.test_istwoscomplement)
+    * [test\_get\_components](#binary.TestBinary.test_get_components)
+    * [test\_get\_twoscomplement\_components](#binary.TestBinary.test_get_twoscomplement_components)
+    * [test\_components](#binary.TestBinary.test_components)
+    * [test\_isinfinity](#binary.TestBinary.test_isinfinity)
+    * [test\_isnegativeinfinity](#binary.TestBinary.test_isnegativeinfinity)
+    * [test\_ispositiveinfinity](#binary.TestBinary.test_ispositiveinfinity)
+    * [test\_isnan](#binary.TestBinary.test_isnan)
+    * [test\_isint](#binary.TestBinary.test_isint)
+    * [test\_\_cmp](#binary.TestBinary.test__cmp)
     * [test\_\_\_eq\_\_](#binary.TestBinary.test___eq__)
     * [test\_fraction\_to\_string](#binary.TestBinary.test_fraction_to_string)
     * [test\_invert](#binary.TestBinary.test_invert)
@@ -570,7 +578,11 @@ Example: converts -2.5, '1.011e2' to '101.1'.
 **Arguments**:
 
 - `value` _str_ - binary string representation of number
-- `length` _int_ - the length of the returned number. -1 is don't care.
+- `length` _int_ - the length of the returned number.
+  -1 is the minimum amount of bits required.
+  0 and negatives numbers, except -1, are not allowed.
+  Length includes the possible decimal point.
+  Example of length 3 is: '1.1'
 
 
 **Returns**:
@@ -1104,7 +1116,7 @@ invert(invert(n)) == for all valid n
 #### to\_twoscomplement
 
 ```python
- | to_twoscomplement(fill=1) -> str
+ | to_twoscomplement(length: int = -1) -> str
 ```
 
 Computes the representation as a string in twos-complement.
@@ -1172,7 +1184,7 @@ This is a method returning a string.
 
 **Arguments**:
 
-  None
+- `length` _int_ - que cuantity of 0 or 1 at the beginning of the number
 
 
 **Returns**:
@@ -1974,6 +1986,69 @@ Test function/method.
 
 Test function/method.
 
+<a name="binary.TestBinary.test_istwoscomplement"></a>
+#### test\_istwoscomplement
+
+```python
+ | test_istwoscomplement()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_get_components"></a>
+#### test\_get\_components
+
+```python
+ | test_get_components()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_get_twoscomplement_components"></a>
+#### test\_get\_twoscomplement\_components
+
+```python
+ | test_get_twoscomplement_components()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_components"></a>
+#### test\_components
+
+```python
+ | test_components()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_isinfinity"></a>
+#### test\_isinfinity
+
+```python
+ | test_isinfinity()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_isnegativeinfinity"></a>
+#### test\_isnegativeinfinity
+
+```python
+ | test_isnegativeinfinity()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_ispositiveinfinity"></a>
+#### test\_ispositiveinfinity
+
+```python
+ | test_ispositiveinfinity()
+```
+
+Test function/method.
+
 <a name="binary.TestBinary.test_isnan"></a>
 #### test\_isnan
 
@@ -1983,11 +2058,20 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestBinary.test_istwoscomplement"></a>
-#### test\_istwoscomplement
+<a name="binary.TestBinary.test_isint"></a>
+#### test\_isint
 
 ```python
- | test_istwoscomplement()
+ | test_isint()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test__cmp"></a>
+#### test\_\_cmp
+
+```python
+ | test__cmp()
 ```
 
 Test function/method.

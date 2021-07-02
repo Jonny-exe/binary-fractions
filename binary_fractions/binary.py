@@ -256,7 +256,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210702-131650"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210702-192740"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -807,13 +807,20 @@ class Binary(object):
 
         Parameters:
         value (str): binary string representation of number
-        length (int): the length of the returned number. -1 is don't care.
+        length (int): the length of the returned number.
+             -1 is the minimum amount of bits required.
+             0 and negatives numbers, except -1, are not allowed.
+             Length includes the possible decimal point.
+             Example of length 3 is: '1.1'
 
         Returns:
         str: binary string representation of number
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
+        if length <= 0 and length != -1:
+            raise ValueError(f"Argumet {length} must be bigger than 0 or -1")
+
         if len(value) == 0 or _PREFIX in value or value[0] == "-":
             raise ValueError(
                 f"Argument {value} must not contain prefix 0b or negative sign -. "
@@ -842,6 +849,13 @@ class Binary(object):
             result = "1" + result.lstrip("1")
             result = result.rstrip("0")
             result = result.rstrip(".")
+
+        if length != -1:
+            l = len(result)
+            if l > length:
+                raise OverflowError
+            i = length - l
+            result = result[: l - i] if i < 0 else result[0] * i + result
         return result
 
     def to_fraction(value: str) -> Fraction:
@@ -1182,6 +1196,7 @@ class Binary(object):
 
         # simplify intpart uand fracpart
         fracpart = fracpart.rstrip("0")
+        intpart = intpart.lstrip("+")
         intpart = intpart.lstrip("0")
         intpart = "0" if intpart == "" else intpart
         sign = 0 if intpart == "0" and fracpart == "" else sign
@@ -1256,7 +1271,7 @@ class Binary(object):
         m = _parser(value)
         if m is None:
             raise ValueError(
-                f"Invalid literal for str: {value}."
+                f"Invalid literal for str: {value}. "
                 + "Not a valid twos-complement string."
             )
         intpart = m.group("int")
@@ -1351,6 +1366,8 @@ class Binary(object):
         Returns:
         bool: True if int, False otherwise (Fraction, float)
         """
+        if self._is_special:
+            return False
         return self._fraction == int(self._fraction)
 
     def istwoscomplement(value: str):
@@ -1643,8 +1660,7 @@ class Binary(object):
         # TODO: do you handle exp part?
         return result
 
-    # TODO: fill=1  ??? bool?
-    def to_twoscomplement(self, fill=1) -> str:
+    def to_twoscomplement(self, length: int = -1) -> str:
         """Computes the representation as a string in twos-complement.
 
         If you are curious about Two's complement:
@@ -1706,31 +1722,45 @@ class Binary(object):
             Converts '-2.5e89' to '101.1e89'
 
         Parameters:
-        None
+        length (int): que cuantity of 0 or 1 at the beginning of the number
 
         Returns:
         str: binary string representation in twos-complement
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(length, int):
+            raise TypeError(f"Argument {length} must be of type int.")
+
+        if length <= 0 and length != -1:
+            raise ValueError(f"Argument {length} must be bigger than 0 or -1")
         if self._fraction >= 0:
             # TODO, BUG: we changed our mind, now '0' is a valid binary fraction
             # TODO: BUG: as well as a valid twos-complement representation
             # TODO, BUG: in short '0' or int 0 should return twos-complement '0'
-            return "0" + self._value
+            # return "0" + self._value if self._value[0] != "0" else self._value
+            result = self._value
+            if result[0] != "0":
+                result = "0" + result
+            result = (length - len(result)) * "0" + result
+            if len(result) > length and length != -1:
+                raise OverflowError
+            return result
 
         if _EXP in self._value:
-            return "0" + self._value
+            return "0" + self._value if self._value[0] != "0" else self._value
 
         sign, intpart, fracpart, exp = self.components()
+        if fracpart != "":
+            intpart = bin(abs(int(intpart, 2)) + 1)[2:]
         intpart = abs(int(intpart, 2))
         intpart = bin(intpart)[2:]
         intpart = Binary.invert(intpart)
-        new_intpart = bin(
-            int(intpart.lstrip("0") if len(intpart) > 1 else intpart, 2) + 1
-        )[2:]
-        intpart = (len(intpart) - len(new_intpart)) * "0" + new_intpart
-        intpart = (fill - len(intpart)) * "1" + intpart
+        new_intpart = bin(int(intpart, 2) + 1)[2:]
+        if len(intpart) > len(new_intpart):
+            intpart = (len(intpart) - len(new_intpart)) * "0" + new_intpart
+        else:
+            intpart = new_intpart
 
         if fracpart != "" and int(fracpart) != 0:
             fracpart = fracpart.rstrip("0")
@@ -1739,8 +1769,13 @@ class Binary(object):
             fracpart = "." + (fracl - len(fracpart)) * "0" + fracpart
         else:
             fracpart = ""
-        # TODO, BUG: we changed our mind, now 1 or 10 are valid twos-complement strings
-        return "1" + intpart + fracpart
+        result = intpart + fracpart
+        if result[0] != "1":
+            result = "1" + result
+        result = (length - len(result)) * "1" + result
+        if len(result) > length and length != -1:
+            raise OverflowError
+        return result
 
     def from_twoscomplement(value: str, strict=False) -> str:
         """The opposite of to_twoscomplement() function:
@@ -2617,12 +2652,55 @@ class TestBinary(unittest.TestCase):
         )
         self.assertEqual(Binary.twoscomplement_to_not_exponential("1111e+3"), "1000")
         self.assertEqual(Binary.twoscomplement_to_not_exponential("1111.1e+3"), "100")
+        self.assertEqual(
+            Binary.twoscomplement_to_not_exponential("011.01e-02"), "0.1101"
+        )
+        self.assertEqual(
+            Binary.twoscomplement_to_not_exponential("011.01e-02", -1), "0.1101"
+        )
+        self.assertEqual(
+            Binary.twoscomplement_to_not_exponential("011.01e-02", 7), "00.1101"
+        )
+        self.assertEqual(
+            Binary.twoscomplement_to_not_exponential("011.01e-02", 8), "000.1101"
+        )
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("0.01"), "0.01")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("1.111"), "1.111")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("1.11"), "1.11")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("1.1"), "1.1")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("111"), "1")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("10.000"), "10")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("101.000e0"), "101")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("10.10"), "10.1")
+        self.assertEqual(Binary.twoscomplement_to_not_exponential("101.1e-0"), "101.1")
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("0b1")  # leading 0b not allowed
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("0b01")  # leading 0b not allowed
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("-0b1")  # leading -0b not allowed
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("-0b01")  # leading -0b not allowed
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("-1")  # leading - not allowed
         with self.assertRaises(ValueError):
             Binary.twoscomplement_to_not_exponential("")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("1", 0)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.twoscomplement_to_not_exponential("11100", 1)  # should fail
+        with self.assertRaises(ValueError):
+            Binary.twoscomplement_to_not_exponential("111", 0)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.twoscomplement_to_not_exponential("0111", 2)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.twoscomplement_to_not_exponential("011.01e-02", 5)
         with self.assertRaises(ValueError):
             Binary.twoscomplement_to_not_exponential("-0b10")  # should fail
         with self.assertRaises(TypeError):
             Binary.twoscomplement_to_not_exponential(1)  # should fail
+        with self.assertRaises(TypeError):
+            Binary.twoscomplement_to_not_exponential("1", "-1")  # should fail
 
     def test_to_fraction(self):
         """Test function/method."""
@@ -2721,6 +2799,22 @@ class TestBinary(unittest.TestCase):
     def test_to_simple_exponential(self):
         """Test function/method."""
         self.assertEqual(
+            Binary("-11").to_simple_exponential().compare_representation("-11e0"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-11e-0").to_simple_exponential().compare_representation("-11e0"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-11e+0").to_simple_exponential().compare_representation("-11e0"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+11").to_simple_exponential().compare_representation("11e0"),
+            True,
+        )
+        self.assertEqual(
             Binary("1.1").to_simple_exponential().compare_representation("11e-1"),
             True,
         )
@@ -2728,6 +2822,44 @@ class TestBinary(unittest.TestCase):
             Binary("-0.01e-2").to_simple_exponential().compare_representation("-1e-4"),
             True,
         )
+        self.assertEqual(
+            Binary("-1.1").to_simple_exponential().compare_representation("-11e-1"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-1.1e-1").to_simple_exponential().compare_representation("-11e-2"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+1.1e-1").to_simple_exponential().compare_representation("11e-2"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+1.1000e-1")
+            .to_simple_exponential()
+            .compare_representation("11e-2"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+0001.1000e-1")
+            .to_simple_exponential()
+            .compare_representation("11e-2"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+0001.1000e+1")
+            .to_simple_exponential()
+            .compare_representation("11e0"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+0001.1000e+10")
+            .to_simple_exponential()
+            .compare_representation("11e9"),
+            True,
+        )
+        with self.assertRaises(TypeError):
+            Binary(1).to_simple_exponential(1)  # should fail
 
     def test_to_sci_exponential(self):
         """Test function/method."""
@@ -2739,22 +2871,49 @@ class TestBinary(unittest.TestCase):
             Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
         )
         self.assertEqual(
+            Binary("-000101e002")
+            .to_sci_exponential()
+            .compare_representation("-1.01e4"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-001.100").to_sci_exponential().compare_representation("-1.1e0"),
+            True,
+        )
+        self.assertEqual(
             Binary("-0.01e-2").to_sci_exponential().compare_representation("-1e-4"),
             True,
         )
+        self.assertEqual(
+            Binary("-0.00001e-2").to_sci_exponential().compare_representation("-1e-7"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+0.00001e+2").to_sci_exponential().compare_representation("1e-3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.00001010e-2")
+            .to_sci_exponential()
+            .compare_representation("-1.01e-7"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.00001010e+2")
+            .to_sci_exponential()
+            .compare_representation("-1.01e-3"),
+            True,
+        )
+        with self.assertRaises(TypeError):
+            Binary(1).to_sci_exponential(1)  # should fail
 
-    def test_isnan(self):
-        """Test function/method."""
-        self.assertEqual(Binary(-3.5).isnan(), False)
-        self.assertEqual(Binary(float("nan")).isnan(), True)
-        self.assertEqual(Binary("Nan").isnan(), True)
-        self.assertEqual(Binary("10.1").isnan(), False)
+    # TODO: implement to_eng_exponential() (exponent is always a mod 3==0, fraction part is 0,1 or 2 digits long)
 
     def test_istwoscomplement(self):
         """Test function/method."""
         self.assertEqual(Binary.istwoscomplement("1"), True)
-        # TODO: just to tell you: the next line is NOT valid Python Syntax!!!
-        # pa, fa, tc = (pa + 1), fa, (tc + 1) if re else pa, (fa + 1), (tc + 1)
+        self.assertEqual(Binary.istwoscomplement("0b1"), False)
+        self.assertEqual(Binary.istwoscomplement("0b01"), False)
         self.assertEqual(Binary.istwoscomplement("0"), True)
         self.assertEqual(Binary.istwoscomplement("1.1"), True)
         self.assertEqual(Binary.istwoscomplement("0.1"), True)
@@ -2763,10 +2922,173 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary.istwoscomplement("1110.1e-19"), True)
         self.assertEqual(Binary.istwoscomplement("00001.1e-18"), True)
         self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
+        self.assertEqual(Binary.istwoscomplement("00.001.1e-18"), False)
+        self.assertEqual(Binary.istwoscomplement("00e001.1e-18"), False)
         self.assertEqual(Binary.istwoscomplement("8"), False)
         self.assertEqual(Binary.istwoscomplement("Hello"), False)
+        self.assertEqual(Binary.istwoscomplement(""), False)
+        self.assertEqual(Binary.istwoscomplement("-0b1"), False)
+        self.assertEqual(Binary.istwoscomplement("-0b01"), False)
+        self.assertEqual(Binary.istwoscomplement("-0"), False)
+        self.assertEqual(Binary.istwoscomplement("0b1"), False)
+        self.assertEqual(Binary.istwoscomplement("0b01"), False)
         with self.assertRaises(TypeError):
             Binary.istwoscomplement(1975)  # should fail
+        with self.assertRaises(TypeError):
+            Binary.istwoscomplement(1.1)  # should fail
+
+    def test_get_components(self):
+        """Test function/method."""
+        self.assertEqual(Binary.get_components("-0.01e-2"), (1, "0", "01", -2))
+        self.assertEqual(Binary.get_components("+0.01e-2"), (0, "0", "01", -2))
+        self.assertEqual(Binary.get_components(".01e-2"), (0, "0", "01", -2))
+        self.assertEqual(Binary.get_components("1.00e-2"), (0, "1", "", -2))
+        self.assertEqual(Binary.get_components("-0.01e+2"), (1, "0", "01", 2))
+        self.assertEqual(Binary.get_components("+0.01e2"), (0, "0", "01", 2))
+        self.assertEqual(Binary.get_components("-101010.e+2"), (1, "101010", "", 2))
+        self.assertEqual(Binary.get_components("+101010e2"), (0, "101010", "", 2))
+        with self.assertRaises(ValueError):
+            Binary.get_components("inf")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.get_components(0.0)  # should fail
+        with self.assertRaises(TypeError):
+            Binary.get_components(Binary(1))  # should fail
+
+    def test_get_twoscomplement_components(self):
+        """Test function/method."""
+        self.assertEqual(Binary.get_twoscomplement_components("0"), (0, "0", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("1"), (1, "1", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("01"), (0, "01", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("10"), (1, "10", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("01."), (0, "01", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("10."), (1, "10", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("01.0"), (0, "01", "", 0))
+        self.assertEqual(Binary.get_twoscomplement_components("10.0"), (1, "10", "", 0))
+        self.assertEqual(
+            Binary.get_twoscomplement_components("00001.0"), (0, "01", "", 0)
+        )
+        self.assertEqual(
+            Binary.get_twoscomplement_components("11110.0"), (1, "10", "", 0)
+        )
+        self.assertEqual(
+            Binary.get_twoscomplement_components("0.01e-2"), (0, "0", "01", -2)
+        )
+        self.assertEqual(
+            Binary.get_twoscomplement_components("1.00e-2"), (1, "1", "", -2)
+        )
+        self.assertEqual(
+            Binary.get_twoscomplement_components("1.01e+2"), (1, "1", "01", 2)
+        )
+        self.assertEqual(
+            Binary.get_twoscomplement_components("0.01e2"), (0, "0", "01", 2)
+        )
+        self.assertEqual(
+            Binary.get_twoscomplement_components("101010.e+2"), (1, "101010", "", 2)
+        )
+        with self.assertRaises(ValueError):
+            Binary.get_twoscomplement_components("inf")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.get_twoscomplement_components("-1")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.get_twoscomplement_components("+1")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.get_twoscomplement_components("0b1")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.get_twoscomplement_components(0.0)  # should fail
+        with self.assertRaises(ValueError):
+            Binary.get_twoscomplement_components(".01e-2")
+        with self.assertRaises(ValueError):
+            Binary.get_twoscomplement_components("+0101010e2")
+
+    def test_components(self):
+        """Test function/method."""
+        self.assertEqual(Binary("-0.01e-2").components(), (1, "0", "01", -2))
+        self.assertEqual(Binary("+0.01e-2").components(), (0, "0", "01", -2))
+        self.assertEqual(Binary(".01e-2").components(), (0, "0", "01", -2))
+        self.assertEqual(Binary("1.00e-2").components(), (0, "1", "", -2))
+        self.assertEqual(Binary("-0.01e+2").components(), (1, "0", "01", 2))
+        self.assertEqual(Binary("+0.01e2").components(), (0, "0", "01", 2))
+        self.assertEqual(Binary("-101010.e+2").components(), (1, "101010", "", 2))
+        self.assertEqual(Binary("+101010e2").components(), (0, "101010", "", 2))
+        with self.assertRaises(ValueError):
+            Binary("inf").components()  # should fail
+        with self.assertRaises(TypeError):
+            Binary.components()  # should fail
+        with self.assertRaises(TypeError):
+            Binary.components("1")  # should fail
+
+    def test_isinfinity(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).isinfinity(), False)
+        self.assertEqual(Binary(float("nan")).isinfinity(), False)
+        self.assertEqual(Binary("Nan").isinfinity(), False)
+        self.assertEqual(Binary(float("-inf")).isinfinity(), True)
+        self.assertEqual(Binary("-inf").isinfinity(), True)
+        self.assertEqual(Binary(float("inf")).isinfinity(), True)
+        self.assertEqual(Binary("inf").isinfinity(), True)
+        self.assertEqual(Binary("10.1").isinfinity(), False)
+
+    def test_isnegativeinfinity(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).isnegativeinfinity(), False)
+        self.assertEqual(Binary(float("nan")).isnegativeinfinity(), False)
+        self.assertEqual(Binary("Nan").isnegativeinfinity(), False)
+        self.assertEqual(Binary(float("-inf")).isnegativeinfinity(), True)
+        self.assertEqual(Binary("-inf").isnegativeinfinity(), True)
+        self.assertEqual(Binary(float("inf")).isnegativeinfinity(), False)
+        self.assertEqual(Binary("inf").isnegativeinfinity(), False)
+        self.assertEqual(Binary("10.1").isnegativeinfinity(), False)
+
+    def test_ispositiveinfinity(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).ispositiveinfinity(), False)
+        self.assertEqual(Binary(float("nan")).ispositiveinfinity(), False)
+        self.assertEqual(Binary("Nan").ispositiveinfinity(), False)
+        self.assertEqual(Binary(float("-inf")).ispositiveinfinity(), False)
+        self.assertEqual(Binary("-inf").ispositiveinfinity(), False)
+        self.assertEqual(Binary(float("inf")).ispositiveinfinity(), True)
+        self.assertEqual(Binary("inf").ispositiveinfinity(), True)
+        self.assertEqual(Binary("10.1").ispositiveinfinity(), False)
+
+    def test_isnan(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).isnan(), False)
+        self.assertEqual(Binary(float("nan")).isnan(), True)
+        self.assertEqual(Binary("Nan").isnan(), True)
+        self.assertEqual(Binary("10.1").isnan(), False)
+
+    def test_isint(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3).isint(), True)
+        self.assertEqual(Binary(-3.0).isint(), True)
+        self.assertEqual(Binary(+3).isint(), True)
+        self.assertEqual(Binary(+3.0).isint(), True)
+        self.assertEqual(Binary("-11").isint(), True)
+        self.assertEqual(Binary("11").isint(), True)
+        self.assertEqual(Binary("-11.0").isint(), True)
+        self.assertEqual(Binary("11.00").isint(), True)
+        self.assertEqual(Binary("-0b11").isint(), True)
+        self.assertEqual(Binary("0b11").isint(), True)
+        self.assertEqual(Binary("-11.1").isint(), False)
+        self.assertEqual(Binary("11.1").isint(), False)
+        self.assertEqual(Binary("-11.1e-2").isint(), False)
+        self.assertEqual(Binary("11.1e2").isint(), True)
+        self.assertEqual(Binary(-3.5).isint(), False)
+        self.assertEqual(Binary(float("inf")).isint(), False)
+        self.assertEqual(Binary("-inf").isint(), False)
+        self.assertEqual(Binary(float("nan")).isint(), False)
+        self.assertEqual(Binary("Nan").isint(), False)
+        self.assertEqual(Binary("10.1").isint(), False)
+
+    def test__cmp(self):
+        """Test function/method."""
+        # ZZZ
+        # TODO to be written
+        self.assertEqual(Binary("-0.01e-2") == Binary("-1e-4"), True)
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") == "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") == complex(1, 1)  # should fail
 
     def test___eq__(self):
         """Test function/method."""
@@ -2855,17 +3177,50 @@ class TestBinary(unittest.TestCase):
         """Test function/method."""
         self.assertEqual(Binary("10").to_twoscomplement(), Binary("10"))
         self.assertEqual(Binary("1010").to_twoscomplement(), Binary("1010"))
-        self.assertEqual(Binary("-1").to_twoscomplement(fill=12), "1" * 13)
-        self.assertEqual(Binary(-1975).to_twoscomplement(fill=12), "1100001001001")
-        self.assertEqual(Binary("-1.0").to_twoscomplement(fill=12), "1" * 13)
-        self.assertEqual(Binary("-1.0010").to_twoscomplement(), "11.111")
-        self.assertEqual(Binary("-0.0010").to_twoscomplement(), "110.111")
-        self.assertEqual(Binary("-0.111").to_twoscomplement(), "110.001")
-        self.assertEqual(Binary("-0.10").to_twoscomplement(), "110.1")
-        self.assertEqual(Binary.from_twoscomplement("11"), "-1")
+        self.assertEqual(Binary("-1").to_twoscomplement(length=12), "1" * 12)
+        self.assertEqual(Binary(-1975).to_twoscomplement(length=12), "100001001001")
+        self.assertEqual(Binary("-1.0").to_twoscomplement(length=12), "1" * 12)
+        self.assertEqual(Binary("-1.0010").to_twoscomplement(), "10.111")
+        self.assertEqual(Binary("-0.0010").to_twoscomplement(), "1.111")
+        self.assertEqual(Binary("-0.111").to_twoscomplement(), "1.001")
+        self.assertEqual(Binary("-0.10").to_twoscomplement(), "1.1")
+        self.assertEqual(Binary(0.25).to_twoscomplement(), "0.01")
+        self.assertEqual(Binary(-0.125).to_twoscomplement(), "1.111")
+        self.assertEqual(Binary(-0.25).to_twoscomplement(), "1.11")
+        self.assertEqual(Binary(-0.5).to_twoscomplement(), "1.1")
+        self.assertEqual(Binary(-1.0).to_twoscomplement(), "1")
+        self.assertEqual(Binary(-2).to_twoscomplement(), "10")
+        self.assertEqual(Binary(-3).to_twoscomplement(), "101")
+        self.assertEqual(Binary(-1.5).to_twoscomplement(), "10.1")
+        self.assertEqual(Binary(-2.5).to_twoscomplement(), "101.1")
+        self.assertEqual(Binary(-2).to_twoscomplement(4), "1110")
+        self.assertEqual(Binary(-3).to_twoscomplement(3), "101")
+        self.assertEqual(Binary(-1.5).to_twoscomplement(4), "10.1")
+        self.assertEqual(Binary(-2.5).to_twoscomplement(6), "1101.1")
+        self.assertEqual(Binary(+2).to_twoscomplement(5), "00010")
+        self.assertEqual(Binary(3).to_twoscomplement(3), "011")
+        self.assertEqual(Binary(1.5).to_twoscomplement(4), "01.1")
+        self.assertEqual(Binary(2.5).to_twoscomplement(6), "0010.1")
+        with self.assertRaises(OverflowError):
+            Binary(-3).to_twoscomplement(2)
+        with self.assertRaises(OverflowError):
+            Binary(3).to_twoscomplement(2)
+        with self.assertRaises(OverflowError):
+            Binary(-1.5).to_twoscomplement(3)
+        with self.assertRaises(OverflowError):
+            Binary(1.5).to_twoscomplement(2)
+        with self.assertRaises(OverflowError):
+            Binary(+3).to_twoscomplement(1)
+        with self.assertRaises(ValueError):
+            Binary(+3).to_twoscomplement(-2)
+        with self.assertRaises(TypeError):
+            Binary(+3).to_twoscomplement("1")
+        with self.assertRaises(TypeError):
+            Binary(+3).to_twoscomplement(1.0)
 
     def test_from_twoscomplement(self):
         """Test function/method."""
+        self.assertEqual(Binary.from_twoscomplement("11"), "-1")
         self.assertEqual(Binary.from_twoscomplement("11.111"), "-1.001")
         self.assertEqual(Binary.from_twoscomplement("110.111"), "-10.001")
         self.assertEqual(Binary.from_twoscomplement("110.001"), "-10.111")
