@@ -27,6 +27,7 @@ print(f"{bf2} ** {bf1} = {bf2**bf1}")
 print(f"{bf1} >> {1} = {bf1>>1}")
 print(f"{bf1} << {1} = {bf1<<1}")
 print(f"abs({bf1}) = {abs(bf1)}")
+print(f"round({bf1}) = {round(bf1)}")
 print(f"ceil({bf1}) = {math.ceil(bf1)}")
 print(f"floor({bf1}) = {math.floor(bf1)}")
 print(f"int({bf1}) = {int(bf1)}")
@@ -43,8 +44,8 @@ print(f"Binary('{bf3}').to_simple_exponential() = {bf3.to_simple_exponential()}"
 print(
     f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}"
 )  # scientific
-print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twos_complement()}")
-print(f"Binary.from_twos_complement('{tcstr}') = {Binary.from_twos_complement(tcstr)}")
+print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twoscomplement()}")
+print(f"Binary.from_twos_complement('{tcstr}') = {Binary.from_twoscomplement(tcstr)}")
 print(f"Binary.from_float({fl}) = {Binary.from_float(fl)}")
 print("And there are more operands, more methods, more functions, ...")
 print(

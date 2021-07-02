@@ -19,6 +19,7 @@
     * [fill](#binary.Binary.fill)
     * [fill\_to](#binary.Binary.fill_to)
     * [to\_simple\_exponential](#binary.Binary.to_simple_exponential)
+    * [to\_eng\_exponential](#binary.Binary.to_eng_exponential)
     * [to\_sci\_exponential](#binary.Binary.to_sci_exponential)
     * [get\_components](#binary.Binary.get_components)
     * [get\_twoscomplement\_components](#binary.Binary.get_twoscomplement_components)
@@ -77,6 +78,7 @@
     * [test\_to\_not\_exponential](#binary.TestBinary.test_to_not_exponential)
     * [test\_twoscomplement\_to\_not\_exponential](#binary.TestBinary.test_twoscomplement_to_not_exponential)
     * [test\_to\_fraction](#binary.TestBinary.test_to_fraction)
+    * [test\_\_\_round\_\_](#binary.TestBinary.test___round__)
     * [test\_round](#binary.TestBinary.test_round)
     * [test\_round\_to](#binary.TestBinary.test_round_to)
     * [test\_fill](#binary.TestBinary.test_fill)
@@ -296,9 +298,9 @@ Binary(100000000000010101010.111, 0, False)
 '100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
 >>> b.fill(64,True)
 '100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
->>> b.to_simple_exponential() # no comma
+>>> b.to_simple_exponential() # no decimal point
 Binary(10000000000001010101011100101000011010111100101000011e-32, 0, False)
->>> b.to_sci_exponential() # 1 digit before comma
+>>> b.to_sci_exponential() # 1 digit before decimal point
 Binary(1.0000000000001010101011100101000011010111100101000011e20, 0, False)
 >>> b2=Binary(7)
 >>> b2.to_sci_exponential()
@@ -633,16 +635,16 @@ This is a utility function.
 #### \_\_round\_\_
 
 ```python
- | __round__()
+ | __round__(ndigits=0)
 ```
 
-Normalize and round number to 0 digits after comma.
+Normalize and round number to n digits after decimal point.
 
-A method. See also function round_to().
+A method. Same as function round(). See also utility function round_to().
 
 **Arguments**:
 
-  None
+- `ndigits` _int_ - number of digits after decimal point, precision
 
 
 **Returns**:
@@ -656,13 +658,13 @@ A method. See also function round_to().
  | round(ndigits=0)
 ```
 
-Normalize and round number to n digits after comma.
+Normalize and round number to n digits after decimal point.
 
-A method. See also function round_to().
+A method. Same as __round__() (round()). See also function round_to().
 
 **Arguments**:
 
-- `ndigits` _int_ - number of digits after comma, precision
+- `ndigits` _int_ - number of digits after decimal point, precision
 
 
 **Returns**:
@@ -676,7 +678,7 @@ A method. See also function round_to().
  | round_to(value: str, ndigits: int = 0) -> str
 ```
 
-Normalize and round number to n digits after comma.
+Normalize and round number to n digits after decimal point.
 
 This is a utility function.
 Example: converts '11.01e-2' to '0.11' with ndigits==2.
@@ -686,7 +688,7 @@ Converts '0.10000001' to '1' with ndigits==0.
 **Arguments**:
 
 - `value` _str_ - binary string representation of number
-- `ndigits` _int_ - number of digits after comma, precision
+- `ndigits` _int_ - number of digits after decimal point, precision
 
 
 **Returns**:
@@ -700,13 +702,13 @@ Converts '0.10000001' to '1' with ndigits==0.
  | fill(ndigits=0, strict=False)
 ```
 
-Normalize and fill number to n digits after comma.
+Normalize and fill number to n digits after decimal point.
 
 This is a method. See also function fill_to().
 
 **Arguments**:
 
-- `ndigits` _int_ - number of digits after comma, precision
+- `ndigits` _int_ - number of digits after decimal point, precision
 - `strict` _bool_ - cut off by rounding if input is too long,
   remove precision if True and necessary
 
@@ -722,7 +724,7 @@ This is a method. See also function fill_to().
  | fill_to(value, ndigits=0, strict=False) -> str
 ```
 
-Normalize and fill number to n digits after comma.
+Normalize and fill number to n digits after decimal point.
 
 This is a utility function.
 If strict==False then if value is longer, don't touch, don't shorten it.
@@ -730,7 +732,7 @@ If strict==True then if value is longer, then shorten to strictly ndigits.
 
 **Arguments**:
 
-- `ndigits` _int_ - number of digits after comma, precision
+- `ndigits` _int_ - number of digits after decimal point, precision
 - `strict` _bool_ - cut off by rounding if input is too long,
   remove precision if True and necessary
 
@@ -761,6 +763,63 @@ The result has no decimal point.
 
 - `Binary` - binary string representation of number
 
+<a name="binary.Binary.to_eng_exponential"></a>
+#### to\_eng\_exponential
+
+```python
+ | to_eng_exponential()
+```
+
+Convert to exp. representation in engineering notation.
+
+See https://www.purplemath.com/modules/exponent4.htm.
+See https://en.wikipedia.org/wiki/Engineering_notation.
+
+Engineering notation is an exponent representation with the exponent
+modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
+The integer part must not be 0.
+
+Method that changes string representation of number.
+Examples are:
+'1.1' ==> '1.1'
+'1.1111' ==> '1.1111'
+'100.1111' ==> '100.1111'
+'1000.1111' ==> '1.0001111e3'
+'1' ==> '1'
+'10' ==> '10'
+'100' ==> '100'
+'1000' ==> '1e3'
+'10000' ==> '10e3'
+'100000' ==> '100e3'
+'1000000' ==> '1e6'
+'1.1111' ==> '1.1111'
+'10.1111' ==> '10.1111'
+'100.1111' ==> '100.1111'
+'1000.1111' ==> '1e3.1111'
+'10000.1111' ==> '10e3.1111'
+'100000.1111' ==> '100e3.1111'
+'1000000.1111' ==> '1e6.1111'
+'1.1111e0' ==> '1.1111'
+'11.111e-1' ==> '1.1111'
+'111.11e-2' ==> '1.1111'
+'1111.1e-3' ==> '1.1111'
+'11111.e-4' ==> '1.1111'
+'.11111e1' ==> '1.1111'
+'.011111e2' ==> '1.1111'
+'.0011111e3' ==> '1.1111'
+'-0.01e-2' ==> '-1e-3',
+'-0.0001e-4' == -0.00000001 ==> '-10e-9',
+'-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
+
+**Arguments**:
+
+  none
+
+
+**Returns**:
+
+- `Binary` - binary string representation of number
+
 <a name="binary.Binary.to_sci_exponential"></a>
 #### to\_sci\_exponential
 
@@ -768,7 +827,10 @@ The result has no decimal point.
  | to_sci_exponential()
 ```
 
-Convert to exp. representation with single binary digit before comma.
+Convert to exp. representation in scientific notation.
+
+Scientific notation is an exponent representation with a single
+binary digit before decimal point.
 
 Method that changes string representation of number.
 Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
@@ -1940,6 +2002,15 @@ Test function/method.
 ```
 
 Test function/method.
+
+<a name="binary.TestBinary.test___round__"></a>
+#### test\_\_\_round\_\_
+
+```python
+ | test___round__()
+```
+
+Test function/method for rounding.
 
 <a name="binary.TestBinary.test_round"></a>
 #### test\_round

@@ -163,9 +163,9 @@ Binary(100000000000010101010.111, 0, False)
 '100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
 >>> b.fill(64,True)
 '100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
->>> b.to_simple_exponential() # no comma
+>>> b.to_simple_exponential() # no decimal point
 Binary(10000000000001010101011100101000011010111100101000011e-32, 0, False)
->>> b.to_sci_exponential() # 1 digit before comma
+>>> b.to_sci_exponential() # 1 digit before decimal point
 Binary(1.0000000000001010101011100101000011010111100101000011e20, 0, False)
 >>> b2=Binary(7)
 >>> b2.to_sci_exponential()
@@ -256,7 +256,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210702-192740"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210702-213134"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -375,7 +375,7 @@ class Binary(object):
                     fracpart = fracpart.rstrip("0")
                     exp = int(m.group("exp") or "0")
                     if exp != 0:
-                        # # version A: this normalizes to remove comma
+                        # # version A: this normalizes to remove decimal point
                         # intpart = str(int(intpart + fracpart))
                         # exppart = str(exp - len(fracpart))
                         # self._value = sign + intpart + _EXP + exppart
@@ -899,26 +899,26 @@ class Binary(object):
                 result += Fraction(1, 2 ** (i + 1))
         return result if sign == 0 else -result
 
-    def __round__(self):
-        """Normalize and round number to 0 digits after comma.
+    def __round__(self, ndigits=0):
+        """Normalize and round number to n digits after decimal point.
 
-        A method. See also function round_to().
+        A method. Same as function round(). See also utility function round_to().
 
         Parameters:
-        None
+        ndigits (int): number of digits after decimal point, precision
 
         Returns:
         Binary: binary string representation of number
         """
-        return self.round(0)
+        return self.round(ndigits)
 
     def round(self, ndigits=0):
-        """Normalize and round number to n digits after comma.
+        """Normalize and round number to n digits after decimal point.
 
-        A method. See also function round_to().
+        A method. Same as __round__() (round()). See also function round_to().
 
         Parameters:
-        ndigits (int): number of digits after comma, precision
+        ndigits (int): number of digits after decimal point, precision
 
         Returns:
         Binary: binary string representation of number
@@ -930,7 +930,7 @@ class Binary(object):
         return Binary(result)
 
     def round_to(value: str, ndigits: int = 0) -> str:
-        """Normalize and round number to n digits after comma.
+        """Normalize and round number to n digits after decimal point.
 
         This is a utility function.
         Example: converts '11.01e-2' to '0.11' with ndigits==2.
@@ -939,7 +939,7 @@ class Binary(object):
 
         Parameters:
         value (str): binary string representation of number
-        ndigits (int): number of digits after comma, precision
+        ndigits (int): number of digits after decimal point, precision
 
         Returns:
         str: binary string representation of number
@@ -995,12 +995,12 @@ class Binary(object):
         return result
 
     def fill(self, ndigits=0, strict=False):
-        """Normalize and fill number to n digits after comma.
+        """Normalize and fill number to n digits after decimal point.
 
         This is a method. See also function fill_to().
 
         Parameters:
-        ndigits (int): number of digits after comma, precision
+        ndigits (int): number of digits after decimal point, precision
         strict (bool): cut off by rounding if input is too long,
             remove precision if True and necessary
 
@@ -1015,14 +1015,14 @@ class Binary(object):
     ## TODO Alfred did the revision until here ZZZ
 
     def fill_to(value, ndigits=0, strict=False) -> str:
-        """Normalize and fill number to n digits after comma.
+        """Normalize and fill number to n digits after decimal point.
 
         This is a utility function.
         If strict==False then if value is longer, don't touch, don't shorten it.
         If strict==True then if value is longer, then shorten to strictly ndigits.
 
         Parameters:
-        ndigits (int): number of digits after comma, precision
+        ndigits (int): number of digits after decimal point, precision
         strict (bool): cut off by rounding if input is too long,
             remove precision if True and necessary
 
@@ -1101,8 +1101,64 @@ class Binary(object):
 
         return Binary(intpart + _EXP + str(exp), False)
 
+    def to_eng_exponential(self):
+        """Convert to exp. representation in engineering notation.
+
+        See https://www.purplemath.com/modules/exponent4.htm.
+        See https://en.wikipedia.org/wiki/Engineering_notation.
+
+        Engineering notation is an exponent representation with the exponent
+        modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
+        The integer part must not be 0.
+
+        Method that changes string representation of number.
+        Examples are:
+            '1.1' ==> '1.1'
+            '1.1111' ==> '1.1111'
+            '100.1111' ==> '100.1111'
+            '1000.1111' ==> '1.0001111e3'
+            '1' ==> '1'
+            '10' ==> '10'
+            '100' ==> '100'
+            '1000' ==> '1e3'
+            '10000' ==> '10e3'
+            '100000' ==> '100e3'
+            '1000000' ==> '1e6'
+            '1.1111' ==> '1.1111'
+            '10.1111' ==> '10.1111'
+            '100.1111' ==> '100.1111'
+            '1000.1111' ==> '1e3.1111'
+            '10000.1111' ==> '10e3.1111'
+            '100000.1111' ==> '100e3.1111'
+            '1000000.1111' ==> '1e6.1111'
+            '1.1111e0' ==> '1.1111'
+            '11.111e-1' ==> '1.1111'
+            '111.11e-2' ==> '1.1111'
+            '1111.1e-3' ==> '1.1111'
+            '11111.e-4' ==> '1.1111'
+            '.11111e1' ==> '1.1111'
+            '.011111e2' ==> '1.1111'
+            '.0011111e3' ==> '1.1111'
+            '-0.01e-2' ==> '-1e-3',
+            '-0.0001e-4' == -0.00000001 ==> '-10e-9',
+            '-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
+
+        Parameters:
+        none
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        # TODO needs to be implemented
+        return None  # TODO to be implemented
+
     def to_sci_exponential(self):
-        """Convert to exp. representation with single binary digit before comma.
+        """Convert to exp. representation in scientific notation.
+
+        Scientific notation is an exponent representation with a single
+        binary digit before decimal point.
 
         Method that changes string representation of number.
         Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
@@ -1794,7 +1850,7 @@ class Binary(object):
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
-
+        # TODO zzz should be prefix return value with 0b ???
         sign, intpart, fracpart, exp = Binary.get_twoscomplement_components(
             value, strict=strict
         )
@@ -2193,9 +2249,11 @@ class Binary(object):
         Returns:
         Binary: bitwise or of the two numbers
         """
+        # TODO needs to be implemented
         return Binary._or(self, other)  # TODO
 
     def _or(self, other):
+        # TODO needs to be implemented
         return None  # TODO
 
     def __xor__(self, other):
@@ -2213,6 +2271,7 @@ class Binary(object):
         Binary: bitwise exclusive or of the two numbers
         """
         # remove exponent on both args, operate on strings
+        # TODO needs to be implemented
         return None  # TODO
 
     def __not__(self) -> bool:
@@ -2322,14 +2381,6 @@ class Binary(object):
             shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
 
-    def lrotate(self, ndigits: int):
-        # # TODO:
-        return None  # TODO
-
-    def rrotate(self, ndigits: int):
-        # # TODO:
-        return None  # TODO
-
     def __lshift__(self, ndigits: int):
         """Shifts number n digits (bits) to the left.
 
@@ -2376,6 +2427,14 @@ class Binary(object):
             shifted_fracpart = fracpart[ndigits:]
             shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
+
+    def rrotate(self, ndigits: int):
+        # # TODO:
+        return None  # TODO
+
+    def lrotate(self, ndigits: int):
+        # # TODO:
+        return None  # TODO
 
     # is this necessary? can't we just call the corresponding function from Fractions?
     # can't we just call binary operands on Fractions and not implement anything?
@@ -2496,6 +2555,8 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(float(Binary("0")), 0.0)
         self.assertEqual(float(Binary("1.1")), 1.5)
         self.assertEqual(float(Binary("-1.11")), -1.75)
+        self.assertEqual(Binary("0b1.1"), "1.1")
+        self.assertEqual(Binary("-0b1.1"), "-1.1")
         self.assertEqual(Binary(-3.5), "-11.1")
         self.assertEqual(Binary(-3.5), "-0b11.1")
         self.assertEqual(str(Binary(-3.5)), "-0b11.1")
@@ -2742,6 +2803,11 @@ class TestBinary(unittest.TestCase):
             Binary.to_fraction("102")  # should fail
         with self.assertRaises(TypeError):
             Binary.to_fraction(Binary(1))  # should fail
+
+    def test___round__(self):
+        """Test function/method for rounding."""
+        self.assertEqual(round(Binary(3.75), 1), "11.1")
+        # TODO
 
     def test_round(self):
         """Test function/method for rounding."""
@@ -3220,6 +3286,8 @@ class TestBinary(unittest.TestCase):
 
     def test_from_twoscomplement(self):
         """Test function/method."""
+        # TODO zzz add test case using to_twosco() and from_twosco() combined! looping
+        self.assertEqual(Binary.from_twoscomplement("10.1"), "-1.1")
         self.assertEqual(Binary.from_twoscomplement("11"), "-1")
         self.assertEqual(Binary.from_twoscomplement("11.111"), "-1.001")
         self.assertEqual(Binary.from_twoscomplement("110.111"), "-10.001")
