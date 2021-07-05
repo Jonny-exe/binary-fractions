@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 """# Floating-point Binary Fractions: Do math in base 2!
 
 ![logo](binary-fractions.svg)
@@ -237,15 +236,17 @@ Enjoy :heart: !
 
 """
 
-# TODO: go to stackoverflow.com, search for "binary math", "binary fractions"
-# and where there are matches add comment/entry to reference this module
-# in PyPi
-
+from __future__ import annotations  # to allow type hinting in class methods
 from fractions import Fraction
-import math  # isclose()
+import math
 import re
 import sys
 import unittest
+
+
+# TODO: go to stackoverflow.com, search for "binary math", "binary fractions"
+# and where there are matches add comment/entry to reference this module
+# in PyPi
 
 _BINARY_WARNED_ABOUT_FLOAT = False
 _BINARY_RELATIVE_TOLERANCE = 1e-10
@@ -256,7 +257,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210702-213134"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210705-214815"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -279,7 +280,7 @@ class Binary(object):
         value: [int, float, str, Fraction] = "0",
         simplify: bool = True,
         warn_on_float: bool = False,
-    ):
+    ) -> Binary:
         """Constructor.
 
         Use __new__ and not __init__ because it is immutable.
@@ -473,7 +474,7 @@ class Binary(object):
             self._fraction = value._fraction
             self._is_lossless = value._is_lossless
             self._is_special = value._is_special
-            self._self.warn_on_float = value._self.warn_on_float
+            self._warn_on_float = value._warn_on_float
             return self
 
         if isinstance(value, Fraction):
@@ -571,7 +572,7 @@ class Binary(object):
         result = sign + _PREFIX + intpart + "." + fracpart
         return Binary.simplify(result, add_prefix=True)
 
-    def to_float(value: str) -> [float, int]:
+    def to_float(value: str) -> Union[float, int]:
         """Convert from Binary string to float or integer.
 
         This is a utility function that converts
@@ -613,7 +614,7 @@ class Binary(object):
                 result += (2 ** -(i + 1)) * sign
         return result  # float
 
-    def __float__(self) -> [float, int]:
+    def __float__(self: Binary) -> [float, int]:
         """Convert from Binary to float.
 
         This is a method that convert Binary to float (or if possible to
@@ -634,7 +635,7 @@ class Binary(object):
         # result = Binary.to_float(self._value)
         return result  # float or integer
 
-    def __int__(self):
+    def __int__(self: Binary):
         """Convert from Binary to int.
 
         method
@@ -654,6 +655,96 @@ class Binary(object):
         # alternative implementation of float
         # result = Binary.to_float(self._value)
         return result  # float or integer
+
+    def __str__(self: Binary) -> str:
+        """Stringify self.
+
+        Method that implements the string conversion.
+        Return format is e.g. -0b101.101e-23.
+        Note the prefix of '0b'.
+
+        Parameters:
+        None
+
+        Returns:
+        str: string representation with prefix '0b'
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if self.isnan():
+            return _NAN
+        if self.ispositiveinfinity():
+            return _INF
+        if self.isnegativeinfinity():
+            return _NINF
+        if self._sign:
+            return "-" + _PREFIX + self._value[1:]
+        else:
+            return _PREFIX + self._value
+
+    def compare_representation(self: Binary, other: Union[str, Binary]) -> int:
+        """Compare representation of self to representation of other string.
+
+        Does NOT compare values! '1.1' does NOT equal to '11e-1' !
+        Only '11e-1' equals to '11e-1' !
+        Returns integer.
+
+        Parameters:
+        other (str, Binary): object to compare to
+
+        Returns:
+        int: -1 s<o, 0 equal, 1 s>o
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        # compare representation to another Binary
+        if isinstance(other, Binary):
+            return str(self._value) == str(other._value)
+        if isinstance(other, str):
+            return str(self._value) == other
+        else:
+            return str(self._value) == str(other)
+
+    def __repr__(self: Boolean) -> str:
+        """Represent self."""
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return (
+            f"{self.__class__.__name__}"
+            + f"({self._value}, {self._sign}, {self._is_special})"
+        )
+
+    def no_prefix(self_value: Union[str, Binary]) -> str:
+        """Remove prefix '0b' from string representation.
+
+        A method as well as a utility function.
+        Return format is e.g. -101.101e-23.
+
+        Parameters:
+        value (str, Binary): string from where to remove prefix
+
+        Returns:
+        str: without prefix
+        """
+        if not isinstance(self_value, str) and not isinstance(self_value, Binary):
+            raise TypeError(f"Argument {self_value} must be of type str or Binary.")
+        if isinstance(self_value, str):
+            return self_value.replace(_PREFIX, "")
+        else:
+            return str(self_value._value)
+
+    def np(self_value: Union[str, Binary]) -> str:  # no prefix
+        """Remove prefix '0b' from string representation.
+
+        Same as no_prefix().
+
+        Parameters:
+        value (str, Binary): string from where to remove prefix
+
+        Returns:
+        str: without prefix
+        """
+        return Binary.no_prefix(self_value)
 
     def simplify(value: str, add_prefix: bool = False) -> str:
         """Simplify string representation.
@@ -699,7 +790,9 @@ class Binary(object):
             else:
                 return signstr + pre + intpart + "." + fracpart + _EXP + str(exp)
 
-    def to_not_exponential(self_value, add_prefix: bool = False) -> str:
+    def to_not_exponential(
+        self_value: Union[Binary, str], add_prefix: bool = False
+    ) -> str:
         """Normalize string representation. Remove exponent part.
 
         This is both a method as well as a utility function.
@@ -858,18 +951,23 @@ class Binary(object):
             result = result[: l - i] if i < 0 else result[0] * i + result
         return result
 
-    def to_fraction(value: str) -> Fraction:
+    def to_fraction(self_value: Union[str, Binary]) -> Fraction:
         """Convert string representation of Binary to Fraction.
 
         This is a utility function.
 
         Parameters:
-        value (str): binary number as string
+        self_value (str, Binary): binary number as string
 
         Returns:
-        Fraction: value as fraction
+        Fraction: self_value as fraction
         """
-        sign, intpart, fracpart, exp = Binary.get_components(value)
+        if not isinstance(self_value, str) and not isinstance(self_value, Binary):
+            raise TypeError(f"Argument {self_value} must be of type str or Binary.")
+        if isinstance(self_value, Binary):
+            # this is just an alternative way to get the fraction part of a Binary
+            return self_value._fraction
+        sign, intpart, fracpart, exp = Binary.get_components(self_value)
         exp -= len(fracpart)
         if exp > 0:
             result = Fraction((-1) ** sign * int(intpart + fracpart, 2) * (2 ** exp), 1)
@@ -899,7 +997,7 @@ class Binary(object):
                 result += Fraction(1, 2 ** (i + 1))
         return result if sign == 0 else -result
 
-    def __round__(self, ndigits=0):
+    def __round__(self: Binary, ndigits: int = 0):
         """Normalize and round number to n digits after decimal point.
 
         A method. Same as function round(). See also utility function round_to().
@@ -912,7 +1010,7 @@ class Binary(object):
         """
         return self.round(ndigits)
 
-    def round(self, ndigits=0):
+    def round(self: Binary, ndigits: int = 0):
         """Normalize and round number to n digits after decimal point.
 
         A method. Same as __round__() (round()). See also function round_to().
@@ -994,7 +1092,7 @@ class Binary(object):
         result = Binary.simplify(result)
         return result
 
-    def fill(self, ndigits=0, strict=False):
+    def fill(self: Binary, ndigits: int = 0, strict: bool = False):
         """Normalize and fill number to n digits after decimal point.
 
         This is a method. See also function fill_to().
@@ -1012,9 +1110,7 @@ class Binary(object):
         value = self._value
         return Binary(Binary.fill_to(value, ndigits, strict))
 
-    ## TODO Alfred did the revision until here ZZZ
-
-    def fill_to(value, ndigits=0, strict=False) -> str:
+    def fill_to(value: str, ndigits: int = 0, strict: bool = False) -> str:
         """Normalize and fill number to n digits after decimal point.
 
         This is a utility function.
@@ -1031,11 +1127,14 @@ class Binary(object):
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
+        if _NAN.lower() in value.lower():
+            raise ValueError(f"Argument 'value' ({value}): cannot fill NaN.")
+        if _INF.lower() in value.lower():
+            raise OverflowError(f"Argument 'value' ({value}): cannot fill infinities.")
         if ndigits < 0:
             raise ValueError(
                 f"Argument 'ndigits' ({ndigits}) must be a positive integer."
             )
-        # TODO add INF, NaN
         value = Binary.to_not_exponential(value)
         # print(f"norm. value is {value}")
         li = value.split(".")
@@ -1043,8 +1142,6 @@ class Binary(object):
             fracpart = ""
         else:
             fracpart = li[1]
-
-        # print(f"fracpart is {fracpart}")
         if len(fracpart) == ndigits:
             return value
         elif len(fracpart) < ndigits:
@@ -1055,16 +1152,15 @@ class Binary(object):
             return value
         else:  # strict
             result = Binary.round_to(value, ndigits)
-            # print(f"result is {result}")
             # rounding can shorten it drastically, 0.1111 => 1
             return Binary.fill_to(result, ndigits, strict)
 
-    def to_simple_exponential(self):
+    def to_simple_exponential(self: Binary) -> Binary:
         """Convert to exponential representation without fraction.
 
-        A method athat changes the string representation of a number.
+        A method that changes the string representation of a number
+        so that the resulting string has no decimal point.
         Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
-        The result has no decimal point.
 
         Parameters:
         none
@@ -1074,6 +1170,10 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if self._is_special:
+            raise OverflowError(
+                f"Argument 'self' ({self}): cannot convert NaN and infinities."
+            )
         value = self._value
         if _EXP not in value:
             exp = 0
@@ -1101,60 +1201,7 @@ class Binary(object):
 
         return Binary(intpart + _EXP + str(exp), False)
 
-    def to_eng_exponential(self):
-        """Convert to exp. representation in engineering notation.
-
-        See https://www.purplemath.com/modules/exponent4.htm.
-        See https://en.wikipedia.org/wiki/Engineering_notation.
-
-        Engineering notation is an exponent representation with the exponent
-        modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
-        The integer part must not be 0.
-
-        Method that changes string representation of number.
-        Examples are:
-            '1.1' ==> '1.1'
-            '1.1111' ==> '1.1111'
-            '100.1111' ==> '100.1111'
-            '1000.1111' ==> '1.0001111e3'
-            '1' ==> '1'
-            '10' ==> '10'
-            '100' ==> '100'
-            '1000' ==> '1e3'
-            '10000' ==> '10e3'
-            '100000' ==> '100e3'
-            '1000000' ==> '1e6'
-            '1.1111' ==> '1.1111'
-            '10.1111' ==> '10.1111'
-            '100.1111' ==> '100.1111'
-            '1000.1111' ==> '1e3.1111'
-            '10000.1111' ==> '10e3.1111'
-            '100000.1111' ==> '100e3.1111'
-            '1000000.1111' ==> '1e6.1111'
-            '1.1111e0' ==> '1.1111'
-            '11.111e-1' ==> '1.1111'
-            '111.11e-2' ==> '1.1111'
-            '1111.1e-3' ==> '1.1111'
-            '11111.e-4' ==> '1.1111'
-            '.11111e1' ==> '1.1111'
-            '.011111e2' ==> '1.1111'
-            '.0011111e3' ==> '1.1111'
-            '-0.01e-2' ==> '-1e-3',
-            '-0.0001e-4' == -0.00000001 ==> '-10e-9',
-            '-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
-
-        Parameters:
-        none
-
-        Returns:
-        Binary: binary string representation of number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        # TODO needs to be implemented
-        return None  # TODO to be implemented
-
-    def to_sci_exponential(self):
+    def to_sci_exponential(self: Binary) -> str:
         """Convert to exp. representation in scientific notation.
 
         Scientific notation is an exponent representation with a single
@@ -1172,6 +1219,10 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if self._is_special:
+            raise OverflowError(
+                f"Argument 'self' ({self}): cannot convert NaN and infinities."
+            )
         value = self._value
         if _EXP not in value:
             exp = 0
@@ -1216,6 +1267,64 @@ class Binary(object):
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
         return Binary(result, False)
 
+    def to_eng_exponential(self: Binary) -> str:
+        """Convert to exp. representation in engineering notation.
+
+        See https://www.purplemath.com/modules/exponent4.htm.
+        See https://en.wikipedia.org/wiki/Engineering_notation.
+
+        Engineering notation is an exponent representation with the exponent
+        modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
+        The integer part must not be 0. Integer part is from 1 to 999.
+
+        Method that changes string representation of number.
+        Examples are:
+            '1.1' ==> '1.1'
+            '1.1111' ==> '1.1111'
+            '100.1111' ==> '100.1111'
+            '1000.1111' ==> '1.0001111e3'
+            '1' ==> '1'
+            '10' ==> '10'
+            '100' ==> '100'
+            '1000' ==> '1e3'
+            '10000' ==> '10e3'
+            '100000' ==> '100e3'
+            '1000000' ==> '1e6'
+            '1.1111' ==> '1.1111'
+            '10.1111' ==> '10.1111'
+            '100.1111' ==> '100.1111'
+            '1000.1111' ==> '1e3.1111'
+            '10000.1111' ==> '10e3.1111'
+            '100000.1111' ==> '100e3.1111'
+            '1000000.1111' ==> '1e6.1111'
+            '1.1111e0' ==> '1.1111'
+            '11.111e-1' ==> '1.1111'
+            '111.11e-2' ==> '1.1111'
+            '1111.1e-3' ==> '1.1111'
+            '11111.e-4' ==> '1.1111'
+            '.11111e1' ==> '1.1111'
+            '.011111e2' ==> '1.1111'
+            '.0011111e3' ==> '1.1111'
+            '-0.01e-2' ==> '-1e-3',
+            '-0.0001e-4' == -0.00000001 ==> '-10e-9',
+            '-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
+
+        Parameters:
+        none
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if self._is_special:
+            raise OverflowError(
+                f"Argument 'self' ({self}): cannot convert NaN and infinities."
+            )
+        # TODO needs to be implemented
+        # ZZZ
+        return Binary(self)  # TODO to be implemented
+
     def get_components(value: str) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
 
@@ -1258,7 +1367,7 @@ class Binary(object):
         sign = 0 if intpart == "0" and fracpart == "" else sign
         return (sign, intpart, fracpart, exp)
 
-    def get_twoscomplement_components(value, strict=False) -> tuple:
+    def get_twoscomplement_components(value: str, strict: bool = False) -> tuple:
         """Return sign, intpart (indicates sign in first bit), fracpart, exp.
 
         See to_twoscomplement() function description for more details
@@ -1346,7 +1455,7 @@ class Binary(object):
                 intpart = "0" + intpart.lstrip("0")
         return (sign, intpart, fracpart, exp)
 
-    def components(self) -> tuple:
+    def components(self: Binary) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
 
         Example: -11.01e2 ==> (1, '11', '01', 2)
@@ -1362,7 +1471,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary.get_components(self._value)
 
-    def isinfinity(self):
+    def isinfinity(self: Binary) -> bool:
         """Determine if object is positive or negative Infinity.
 
         Parameters:
@@ -1375,7 +1484,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return _INF in self._value
 
-    def isnegativeinfinity(self):
+    def isnegativeinfinity(self: Binary) -> bool:
         """Determine if object is Negative Infinity.
 
         Parameters:
@@ -1388,7 +1497,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return _NINF in self._value
 
-    def ispositiveinfinity(self):
+    def ispositiveinfinity(self: Binary) -> bool:
         """Determine if object is Positive Infinity.
 
         Parameters:
@@ -1401,7 +1510,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return _INF in self._value and not _NINF in self._value
 
-    def isnan(self):
+    def isnan(self: Binary) -> bool:
         """Determine if object is not-a-number (NaN).
 
         Parameters:
@@ -1414,7 +1523,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return _NAN in self._value  # "NaN"
 
-    def isint(self) -> bool:
+    def isint(self: Binary) -> bool:
         """Determines if binary fraction is an integer.
 
         This is a utility function.
@@ -1426,7 +1535,7 @@ class Binary(object):
             return False
         return self._fraction == int(self._fraction)
 
-    def istwoscomplement(value: str):
+    def istwoscomplement(value: str) -> bool:
         """Determine if string is a valid twos-complement syntax.
 
         Parameters:
@@ -1442,7 +1551,7 @@ class Binary(object):
             return False
         return True
 
-    def adjusted(self):
+    def _adjusted(self: Binary) -> int:
         """Return the adjusted exponent of self.
 
         Parameters:
@@ -1462,132 +1571,44 @@ class Binary(object):
             )
         return exp + len(intpart) - 1
 
-    def _cmp(self, other):
-        """Compare two objects.
+    def fraction(self: Binary) -> Fraction:
+        """Extract Fractional representation from Binary instance.
 
-        Compare the two non-NaN decimal instances self and other.
-        Returns -1 if self < other, 0 if self == other and 1
-        if self > other.  This routine is for internal use only.
-        Returns integer.
+        A method to get the Binary as a Fraction.
 
         Parameters:
-        other (str, Binary): object to compare to
+        None
 
         Returns:
-        int: -1 s<o, 0 equal, 1 s>o
+        Fraction: binary number in Fraction representation
         """
-        if not isinstance(other, Binary):
-            other = Binary(other)
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return self._fraction
 
-        # Compare(NaN, NaN) = NaN
-        if self._is_special or other._is_special:
-            self_inf = self.isinfinity()
-            other_inf = other.isinfinity()
-            if self_inf == other_inf:
-                return 0
-            elif self_inf < other_inf:
-                return -1
-            else:
-                return 1
+    def value(self: Binary) -> str:
+        """Extract string representation from Binary instance.
 
-        if self._fraction == other._fraction:
-            result = 0
-        elif self._fraction < other._fraction:
-            result = -1
-        else:
-            result = 1
-        return result
-
-        # TODO: this does string comparison, no longer needed
-        # TODO: cleanup, save this code as string comparisons
-        # TODO: Bug for 0b101e-18 0b0.000000000000000101 ?
-        if self._sign and self._value[0] != "-":
-            raise ValueError(
-                f"Invalid literal: {self._value}. Internal error. Wrong sign."
-            )
-        if other._sign and other._value[0] != "-":
-            raise ValueError(
-                f"Invalid literal: {other._value}. Internal error. Wrong sign."
-            )
-
-        # check for zeros;  Binary('0') == Binary('-0')
-        if not self:
-            if not other:
-                return 0
-            else:
-                return -((-1) ** other._sign)
-        if not other:
-            return (-1) ** self._sign
-
-        # If different signs, neg one is less
-        if other._sign < self._sign:
-            return -1
-        if self._sign < other._sign:
-            return 1
-
-        self_se = Binary.to_simple_exponential(self)
-        other_se = Binary.to_simple_exponential(other)
-        self_adjusted = self_se.adjusted()
-        other_adjusted = other_se.adjusted()
-        if self_adjusted == other_adjusted:
-            self_sign, self_intpart, _, self_exp = Binary.components(self_se)
-            other_sign, other_intpart, _, other_exp = Binary.components(other_se)
-            self_padded = self_intpart + "0" * (self_exp - other_exp)
-            other_padded = other_intpart + "0" * (other_exp - self_exp)
-            if self_padded == other_padded:
-                return 0
-            elif self_padded < other_padded:
-                return -((-1) ** self._sign)
-            else:
-                return (-1) ** self._sign
-        elif self_adjusted > other_adjusted:
-            return (-1) ** self._sign
-        else:  # self_adjusted < other_adjusted
-            return -((-1) ** self._sign)
-
-    # Note: The Decimal standard doesn't cover rich comparisons for
-    # Decimals.  In particular, the specification is silent on the
-    # subject of what should happen for a comparison involving a NaN.
-    # We take the following approach:
-    #
-    #   == comparisons involving a quiet NaN always return False
-    #   != comparisons involving a quiet NaN always return True
-    #   == or != comparisons involving a signaling NaN signal
-    #      InvalidOperation, and return False or True as above if the
-    #      InvalidOperation is not trapped.
-    #   <, >, <= and >= comparisons involving a (quiet or signaling)
-    #      NaN signal InvalidOperation, and return False if the
-    #      InvalidOperation is not trapped.
-    #
-    # This behavior is designed to conform as closely as possible to
-    # that specified by IEEE 754.
-
-    def __eq__(self, other):
-        """Implement ==. See _cmp() for details."""
-        return self._cmp(other) == 0
-
-    def compare(self, other):
-        """Compare self to other. Return a Binary value.
-
-        a or b is a NaN ==> Binary('NaN')
-        a < b           ==> Binary('-1')
-        a == b          ==> Binary('0')
-        a > b           ==> Binary('1')
+        A method to get the Binary as a Fraction.
 
         Parameters:
-        other (str, Binary): object to compare to
+        None
 
         Returns:
-        Binary: -1 s<o, 0 equal, 1 s>o
+        Fraction: binary number in string representation
         """
-        return Binary(self._cmp(other))
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return self._value
 
     def fraction_to_string(
-        number: [int, float, Fraction], ndigits=_BINARY_PRECISION, strict=False
+        number: Union[int, float, Fraction],
+        ndigits: int = _BINARY_PRECISION,
+        strict: bool = False,
     ) -> str:
         """Convert number representation (int, float, or Fraction) to string.
 
-        utility function
+        This is a utility function.
 
         Parameters:
         number (int,float,Fraction): binary number in number representation
@@ -1623,20 +1644,697 @@ class Binary(object):
                 i += 1
         return "".join(result) if strict else Binary.simplify("".join(result))
 
-    # TODO:add member variable such as is_exact to indicate if lossless or not
+    def isclose(self: Binary, other: Any) -> int:
+        """Compare two objects to see if they are mathematically close."""
+        # TODO: to be written
+        # TODO add an argument like epsilon, delta or relative difference
+        return True  # TODO to be written
 
-    def fraction(self) -> Fraction:
-        """Extract Fractional representation from Binary instance.
+    def _cmp(self: Binary, other: Any) -> int:
+        """Compare two objects.
 
-        A method to get the Binary as a Fraction.
+        Compare the two non-NaN decimal instances self and other.
+        Returns -1 if self < other, 0 if self == other and 1
+        if self > other.  This routine is for internal use only.
+        Returns integer.
+
+        Note: The Decimal standard doesn't cover rich comparisons for
+        Decimals.  In particular, the specification is silent on the
+        subject of what should happen for a comparison involving a NaN.
+        In Decimal they take the following approach:
+
+          == comparisons involving a quiet NaN always return False
+          != comparisons involving a quiet NaN always return True
+          == or != comparisons involving a signaling NaN signal
+             InvalidOperation, and return False or True as above if the
+             InvalidOperation is not trapped.
+          <, >, <= and >= comparisons involving a (quiet or signaling)
+             NaN signal InvalidOperation, and return False if the
+             InvalidOperation is not trapped.
+
+        That Decimal behavior is designed to conform as closely as possible to
+        that specified by IEEE 754.
+
+        Here in Binary we take a similar approach and try to follow Decimal.
 
         Parameters:
-        None
+        other (Any, str, Binary, int, float, Fraction): object to compare to
 
         Returns:
-        Fraction: binary number in Fraction representation
+        int: -1 s<o, 0 equal, 1 s>o
         """
-        return self._fraction
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self._is_special or other._is_special:
+            if self.isnan() or other.isnan():
+                # Compare(NaN, NaN) => exception
+                # Equal(NaN, NaN) => False
+                # Compare(NaN, 1) => False
+                # Compare(NaN, Inf) => False
+                raise ArithmeticError(f"Arithmetic Error: Cannot compare two NaNs.")
+            if self.isnegativeinfinity() and other.ispositiveinfinity():
+                return -1
+            elif self.ispositiveinfinity() and other.isnegativeinfinity():
+                return 1
+            elif self.isnegativeinfinity() and other.isnegativeinfinity():
+                return 0
+            elif self.ispositiveinfinity() and other.ispositiveinfinity():
+                return 0
+            elif self.isnegativeinfinity():
+                return -1
+            elif self.ispositiveinfinity():
+                return 1
+            elif other.isnegativeinfinity():
+                return -1
+            else:  # other.ispostiveinfinity():
+                return 1
+
+        if self._fraction == other._fraction:
+            result = 0
+        elif self._fraction < other._fraction:
+            result = -1
+        else:
+            result = 1
+        return result
+
+        # this does string comparison
+        # TODO: this code is never reached
+        # TODO: cleanup, save this code as string comparisons
+        if self._sign and self._value[0] != "-":
+            raise ValueError(
+                f"Invalid literal: {self._value}. Internal error. Wrong sign."
+            )
+        if other._sign and other._value[0] != "-":
+            raise ValueError(
+                f"Invalid literal: {other._value}. Internal error. Wrong sign."
+            )
+
+        # check for zeros;  Binary('0') == Binary('-0')
+        if not self:
+            if not other:
+                return 0
+            else:
+                return -((-1) ** other._sign)
+        if not other:
+            return (-1) ** self._sign
+
+        # If different signs, neg one is less
+        if other._sign < self._sign:
+            return -1
+        if self._sign < other._sign:
+            return 1
+
+        self_se = Binary.to_simple_exponential(self)
+        other_se = Binary.to_simple_exponential(other)
+        self_adjusted = self_se._adjusted()
+        other_adjusted = other_se._adjusted()
+        if self_adjusted == other_adjusted:
+            self_sign, self_intpart, _, self_exp = Binary.components(self_se)
+            other_sign, other_intpart, _, other_exp = Binary.components(other_se)
+            self_padded = self_intpart + "0" * (self_exp - other_exp)
+            other_padded = other_intpart + "0" * (other_exp - self_exp)
+            if self_padded == other_padded:
+                return 0
+            elif self_padded < other_padded:
+                return -((-1) ** self._sign)
+            else:
+                return (-1) ** self._sign
+        elif self_adjusted > other_adjusted:
+            return (-1) ** self._sign
+        else:  # self_adjusted < other_adjusted
+            return -((-1) ** self._sign)
+
+    def compare(self: Binary, other: Any) -> Binary:
+        """Compare self to other. Return a Binary value.
+
+        a or b is a NaN ==> Binary('NaN')
+        a < b           ==> Binary('-1')
+        a == b          ==> Binary('0')
+        a > b           ==> Binary('1')
+
+        Parameters:
+        other (str, Binary): object to compare to
+
+        Returns:
+        Binary: -1 s<o, 0 equal, 1 s>o
+        """
+        return Binary(self._cmp(other))
+
+    def __eq__(self: Binary, other: Any) -> int:
+        """Implements equal, implements operand ==.
+
+        See _cmp() for details.
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return False  # see comments in _cmp()
+        return self._cmp(other) == 0
+
+    def __lt__(self, other):
+        """Less than operation.
+
+        Method that implements "<" operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return False  # see comments in _cmp()
+        return self._cmp(other) == -1
+
+    ## TODO Alfred did the revision until here ZZZ
+
+    def __gt__(self, other):
+        """Greater than operation.
+
+        Method that implements ">" operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction > other._fraction
+
+    def __le__(self, other):
+        """Less or equal operation.
+
+        Method that implements "<=" operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction <= other._fraction
+
+    def __ge__(self, other):
+        """Greater or equal operation.
+
+        Method that implements ">=" operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        bool: condition result
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return self._fraction >= other._fraction
+
+    def __add__(self, other):
+        """Add operation.
+
+        Method that implements the * operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: addittion of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction + other._fraction)
+
+    def __sub__(self, other):
+        """Subtract operation.
+
+        Method that implements the - operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: subtraction of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction - other._fraction)
+
+    def __mul__(self, other):
+        """Multiply operation.
+
+        Method that implements the * operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: multiplication of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction * other._fraction)
+
+    def __truediv__(self, other):
+        """True division operation
+
+        Method that implements the / operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: true division of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction / other._fraction)
+
+    def __floordiv__(self, other):
+        """Floor division operation
+
+        Method that implements the // operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: floor division of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction // other._fraction)
+
+    def __mod__(self, other):
+        """Compute modular operation
+
+        Method that implements module, i.e. it returns the integer remainder.
+        Method that implements the % operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: modulation of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        return Binary(self._fraction % other._fraction)
+
+    def __pow__(self, other):
+        """Powwer of operation.
+
+        Method that implements the ** operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Binary): binary number
+
+        Returns:
+        Binary: powwer of the two numbers
+        """
+        if not isinstance(other, Binary) or not isinstance(self, Binary):
+            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        po = self._fraction ** other._fraction
+        # (-3.4)**(-3.4)
+        # (-0.00481896804140973+0.014831258607220378j)
+        # >>> type((-3.4)**(-3.4))
+        # <class 'complex'>
+
+        if isinstance(po, complex):
+            raise ValueError(
+                f"Argument {self} to the power of {other} is a "
+                "complex number which cannot be represented as a Binary."
+            )
+        return Binary(po)
+
+    # TODO: for testing pow
+    # (-3.4)**(-3.4) should raise Exception
+    # (-3.4)**(-4.0) should work
+    # (-3.4)**(+3.4) should raise Exception
+    # (-3.4)**(+4.0) should work
+    # (+3.4)**(+3.4) should work
+    # (+3.4)**(-3.4) should work
+
+    def __abs__(self):
+        """Compute absolute value.
+
+        Method that implements absolute value, i.e. the positive value.
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: Absolute of the number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(abs(self._fraction))
+
+    def __ceil__(self):
+        """Perform math ceiling operation.
+
+        Method that implements ceiling. Method for "ceil".
+        For example, '1.11' will return '10'.
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: ceiling of the number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(math.ceil(self._fraction))
+
+    def __floor__(self):
+        """Perform math floor operation.
+
+        Method that implements floor.
+        For example, '1.11' will return '1'.
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        Binary: floor of the number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return Binary(math.floor(self._fraction))
+
+    def __rshift__(self, ndigits: int):
+        """Shifts number n digits (bits) to the right.
+
+        Method that implementes >> operand.
+
+        As example, shifting right by 1, divides the number by 2.
+        The string representation will be changed as little as possible.
+        If the string representation is in exponential form it will remain in
+        exponential form. If the string representation is in non-exponential form,
+        it will remain in non-exponential form, i.e. only the decimal point will be
+        moved to the left.
+
+        Parameters:
+        self (Binary): number to be shifted
+        ndigits (int): number of digits to be shifted right
+
+        Returns:
+        Binary: right shifted number
+        """
+        if not isinstance(self, Binary) or not isinstance(ndigits, int):
+            raise TypeError(
+                f"Arguments {self} {ndigits} must be of type Binary and int."
+            )
+        if ndigits < 0:
+            raise ValueError(f"negative shift count")
+
+        if _EXP in self._value:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            shifted = (
+                sign * "-"
+                + intpart
+                + "."
+                + (fracpart if len(fracpart) > 0 else "0")
+                + _EXP
+                + str(exp - ndigits)
+            )
+        else:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            if ndigits >= len(intpart):
+                intpart = (ndigits - len(intpart) + 1) * "0" + intpart
+
+            shifted_intpart = sign * "-" + intpart[: len(intpart) - ndigits] + "."
+            shifted_fracpart = intpart[len(intpart) - ndigits :] + fracpart
+            shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
+        return Binary(shifted)
+
+    def __lshift__(self, ndigits: int):
+        """Shifts number n digits (bits) to the left.
+
+        Method that implementes << operand.
+
+        As example, shifting left by 1, multiplies the number by 2.
+        The string representation will be changed as little as possible.
+        If the string representation is in exponential form it will remain in
+        exponential form. If the string representation is in non-exponential form,
+        it will remain in non-exponential form, i.e. only the decimal point will be
+        moved to the right.
+
+        Parameters:
+        self (Binary): number to be shifted
+        ndigits (int): number of digits to be shifted left
+
+        Returns:
+        Binary: left shifted number
+        """
+        if not isinstance(self, Binary) or not isinstance(ndigits, int):
+            raise TypeError(
+                f"Arguments {self} {ndigits} must be of type Binary and int."
+            )
+        if ndigits < 0:
+            raise ValueError(f"negative shift count")
+        if "e" in self._value:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            shifted = (
+                sign * "-"
+                + intpart
+                + "."
+                + (fracpart if len(fracpart) > 0 else "0")
+                + "e"
+                + str(exp + ndigits)
+            )
+        else:
+            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            if ndigits >= len(fracpart):
+                fracpart += (ndigits - len(fracpart) + 1) * "0"
+            shifted_intpart = (
+                sign * "-" + (intpart + fracpart[:ndigits]).lstrip("0") + "."
+            )
+            shifted_intpart = "0." if len(shifted_intpart) <= 1 else shifted_intpart
+            shifted_fracpart = fracpart[ndigits:]
+            shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
+        return Binary(shifted)
+
+    def rrotate(self, ndigits: int):
+        # # TODO:
+        return None  # TODO
+
+    def lrotate(self, ndigits: int):
+        # # TODO:
+        return None  # TODO
+
+    def __bool__(self):
+        """Boolean transformation. Used for not operand.
+
+        Method that implements boolian operation "not".
+
+        Parameters:
+        self (Binary): binary number
+
+        Returns:
+        bool: boolean transformation of the number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return bool(self._fraction)
+
+    def __and__(self, other):
+        """Return the bitwise and of self and other.
+
+        Method that implements the & operand.
+
+        For example, '11.1' ^ '10.1' will return '10.1'
+
+        Parameters:
+        self (Binary): number
+        other (Binary): number
+
+        Returns:
+        Binary: bitwise and of the two numbers
+        """
+        return Binary.and_or(
+            self, other, "and"
+        )  # TODO , do you really need the and_or function?
+
+    def __or__(self, other):
+        """Return the bitwise or of self and other.
+
+        Method that implements the | operand.
+
+        For example, '11.1' ^ '10.1' will return '11.1'
+
+        Parameters:
+        self (Binary): number
+        other (Binary): number
+
+        Returns:
+        Binary: bitwise or of the two numbers
+        """
+        # TODO needs to be implemented
+        return Binary._or(self, other)  # TODO
+
+    def _or(self, other):
+        # TODO needs to be implemented
+        return None  # TODO
+
+    # is this necessary? can't we just call the corresponding function from Fractions?
+    # can't we just call binary operands on Fractions and not implement anything?
+    def and_or(this, other, which):  # TODO is this function still used? Still needed?
+        """Shifts number to the left n times # TODO
+
+        This is a function, not a method.
+
+        Parameters:
+        self (Binary): number to be shifted  # TODO
+        ndigits (int): numner times to be shifted # TODO
+
+        Returns:
+        Binary: shifted number # TODO
+        """
+        # TODO: make this work with negative numbers
+        if not isinstance(this, Binary) or not isinstance(other, Binary):
+            raise TypeError(
+                f"Arguments {this} {other} must be of type Binary and Binary."
+            )
+        sign1, intpart1, fracpart1, exp1 = this.components()
+        sign2, intpart2, fracpart2, exp2 = other.components()
+        # print("Fracpart: ", fracpart1, fracpart2)
+
+        def operation(a, b, li):
+            number = ""
+            for i in range(li):
+                if which == "and":
+                    if a[i] == b[i]:
+                        number += a[i]
+                    else:
+                        number += "0"
+                elif which == "or":
+                    if int(a[i]) or int(b[i]):
+                        number += "1"
+                    else:
+                        number += "0"
+            return number
+
+        if sign1 == 0 and sign2 == 0:
+            intl = len(intpart1) if len(intpart1) > len(intpart2) else len(intpart2)
+            fracl = (
+                len(fracpart1) if len(fracpart1) > len(fracpart2) else len(fracpart2)
+            )
+            intpart1 = (intl - len(intpart1)) * "0" + intpart1
+            intpart2 = (intl - len(intpart2)) * "0" + intpart2
+            fracpart1 = fracpart1 + (fracl - len(fracpart1)) * "0"
+            fracpart2 = fracpart2 + (fracl - len(fracpart2)) * "0"
+
+            result = operation(intpart1, intpart2, intl)
+            if len(result) > 1 and int(result) == 0:
+                result = "0"
+            result += "."
+            result += operation(fracpart1, fracpart2, fracl)
+
+        else:  # TODO: this looks buggy: nothing to do for negative numbers?
+            result = "0"
+        return Binary(Binary.simplify(result))
+
+    def __xor__(self, other):
+        """Return the bitwise or of self and other.
+
+        Method that implements the ^ operand.
+
+        For example, '11.1' ^ '10.1' will return '11.1'
+
+        Parameters:
+        self (Binary): number
+        other (Binary): number
+
+        Returns:
+        Binary: bitwise exclusive or of the two numbers
+        """
+        # remove exponent on both args, operate on strings
+        # TODO needs to be implemented
+        return None  # TODO
+
+    def __not__(self) -> bool:
+        """Return the 'boolean not' of self.
+
+        Method that implements the 'not' operand.
+        Do not confuse it with the 'bitwise not' operand ~.
+
+        If self is 0, then method returns True.
+        For all other values it returns False.
+
+        For example: not Binary(0) returns True.
+        For example: not Binary(3.5) returns False.
+
+        Parameters:
+        self (Binary): number
+
+        Returns:
+        Binary: 'boolean not' of number
+        """
+        # for integers it is defined as -(x+1). So ~9 is -10.
+        return not self._fraction
+
+    def __invert__(self):
+        """Return the 'bitwise not' of self.
+
+        Method that implements the ~ operand.
+        This is also called the 'invert' operand, or the 'bitwise not' operand.
+
+        It is only defined for integers. If self is not an integer it
+        will raise an exception. For integers ~ is defined as
+        ~n = -(n+1). For example, ~9 will return -10. ~-10 will return 9.
+        For more information, see also the invert() function.
+
+        Parameters:
+        self (Binary): number
+
+        Returns:
+        Binary: 'bitwise not' of integer number
+        """
+        # for integers it is defined as -(x+1). So ~9 is -10.
+        if Binary.isint(self):
+            # for integers ~ is defined as: ~n = - (n+1) formula
+            return Binary(-(self._fraction + 1))
+        else:
+            # For floating point numbers ~ is not defined. What would ~0.5 be?
+            # It could be implemented but only if the number of fractional bits is
+            # known and managed.
+            # ~ of floats would be very difficult to understand and get right as a
+            # user. To avoid user error and to avoid introducing ndigits for
+            # number of fractional bits it is better to force the user to convert
+            # to a twos-complement string and invert (~) this twos-complement formatted
+            # string. This avoids to computation of a number representation (float) of
+            # an inverted (~) float.
+
+            raise ValueError(
+                f"Invalid literal for Binary: {self._value}. "
+                "~ operand only allowed on integers or fractions. "
+                "To perform ~ on Binary, convert it to two's complement string"
+                "and then perform invert() on that string. In short, do this: "
+                "Binary.invert(Binary.to_twoscomplement(value))."
+            )
 
     def invert(value: str, strict=True) -> str:
         """Inverts (bitwise negates) string that is in twos-complement format.
@@ -1880,620 +2578,6 @@ class Binary(object):
             result += f"e{exp}"
         return result
 
-    def compare_representation(self, other):
-        """Compare representation of self to representation of other string.
-
-        Does NOT compare values! '1.1' does NOT equal to '11e-1' !
-        Only '11e-1' equals to '11e-1' !
-        Returns integer.
-
-        Parameters:
-        other (str, Binary): object to compare to
-
-        Returns:
-        int: -1 s<o, 0 equal, 1 s>o
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        # compare representation to another Binary
-        if isinstance(other, Binary):
-            return str(self._value) == str(other._value)
-        if isinstance(other, str):
-            return str(self._value) == other
-        else:
-            return str(self._value) == str(other)
-
-    def __repr__(self):
-        """Represent self."""
-        return (
-            f"{self.__class__.__name__}"
-            + f"({self._value}, {self._sign}, {self._is_special})"
-        )
-
-    def no_prefix(value):
-        """Remove prefix '0b' from string representation.
-
-        A utility function.
-        Return format is e.g. -101.101e-23.
-
-        Parameters:
-        value (str): string from where to remove prefix
-
-        Returns:
-        str: without prefix
-        """
-        return value.replace(_PREFIX, "")
-
-    def np(self):  # no prefix
-        """Return string representation with prefix '0b' removed.
-
-        Method implements the string conversion without prefix.
-        Return format is e.g. -101.101e-23.
-        Note that there is no '0b' prefix.
-
-        Parameters:
-        none
-
-        Returns:
-        str: without prefix
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        return str(self._value)
-
-    def __str__(self) -> str:
-        """Stringify self.
-
-        Method that implements the string conversion.
-        Return format is e.g. -0b101.101e-23.
-        Note the prefix of '0b'.
-
-        Parameters:
-        none
-
-        Returns:
-        str: string representation with prefix '0b'
-        """
-        if self._sign:
-            return "-" + _PREFIX + self._value[1:]
-        else:
-            return _PREFIX + self._value
-
-    def __add__(self, other):
-        """Add operation.
-
-        Method that implements the * operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: addittion of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return Binary(self._fraction + other._fraction)
-
-    def __sub__(self, other):
-        """Subtract operation.
-
-        Method that implements the - operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: subtraction of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return Binary(self._fraction - other._fraction)
-
-    def __mul__(self, other):
-        """Multiply operation.
-
-        Method that implements the * operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: multiplication of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return Binary(self._fraction * other._fraction)
-
-    def __truediv__(self, other):
-        """True division operation
-
-        Method that implements the / operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: true division of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return Binary(self._fraction / other._fraction)
-
-    def __floordiv__(self, other):
-        """Floor division operation
-
-        Method that implements the // operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: floor division of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return Binary(self._fraction // other._fraction)
-
-    def __mod__(self, other):
-        """Compute modular operation
-
-        Method that implements module, i.e. it returns the integer remainder.
-        Method that implements the % operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: modulation of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return Binary(self._fraction % other._fraction)
-
-    def __pow__(self, other):
-        """Powwer of operation.
-
-        Method that implements the ** operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        Binary: powwer of the two numbers
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        po = self._fraction ** other._fraction
-        # (-3.4)**(-3.4)
-        # (-0.00481896804140973+0.014831258607220378j)
-        # >>> type((-3.4)**(-3.4))
-        # <class 'complex'>
-
-        if isinstance(po, complex):
-            raise ValueError(
-                f"Argument {self} to the power of {other} is a "
-                "complex number which cannot be represented as a Binary."
-            )
-        return Binary(po)
-
-    # TODO: for testing pow
-    # (-3.4)**(-3.4) should raise Exception
-    # (-3.4)**(-4.0) should work
-    # (-3.4)**(+3.4) should raise Exception
-    # (-3.4)**(+4.0) should work
-    # (+3.4)**(+3.4) should work
-    # (+3.4)**(-3.4) should work
-
-    def __abs__(self):
-        """Compute absolute value.
-
-        Method that implements absolute value, i.e. the positive value.
-
-        Parameters:
-        self (Binary): binary number
-
-        Returns:
-        Binary: Absolute of the number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(abs(self._fraction))
-
-    def __ceil__(self):
-        """Perform math ceiling operation.
-
-        Method that implements ceiling. Method for "ceil".
-        For example, '1.11' will return '10'.
-
-        Parameters:
-        self (Binary): binary number
-
-        Returns:
-        Binary: ceiling of the number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(math.ceil(self._fraction))
-
-    def __floor__(self):
-        """Perform math floor operation.
-
-        Method that implements floor.
-        For example, '1.11' will return '1'.
-
-        Parameters:
-        self (Binary): binary number
-
-        Returns:
-        Binary: floor of the number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(math.floor(self._fraction))
-
-    def __lt__(self, other):
-        """Less than operation.
-
-        Method that implements "<" operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        bool: condition result
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction < other._fraction
-
-    def __gt__(self, other):
-        """Greater than operation.
-
-        Method that implements ">" operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        bool: condition result
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction > other._fraction
-
-    def __le__(self, other):
-        """Less or equal operation.
-
-        Method that implements "<=" operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        bool: condition result
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction <= other._fraction
-
-    def __ge__(self, other):
-        """Greater or equal operation.
-
-        Method that implements ">=" operand.
-
-        Parameters:
-        self (Binary): binary number
-        other (Binary): binary number
-
-        Returns:
-        bool: condition result
-        """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction >= other._fraction
-
-    def __bool__(self):
-        """Boolean transformation. Used for not operand.
-
-        Method that implements boolian operation "not".
-
-        Parameters:
-        self (Binary): binary number
-
-        Returns:
-        bool: boolean transformation of the number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        return bool(self._fraction)
-
-    def __and__(self, other):
-        """Return the bitwise and of self and other.
-
-        Method that implements the & operand.
-
-        For example, '11.1' ^ '10.1' will return '10.1'
-
-        Parameters:
-        self (Binary): number
-        other (Binary): number
-
-        Returns:
-        Binary: bitwise and of the two numbers
-        """
-        return Binary.and_or(
-            self, other, "and"
-        )  # TODO , do you really need the and_or function?
-
-    def __or__(self, other):
-        """Return the bitwise or of self and other.
-
-        Method that implements the | operand.
-
-        For example, '11.1' ^ '10.1' will return '11.1'
-
-        Parameters:
-        self (Binary): number
-        other (Binary): number
-
-        Returns:
-        Binary: bitwise or of the two numbers
-        """
-        # TODO needs to be implemented
-        return Binary._or(self, other)  # TODO
-
-    def _or(self, other):
-        # TODO needs to be implemented
-        return None  # TODO
-
-    def __xor__(self, other):
-        """Return the bitwise or of self and other.
-
-        Method that implements the ^ operand.
-
-        For example, '11.1' ^ '10.1' will return '11.1'
-
-        Parameters:
-        self (Binary): number
-        other (Binary): number
-
-        Returns:
-        Binary: bitwise exclusive or of the two numbers
-        """
-        # remove exponent on both args, operate on strings
-        # TODO needs to be implemented
-        return None  # TODO
-
-    def __not__(self) -> bool:
-        """Return the 'boolean not' of self.
-
-        Method that implements the 'not' operand.
-        Do not confuse it with the 'bitwise not' operand ~.
-
-        If self is 0, then method returns True.
-        For all other values it returns False.
-
-        For example: not Binary(0) returns True.
-        For example: not Binary(3.5) returns False.
-
-        Parameters:
-        self (Binary): number
-
-        Returns:
-        Binary: 'boolean not' of number
-        """
-        # for integers it is defined as -(x+1). So ~9 is -10.
-        return not self._fraction
-
-    def __invert__(self):
-        """Return the 'bitwise not' of self.
-
-        Method that implements the ~ operand.
-        This is also called the 'invert' operand, or the 'bitwise not' operand.
-
-        It is only defined for integers. If self is not an integer it
-        will raise an exception. For integers ~ is defined as
-        ~n = -(n+1). For example, ~9 will return -10. ~-10 will return 9.
-        For more information, see also the invert() function.
-
-        Parameters:
-        self (Binary): number
-
-        Returns:
-        Binary: 'bitwise not' of integer number
-        """
-        # for integers it is defined as -(x+1). So ~9 is -10.
-        if Binary.isint(self):
-            # for integers ~ is defined as: ~n = - (n+1) formula
-            return Binary(-(self._fraction + 1))
-        else:
-            # For floating point numbers ~ is not defined. What would ~0.5 be?
-            # It could be implemented but only if the number of fractional bits is
-            # known and managed.
-            # ~ of floats would be very difficult to understand and get right as a
-            # user. To avoid user error and to avoid introducing ndigits for
-            # number of fractional bits it is better to force the user to convert
-            # to a twos-complement string and invert (~) this twos-complement formatted
-            # string. This avoids to computation of a number representation (float) of
-            # an inverted (~) float.
-
-            raise ValueError(
-                f"Invalid literal for Binary: {self._value}. "
-                "~ operand only allowed on integers or fractions. "
-                "To perform ~ on Binary, convert it to two's complement string"
-                "and then perform invert() on that string. In short, do this: "
-                "Binary.invert(Binary.to_twoscomplement(value))."
-            )
-
-    def __rshift__(self, ndigits: int):
-        """Shifts number n digits (bits) to the right.
-
-        Method that implementes >> operand.
-
-        As example, shifting right by 1, divides the number by 2.
-        The string representation will be changed as little as possible.
-        If the string representation is in exponential form it will remain in
-        exponential form. If the string representation is in non-exponential form,
-        it will remain in non-exponential form, i.e. only the decimal point will be
-        moved to the left.
-
-        Parameters:
-        self (Binary): number to be shifted
-        ndigits (int): number of digits to be shifted right
-
-        Returns:
-        Binary: right shifted number
-        """
-        if not isinstance(self, Binary) or not isinstance(ndigits, int):
-            raise TypeError(
-                f"Arguments {self} {ndigits} must be of type Binary and int."
-            )
-        if ndigits < 0:
-            raise ValueError(f"negative shift count")
-
-        if _EXP in self._value:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
-            shifted = (
-                sign * "-"
-                + intpart
-                + "."
-                + (fracpart if len(fracpart) > 0 else "0")
-                + _EXP
-                + str(exp - ndigits)
-            )
-        else:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
-            if ndigits >= len(intpart):
-                intpart = (ndigits - len(intpart) + 1) * "0" + intpart
-
-            shifted_intpart = sign * "-" + intpart[: len(intpart) - ndigits] + "."
-            shifted_fracpart = intpart[len(intpart) - ndigits :] + fracpart
-            shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
-        return Binary(shifted)
-
-    def __lshift__(self, ndigits: int):
-        """Shifts number n digits (bits) to the left.
-
-        Method that implementes << operand.
-
-        As example, shifting left by 1, multiplies the number by 2.
-        The string representation will be changed as little as possible.
-        If the string representation is in exponential form it will remain in
-        exponential form. If the string representation is in non-exponential form,
-        it will remain in non-exponential form, i.e. only the decimal point will be
-        moved to the right.
-
-        Parameters:
-        self (Binary): number to be shifted
-        ndigits (int): number of digits to be shifted left
-
-        Returns:
-        Binary: left shifted number
-        """
-        if not isinstance(self, Binary) or not isinstance(ndigits, int):
-            raise TypeError(
-                f"Arguments {self} {ndigits} must be of type Binary and int."
-            )
-        if ndigits < 0:
-            raise ValueError(f"negative shift count")
-        if "e" in self._value:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
-            shifted = (
-                sign * "-"
-                + intpart
-                + "."
-                + (fracpart if len(fracpart) > 0 else "0")
-                + "e"
-                + str(exp + ndigits)
-            )
-        else:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
-            if ndigits >= len(fracpart):
-                fracpart += (ndigits - len(fracpart) + 1) * "0"
-            shifted_intpart = (
-                sign * "-" + (intpart + fracpart[:ndigits]).lstrip("0") + "."
-            )
-            shifted_intpart = "0." if len(shifted_intpart) <= 1 else shifted_intpart
-            shifted_fracpart = fracpart[ndigits:]
-            shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
-        return Binary(shifted)
-
-    def rrotate(self, ndigits: int):
-        # # TODO:
-        return None  # TODO
-
-    def lrotate(self, ndigits: int):
-        # # TODO:
-        return None  # TODO
-
-    # is this necessary? can't we just call the corresponding function from Fractions?
-    # can't we just call binary operands on Fractions and not implement anything?
-    def and_or(this, other, which):  # TODO is this function still used? Still needed?
-        """Shifts number to the left n times # TODO
-
-        This is a function, not a method.
-
-        Parameters:
-        self (Binary): number to be shifted  # TODO
-        ndigits (int): numner times to be shifted # TODO
-
-        Returns:
-        Binary: shifted number # TODO
-        """
-        # TODO: make this work with negative numbers
-        if not isinstance(this, Binary) or not isinstance(other, Binary):
-            raise TypeError(
-                f"Arguments {this} {other} must be of type Binary and Binary."
-            )
-        sign1, intpart1, fracpart1, exp1 = this.components()
-        sign2, intpart2, fracpart2, exp2 = other.components()
-        # print("Fracpart: ", fracpart1, fracpart2)
-
-        def operation(a, b, li):
-            number = ""
-            for i in range(li):
-                if which == "and":
-                    if a[i] == b[i]:
-                        number += a[i]
-                    else:
-                        number += "0"
-                elif which == "or":
-                    if int(a[i]) or int(b[i]):
-                        number += "1"
-                    else:
-                        number += "0"
-            return number
-
-        if sign1 == 0 and sign2 == 0:
-            intl = len(intpart1) if len(intpart1) > len(intpart2) else len(intpart2)
-            fracl = (
-                len(fracpart1) if len(fracpart1) > len(fracpart2) else len(fracpart2)
-            )
-            intpart1 = (intl - len(intpart1)) * "0" + intpart1
-            intpart2 = (intl - len(intpart2)) * "0" + intpart2
-            fracpart1 = fracpart1 + (fracl - len(fracpart1)) * "0"
-            fracpart2 = fracpart2 + (fracl - len(fracpart2)) * "0"
-
-            result = operation(intpart1, intpart2, intl)
-            if len(result) > 1 and int(result) == 0:
-                result = "0"
-            result += "."
-            result += operation(fracpart1, fracpart2, fracl)
-
-        else:  # TODO: this looks buggy: nothing to do for negative numbers?
-            result = "0"
-        return Binary(Binary.simplify(result))
-
 
 ##########################################################################
 # CLASS TESTBINARY
@@ -2619,6 +2703,105 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(int(Binary(13.0 + 2 ** -30)), 13)
         with self.assertRaises(ValueError):
             int(Binary("Inf"))  # should fail
+
+    def test___str__(self):
+        """Test __str__() method."""
+        self.assertEqual(str(Binary("-1")), "-0b1")
+        self.assertEqual(str(Binary("-1.111")), "-0b1.111")
+        self.assertEqual(str(Binary("1.001")), "0b1.001")
+        self.assertEqual(str(Binary((1, (1, 0, 1, 0), -2))), "-0b1010e-2")
+        self.assertEqual(str(Binary(-13.0 - 2 ** -10)), "-0b1101.0000000001")
+        self.assertEqual(str(Binary(13.0 + 2 ** -20)), "0b1101.00000000000000000001")
+        self.assertEqual(
+            str(Binary(13.0 + 2 ** -30)), "0b1101.000000000000000000000000000001"
+        )
+        self.assertEqual(str(Binary("Nan")), _NAN)
+        self.assertEqual(str(Binary("inf")), _INF)
+        self.assertEqual(str(Binary("-inf")), _NINF)
+        with self.assertRaises(ValueError):
+            str(Binary("Info"))  # should fail
+
+    def test_compare_representation(self):
+        """Test function/method."""
+        self.assertEqual(
+            Binary(10.10).compare_representation(
+                "1010.0001100110011001100110011001100110011001100110011"
+            ),
+            True,
+        )
+        self.assertEqual(Binary("10.111").compare_representation("10.111"), True)
+        self.assertEqual(Binary(5).compare_representation("101"), True)
+        self.assertEqual(
+            Binary(8.3).compare_representation(
+                "1000.010011001100110011001100110011001100110011001101"
+            ),
+            True,
+        )
+        self.assertEqual(Binary(0.0).compare_representation("0"), True)
+        self.assertEqual(Binary(1.0).compare_representation("1"), True)
+        self.assertEqual(Binary(3.5).compare_representation("11.1"), True)
+        self.assertEqual(Binary(-13.75).compare_representation("-1101.11"), True)
+        self.assertEqual(
+            Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
+        )
+        self.assertEqual(
+            Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
+            True,
+        )
+        self.assertEqual(
+            Binary(13.0 + 2 ** -30).compare_representation(
+                "1101.000000000000000000000000000001"
+            ),
+            True,
+        )
+        self.assertEqual(
+            Binary(13.0 + 2 ** -40).compare_representation(
+                "1101.0000000000000000000000000000000000000001"
+            ),
+            True,
+        )
+        self.assertEqual(Binary(13.0 + 2 ** -50).compare_representation("1101"), True)
+        self.assertEqual(Binary(13.0 + 2 ** -60).compare_representation("1101"), True)
+        self.assertEqual(
+            Binary(
+                13.0
+                + 2 ** -10
+                + 2 ** -20
+                + 2 ** -30
+                + 2 ** -40
+                + 2 ** -50
+                + 2 ** -60
+                + 2 ** -70
+            ).compare_representation("1101.0000000001000000000100000000010000000001"),
+            True,
+        )
+        self.assertEqual(Binary("1.1").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.10").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.101").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.11").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.110").round(1).compare_representation("1.1"), True)
+        self.assertEqual(Binary("1.1101").round(1).compare_representation("10"), True)
+        self.assertEqual(Binary("1.1111").round(1).compare_representation("10"), True)
+        with self.assertRaises(TypeError):
+            Binary.compare_representation(1, "1")  # should fail
+
+    def test_no_prefix(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-3.5).no_prefix(), "-11.1")
+        self.assertEqual(Binary.no_prefix(Binary(-3.5)), "-11.1")
+        self.assertEqual(Binary.no_prefix("-11.1"), "-11.1")
+        self.assertEqual(Binary.no_prefix("-0b11.1"), "-11.1")
+        self.assertEqual(Binary.no_prefix("0b11.1"), "11.1")
+        self.assertEqual(Binary.no_prefix("+0b11.1"), "+11.1")
+        with self.assertRaises(TypeError):
+            Binary.no_prefix(1.5)  # should fail, 1 arg too much
+
+    def test_np(self):
+        """Test function/method."""
+        self.assertEqual(Binary(-5.5).np(), "-101.1")
+        self.assertEqual(Binary.np(Binary(-3.5)), "-11.1")
+        with self.assertRaises(TypeError):
+            Binary.np(1.5)  # should fail, 1 arg too much
 
     def test_simplify(self):
         """Test function simplify()."""
@@ -2799,10 +2982,11 @@ class TestBinary(unittest.TestCase):
             Binary.to_fraction("1.1" + "0" * 1000 + "1"),
             Fraction(3 * 2 ** 1001 + 1, 2 ** 1002),
         )
+        self.assertEqual(Binary.to_fraction(Binary("-0.111")), Fraction(-0.875))
         with self.assertRaises(ValueError):
             Binary.to_fraction("102")  # should fail
         with self.assertRaises(TypeError):
-            Binary.to_fraction(Binary(1))  # should fail
+            Binary.to_fraction(1)  # should fail
 
     def test___round__(self):
         """Test function/method for rounding."""
@@ -2861,6 +3045,25 @@ class TestBinary(unittest.TestCase):
             Binary.fill(1, "1")  # should fail
         with self.assertRaises(ValueError):
             Binary(1).fill(-1)  # should fail
+
+    def test_fill_to(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary.fill_to("1", 1), str)
+        self.assertEqual(Binary.fill_to("1.1111", 1), "1.1111")
+        self.assertEqual(Binary.fill_to("1.1111", 4), "1.1111")
+        self.assertEqual(Binary.fill_to("1.1111", 5), "1.11110")
+        self.assertEqual(Binary.fill_to("1.1111", 6), "1.111100")
+        self.assertEqual(Binary.fill_to("1.1111", 1, True), "10.0")
+        self.assertEqual(Binary.fill_to("1.1111", 4, True), "1.1111")
+        self.assertEqual(Binary.fill_to("1.1111", 5, True), "1.11110")
+        self.assertEqual(Binary.fill_to("1.1111", 6, True), "1.111100")
+        self.assertEqual(Binary.fill_to("1.0011", 1, True), "1.0")
+        with self.assertRaises(TypeError):
+            Binary.fill_to(1, "1")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.fill_to("1", -1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.fill_to("-Inf")  # should fail
 
     def test_to_simple_exponential(self):
         """Test function/method."""
@@ -2926,6 +3129,8 @@ class TestBinary(unittest.TestCase):
         )
         with self.assertRaises(TypeError):
             Binary(1).to_simple_exponential(1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary("Nan").to_simple_exponential()  # should fail
 
     def test_to_sci_exponential(self):
         """Test function/method."""
@@ -2972,36 +3177,186 @@ class TestBinary(unittest.TestCase):
         )
         with self.assertRaises(TypeError):
             Binary(1).to_sci_exponential(1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary("Nan").to_sci_exponential()  # should fail
 
-    # TODO: implement to_eng_exponential() (exponent is always a mod 3==0, fraction part is 0,1 or 2 digits long)
-
-    def test_istwoscomplement(self):
+    def test_to_eng_exponential(self):
         """Test function/method."""
-        self.assertEqual(Binary.istwoscomplement("1"), True)
-        self.assertEqual(Binary.istwoscomplement("0b1"), False)
-        self.assertEqual(Binary.istwoscomplement("0b01"), False)
-        self.assertEqual(Binary.istwoscomplement("0"), True)
-        self.assertEqual(Binary.istwoscomplement("1.1"), True)
-        self.assertEqual(Binary.istwoscomplement("0.1"), True)
-        self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
-        self.assertEqual(Binary.istwoscomplement("0.1e8"), True)
-        self.assertEqual(Binary.istwoscomplement("1110.1e-19"), True)
-        self.assertEqual(Binary.istwoscomplement("00001.1e-18"), True)
-        self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
-        self.assertEqual(Binary.istwoscomplement("00.001.1e-18"), False)
-        self.assertEqual(Binary.istwoscomplement("00e001.1e-18"), False)
-        self.assertEqual(Binary.istwoscomplement("8"), False)
-        self.assertEqual(Binary.istwoscomplement("Hello"), False)
-        self.assertEqual(Binary.istwoscomplement(""), False)
-        self.assertEqual(Binary.istwoscomplement("-0b1"), False)
-        self.assertEqual(Binary.istwoscomplement("-0b01"), False)
-        self.assertEqual(Binary.istwoscomplement("-0"), False)
-        self.assertEqual(Binary.istwoscomplement("0b1"), False)
-        self.assertEqual(Binary.istwoscomplement("0b01"), False)
+        self.assertEqual(
+            Binary("101e2").to_eng_exponential().compare_representation("10.1e3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1.1").to_eng_exponential().compare_representation("1.1"), True
+        )
+        self.assertEqual(
+            Binary("-000101e002")
+            .to_eng_exponential()
+            .compare_representation("-10.1e3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-001.100").to_eng_exponential().compare_representation("-1.1"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.01e-2").to_eng_exponential().compare_representation("-100e-6"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.00001e-2")
+            .to_eng_exponential()
+            .compare_representation("-100e-9"),
+            True,
+        )
+        self.assertEqual(
+            Binary("+0.00001e+2").to_eng_exponential().compare_representation("1e-3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.00001010e-2")
+            .to_eng_exponential()
+            .compare_representation("-101e-9"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.00001010e+2")
+            .to_eng_exponential()
+            .compare_representation("-1.01e-3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1.1").to_eng_exponential().compare_representation("1.1"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1.1111").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("100.1111").to_eng_exponential().compare_representation("100.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1000.1111")
+            .to_eng_exponential()
+            .compare_representation("1.0001111e3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1").to_eng_exponential().compare_representation("1"),
+            True,
+        )
+        self.assertEqual(
+            Binary("10").to_eng_exponential().compare_representation("10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("100").to_eng_exponential().compare_representation("100"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1000").to_eng_exponential().compare_representation("1e3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("10000").to_eng_exponential().compare_representation("10e3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("100000").to_eng_exponential().compare_representation("100e3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1000000").to_eng_exponential().compare_representation("1e6"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1.1111").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("10.1111").to_eng_exponential().compare_representation("10.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("100.1111").to_eng_exponential().compare_representation("100.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1000.1111").to_eng_exponential().compare_representation("1e3.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("10000.1111")
+            .to_eng_exponential()
+            .compare_representation("10e3.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("100000.1111")
+            .to_eng_exponential()
+            .compare_representation("100e3.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1000000.1111")
+            .to_eng_exponential()
+            .compare_representation("1e6.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1.1111e0").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("11.111e-1").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("111.11e-2").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1111.1e-3").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("11111.e-4").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".11111e1").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".011111e2").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".0011111e3").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.01e-2").to_eng_exponential().compare_representation("-1e-3"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001e-4" == -0.00000001)
+            .to_eng_exponential()
+            .compare_representation("-10e-9"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001111e-4" == -0.00000001111)
+            .to_eng_exponential()
+            .compare_representation("-11.11e-9"),
+            True,
+        )
         with self.assertRaises(TypeError):
-            Binary.istwoscomplement(1975)  # should fail
-        with self.assertRaises(TypeError):
-            Binary.istwoscomplement(1.1)  # should fail
+            Binary(1).to_eng_exponential(1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary("Nan").to_eng_exponential()  # should fail
 
     def test_get_components(self):
         """Test function/method."""
@@ -3146,23 +3501,44 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary("Nan").isint(), False)
         self.assertEqual(Binary("10.1").isint(), False)
 
-    def test__cmp(self):
+    def test_istwoscomplement(self):
         """Test function/method."""
-        # ZZZ
-        # TODO to be written
-        self.assertEqual(Binary("-0.01e-2") == Binary("-1e-4"), True)
-        with self.assertRaises(ValueError):
-            Binary("-0.01e-2") == "102"  # should fail
+        self.assertEqual(Binary.istwoscomplement("1"), True)
+        self.assertEqual(Binary.istwoscomplement("0b1"), False)
+        self.assertEqual(Binary.istwoscomplement("0b01"), False)
+        self.assertEqual(Binary.istwoscomplement("0"), True)
+        self.assertEqual(Binary.istwoscomplement("1.1"), True)
+        self.assertEqual(Binary.istwoscomplement("0.1"), True)
+        self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
+        self.assertEqual(Binary.istwoscomplement("0.1e8"), True)
+        self.assertEqual(Binary.istwoscomplement("1110.1e-19"), True)
+        self.assertEqual(Binary.istwoscomplement("00001.1e-18"), True)
+        self.assertEqual(Binary.istwoscomplement("1.1e9"), True)
+        self.assertEqual(Binary.istwoscomplement("00.001.1e-18"), False)
+        self.assertEqual(Binary.istwoscomplement("00e001.1e-18"), False)
+        self.assertEqual(Binary.istwoscomplement("8"), False)
+        self.assertEqual(Binary.istwoscomplement("Hello"), False)
+        self.assertEqual(Binary.istwoscomplement(""), False)
+        self.assertEqual(Binary.istwoscomplement("-0b1"), False)
+        self.assertEqual(Binary.istwoscomplement("-0b01"), False)
+        self.assertEqual(Binary.istwoscomplement("-0"), False)
+        self.assertEqual(Binary.istwoscomplement("0b1"), False)
+        self.assertEqual(Binary.istwoscomplement("0b01"), False)
+        self.assertEqual(Binary.istwoscomplement("inf"), False)
         with self.assertRaises(TypeError):
-            Binary("-0.01e-2") == complex(1, 1)  # should fail
+            Binary.istwoscomplement(1975)  # should fail
+        with self.assertRaises(TypeError):
+            Binary.istwoscomplement(1.1)  # should fail
 
-    def test___eq__(self):
+    def test_fraction(self):
         """Test function/method."""
-        self.assertEqual(Binary("-0.01e-2") == Binary("-1e-4"), True)
-        with self.assertRaises(ValueError):
-            Binary("-0.01e-2") == "102"  # should fail
-        with self.assertRaises(TypeError):
-            Binary("-0.01e-2") == complex(1, 1)  # should fail
+        self.assertEqual(isinstance(Binary(0).fraction(), Fraction), True)
+        self.assertEqual(isinstance(Binary("0").fraction(), Fraction), True)
+
+    def test_value(self):
+        """Test function/method."""
+        self.assertEqual(isinstance(Binary(0).value(), str), True)
+        self.assertEqual(isinstance(Binary("0").value(), str), True)
 
     def test_fraction_to_string(self):
         """Test function/method."""
@@ -3226,6 +3602,80 @@ class TestBinary(unittest.TestCase):
         )
         with self.assertRaises(TypeError):
             Binary.fraction_to_string(Binary(1))  # should fail
+
+    def test_isclose(self):
+        """Test function/method."""
+        # TODO: test cases to be written
+        # ZZZ
+        None
+
+    def test___eq__(self):
+        """Test function/method."""
+        # indirect test of test__cmp()
+        self.assertEqual(Binary("inf") == Binary("infinity"), True)
+        self.assertEqual(Binary("-inf") == Binary("-infinity"), True)
+        self.assertEqual(Binary("nan") == 1, False)
+        self.assertEqual(Binary("nan") == "NaN", False)
+        self.assertEqual(Binary("nan") == Binary("nan"), False)
+        self.assertEqual(Binary("nan") == Binary("inf"), False)
+        self.assertEqual(Binary("-inf") == Binary("infinity"), False)
+        self.assertEqual(Binary("-0.01e-2") == Binary("-1e-4"), True)
+        self.assertEqual(Binary("-0.01e-2") == Binary(Fraction(-1, 16)), True)
+        self.assertEqual(Binary("+1.1") == Binary(Fraction(3, 2)), True)
+        self.assertEqual(Binary("+1.1") == Fraction(3, 2), True)
+        self.assertEqual(Binary("+1.1") == (3 / 2), True)
+        self.assertEqual(Binary("+1.1") == 1.5, True)
+        self.assertEqual(Binary("+1.0") == 1, True)
+        self.assertEqual(Binary("+1.0e+1") == 2, True)
+        self.assertEqual(Binary("-100.0e-1") == -2, True)
+        self.assertEqual(Binary("+1.1") == Binary(Fraction(4, 2)), False)
+        self.assertEqual(Binary("+1.1") == Fraction(4, 2), False)
+        self.assertEqual(Binary("+1.1") == (4 / 2), False)
+        self.assertEqual(Binary("+1.1") == 2.5, False)
+        self.assertEqual(Binary("+1.0") == 2, False)
+        self.assertEqual(Binary("+1.0e+1") == 3, False)
+        self.assertEqual(Binary("-100.0e-1") == 4, False)
+        self.assertEqual(Binary("0.000000000000000101") == Fraction(5, 2 ** 18), True)
+        with self.assertRaises(ArithmeticError):
+            Binary._cmp(Binary("Nan"), "Nan")  # should fail
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") == "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") == complex(1, 1)  # should fail
+
+    def test___lt__(self):
+        """Test function/method."""
+        # indirect test of test__cmp()
+        self.assertEqual(Binary("inf") < Binary("infinity"), False)
+        self.assertEqual(Binary("-inf") < Binary("-infinity"), False)
+        self.assertEqual(Binary("nan") < 1, False)
+        self.assertEqual(Binary("nan") < "NaN", False)
+        self.assertEqual(Binary("nan") < Binary("nan"), False)
+        self.assertEqual(Binary("nan") < Binary("inf"), False)
+        self.assertEqual(Binary("-inf") < Binary("inf"), True)
+        self.assertEqual(Binary("-0.0101e-2") < Binary("-1.0e-4"), True)
+        self.assertEqual(Binary("-0.01e-2") < Binary(Fraction(-0, 16)), True)
+        self.assertEqual(Binary("+1.1") < Binary(Fraction(4, 2)), True)
+        self.assertEqual(Binary("+1.1") < Fraction(4, 2), True)
+        self.assertEqual(Binary("+1.1") < (4 / 2), True)
+        self.assertEqual(Binary("+1.1") < 1.6, True)
+        self.assertEqual(Binary("+1.0") < 1.01, True)
+        self.assertEqual(Binary("+1.0e+1") < 2.2, True)
+        self.assertEqual(Binary("-100.0e-1") < -1.2, True)
+        self.assertEqual(Binary("+1.1") < Binary(Fraction(1, 2)), False)
+        self.assertEqual(Binary("+1.1") < Fraction(1, 2), False)
+        self.assertEqual(Binary("+1.1") < (1 / 2), False)
+        self.assertEqual(Binary("+1.1") < 0.5, False)
+        self.assertEqual(Binary("+1.0") < 0.5, False)
+        self.assertEqual(Binary("+1.0e+1") < 1, False)
+        self.assertEqual(Binary("-100.0e-1") < -13, False)
+        self.assertEqual(Binary("0.000000000000000101") < Fraction(6, 2 ** 18), True)
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") < "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") < complex(1, 1)  # should fail
+
+    # ZZZ
 
     def test_invert(self):
         """Test function/method."""
@@ -3308,76 +3758,6 @@ class TestBinary(unittest.TestCase):
             Binary.from_twoscomplement("102")  # should fail
         with self.assertRaises(TypeError):
             Binary.from_twoscomplement(Binary(1))  # should fail
-
-    def test_compare_representation(self):
-        """Test function/method."""
-        self.assertEqual(
-            Binary(10.10).compare_representation(
-                "1010.0001100110011001100110011001100110011001100110011"
-            ),
-            True,
-        )
-        self.assertEqual(Binary("10.111").compare_representation("10.111"), True)
-        self.assertEqual(Binary(5).compare_representation("101"), True)
-        self.assertEqual(
-            Binary(8.3).compare_representation(
-                "1000.010011001100110011001100110011001100110011001101"
-            ),
-            True,
-        )
-        self.assertEqual(Binary(0.0).compare_representation("0"), True)
-        self.assertEqual(Binary(1.0).compare_representation("1"), True)
-        self.assertEqual(Binary(3.5).compare_representation("11.1"), True)
-        self.assertEqual(Binary(-13.75).compare_representation("-1101.11"), True)
-        self.assertEqual(
-            Binary(13.0 + 2 ** -10).compare_representation("1101.0000000001"), True
-        )
-        self.assertEqual(
-            Binary(13.0 + 2 ** -20).compare_representation("1101.00000000000000000001"),
-            True,
-        )
-        self.assertEqual(
-            Binary(13.0 + 2 ** -30).compare_representation(
-                "1101.000000000000000000000000000001"
-            ),
-            True,
-        )
-        self.assertEqual(
-            Binary(13.0 + 2 ** -40).compare_representation(
-                "1101.0000000000000000000000000000000000000001"
-            ),
-            True,
-        )
-        self.assertEqual(Binary(13.0 + 2 ** -50).compare_representation("1101"), True)
-        self.assertEqual(Binary(13.0 + 2 ** -60).compare_representation("1101"), True)
-        self.assertEqual(
-            Binary(
-                13.0
-                + 2 ** -10
-                + 2 ** -20
-                + 2 ** -30
-                + 2 ** -40
-                + 2 ** -50
-                + 2 ** -60
-                + 2 ** -70
-            ).compare_representation("1101.0000000001000000000100000000010000000001"),
-            True,
-        )
-        self.assertEqual(Binary("1.1").round(1).compare_representation("1.1"), True)
-        self.assertEqual(Binary("1.10").round(1).compare_representation("1.1"), True)
-        self.assertEqual(Binary("1.101").round(1).compare_representation("1.1"), True)
-        self.assertEqual(Binary("1.11").round(1).compare_representation("1.1"), True)
-        self.assertEqual(Binary("1.110").round(1).compare_representation("1.1"), True)
-        self.assertEqual(Binary("1.1101").round(1).compare_representation("10"), True)
-        self.assertEqual(Binary("1.1111").round(1).compare_representation("10"), True)
-        with self.assertRaises(TypeError):
-            Binary.compare_representation(1, "1")  # should fail
-
-    def test_np(self):
-        """Test function/method."""
-        self.assertEqual(Binary(-3.5).np(), "-11.1")
-        with self.assertRaises(TypeError):
-            Binary.np("1")  # should fail, 1 arg too much
 
     def test___add__(self):
         """Test function/method."""
