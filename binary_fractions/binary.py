@@ -257,7 +257,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210705-214815"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210706-133313"  # format: date +%Y%m%d-%H%M%S
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -1644,11 +1644,30 @@ class Binary(object):
                 i += 1
         return "".join(result) if strict else Binary.simplify("".join(result))
 
-    def isclose(self: Binary, other: Any) -> int:
-        """Compare two objects to see if they are mathematically close."""
-        # TODO: to be written
-        # TODO add an argument like epsilon, delta or relative difference
-        return True  # TODO to be written
+    def isclose(
+        self: Binary, other: Any, rel_tol: float = _BINARY_RELATIVE_TOLERANCE
+    ) -> bool:
+        """Compare two objects to see if they are mathematically close.
+
+        This is a utility function. Useful for floats that have been converted
+        to binary fractions. A substitute for == for binary fractions
+        created from floats with precision errors.
+
+        Parameters:
+        other (Any, int, float, Fraction, Binary): value of number
+        rel_tol (float): relative tolerance as epsilon-value
+            to decide if two numbers are close relative to each other
+
+        Returns:
+        bool: True if two numbers are close, False otherwise
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self._is_special or other._is_special:
+            return False
+        return math.isclose(self._fraction, other._fraction, rel_tol=rel_tol)
 
     def _cmp(self: Binary, other: Any) -> int:
         """Compare two objects.
@@ -1782,10 +1801,19 @@ class Binary(object):
         """
         return Binary(self._cmp(other))
 
-    def __eq__(self: Binary, other: Any) -> int:
+    def __eq__(self: Binary, other: Any) -> bool:
         """Implements equal, implements operand ==.
 
         See _cmp() for details.
+
+        Method that implements "==" operand.
+
+        Parameters:
+        self (Binary): binary number
+        other (Any): binary number
+
+        Returns:
+        bool: result
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -1795,17 +1823,17 @@ class Binary(object):
             return False  # see comments in _cmp()
         return self._cmp(other) == 0
 
-    def __lt__(self, other):
+    def __lt__(self: Binary, other: Any) -> bool:
         """Less than operation.
 
         Method that implements "<" operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
-        bool: condition result
+        bool: result
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -1815,112 +1843,180 @@ class Binary(object):
             return False  # see comments in _cmp()
         return self._cmp(other) == -1
 
-    ## TODO Alfred did the revision until here ZZZ
-
-    def __gt__(self, other):
+    def __gt__(self: Binary, other: Any) -> bool:
         """Greater than operation.
 
         Method that implements ">" operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
-        bool: condition result
+        bool: result
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction > other._fraction
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return False  # see comments in _cmp()
+        return self._cmp(other) == 1
 
-    def __le__(self, other):
+    def __le__(self: Binary, other: Any) -> bool:
         """Less or equal operation.
 
         Method that implements "<=" operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
-        bool: condition result
+        bool: result
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction <= other._fraction
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return False  # see comments in _cmp()
+        return not self._cmp(other) == 1
 
-    def __ge__(self, other):
+    def __ge__(self: Binary, other: Any) -> bool:
         """Greater or equal operation.
 
         Method that implements ">=" operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
-        bool: condition result
+        bool: result
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
-        return self._fraction >= other._fraction
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return False  # see comments in _cmp()
+        return not self._cmp(other) == -1
 
-    def __add__(self, other):
+    def __add__(self: Binary, other: Any) -> Binary:
         """Add operation.
 
-        Method that implements the * operand.
+        Method that implements the + operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
         Binary: addittion of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(_NINF)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() or other.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity() or other.isnegativeinfinity():
+            return Binary(_NINF)
         return Binary(self._fraction + other._fraction)
 
-    def __sub__(self, other):
-        """Subtract operation.
+    def __sub__(self: Binary, other: Any) -> Binary:
+        """Subtraction operation.
 
         Method that implements the - operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
-        Binary: subtraction of the two numbers
+        Binary: addittion of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_NINF)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(_INF)
+        if self.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity():
+            return Binary(_NINF)
+        if other.isnegativeinfinity():
+            return Binary(_INF)
+        if other.ispositiveinfinity():
+            return Binary(_NINF)
         return Binary(self._fraction - other._fraction)
 
-    def __mul__(self, other):
+    def __mul__(self: Binary, other: Any) -> Binary:
         """Multiply operation.
 
         Method that implements the * operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): number
 
         Returns:
         Binary: multiplication of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_NINF)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(_NINF)
+        if self.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity():
+            return Binary(_NINF)
+        if other.isnegativeinfinity():
+            return Binary(_NINF)
+        if other.ispositiveinfinity():
+            return Binary(_INF)
         return Binary(self._fraction * other._fraction)
 
-    def __truediv__(self, other):
-        """True division operation
+    ## TODO Alfred did the revision until here ZZZ
+
+    def __truediv__(self: Binary, other: Any) -> Binary:
+        """True division operation.
 
         Method that implements the / operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): number
 
         Returns:
         Binary: true division of the two numbers
@@ -1929,14 +2025,14 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction / other._fraction)
 
-    def __floordiv__(self, other):
-        """Floor division operation
+    def __floordiv__(self: Binary, other: Any) -> Binary:
+        """Floor division operation.
 
         Method that implements the // operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
         Binary: floor division of the two numbers
@@ -1945,15 +2041,15 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction // other._fraction)
 
-    def __mod__(self, other):
-        """Compute modular operation
+    def __mod__(self: Binary, other: Any) -> Binary:
+        """Compute module operation.
 
         Method that implements module, i.e. it returns the integer remainder.
         Method that implements the % operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): binary number
 
         Returns:
         Binary: modulation of the two numbers
@@ -1962,17 +2058,17 @@ class Binary(object):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
         return Binary(self._fraction % other._fraction)
 
-    def __pow__(self, other):
+    def __pow__(self: Binary, other: Any) -> Binary:
         """Powwer of operation.
 
         Method that implements the ** operand.
 
         Parameters:
         self (Binary): binary number
-        other (Binary): binary number
+        other (Any): number
 
         Returns:
-        Binary: powwer of the two numbers
+        Binary: power of the two numbers
         """
         if not isinstance(other, Binary) or not isinstance(self, Binary):
             raise TypeError(f"Argument {other} and {self} must be of type Binary.")
@@ -1997,7 +2093,7 @@ class Binary(object):
     # (+3.4)**(+3.4) should work
     # (+3.4)**(-3.4) should work
 
-    def __abs__(self):
+    def __abs__(self: Binary) -> Binary:
         """Compute absolute value.
 
         Method that implements absolute value, i.e. the positive value.
@@ -2012,7 +2108,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(abs(self._fraction))
 
-    def __ceil__(self):
+    def __ceil__(self: Binary) -> Binary:
         """Perform math ceiling operation.
 
         Method that implements ceiling. Method for "ceil".
@@ -2028,7 +2124,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.ceil(self._fraction))
 
-    def __floor__(self):
+    def __floor__(self: Binary) -> Binary:
         """Perform math floor operation.
 
         Method that implements floor.
@@ -2044,7 +2140,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary(math.floor(self._fraction))
 
-    def __rshift__(self, ndigits: int):
+    def __rshift__(self: Binary, ndigits: int) -> Binary:
         """Shifts number n digits (bits) to the right.
 
         Method that implementes >> operand.
@@ -2090,7 +2186,7 @@ class Binary(object):
             shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
 
-    def __lshift__(self, ndigits: int):
+    def __lshift__(self: Binary, ndigits: int) -> Binary:
         """Shifts number n digits (bits) to the left.
 
         Method that implementes << operand.
@@ -2145,7 +2241,7 @@ class Binary(object):
         # # TODO:
         return None  # TODO
 
-    def __bool__(self):
+    def __bool__(self: Binary) -> bool:
         """Boolean transformation. Used for not operand.
 
         Method that implements boolian operation "not".
@@ -3605,9 +3701,48 @@ class TestBinary(unittest.TestCase):
 
     def test_isclose(self):
         """Test function/method."""
-        # TODO: test cases to be written
-        # ZZZ
-        None
+        self.assertEqual(Binary("inf").isclose("infinity"), False)
+        self.assertEqual(Binary("-inf").isclose("-infinity"), False)
+        self.assertEqual(Binary("nan").isclose(1), False)
+        self.assertEqual(Binary("nan").isclose("NaN"), False)
+        self.assertEqual(Binary("nan").isclose("nan"), False)
+        self.assertEqual(Binary("nan").isclose("inf"), False)
+        self.assertEqual(Binary("-inf").isclose("infinity"), False)
+        self.assertEqual(Binary("-0.01e-2").isclose("-1e-4"), True)
+        self.assertEqual(Binary("-0.01e-2").isclose(Fraction(-1, 16)), True)
+        self.assertEqual(Binary("+1.1").isclose(Fraction(3, 2)), True)
+        self.assertEqual(Binary("+1.1").isclose(Fraction(3, 2)), True)
+        self.assertEqual(Binary("+1.1").isclose(3 / 2), True)
+        self.assertEqual(Binary("+1.1").isclose(1.5), True)
+        self.assertEqual(Binary("+1.0").isclose(1), True)
+        self.assertEqual(Binary("+1.0e+1").isclose(2), True)
+        self.assertEqual(Binary("-100.0e-1").isclose(-2), True)
+        self.assertEqual(Binary("+1.1").isclose(Fraction(4, 2)), False)
+        self.assertEqual(Binary("+1.1").isclose(Fraction(4, 2)), False)
+        self.assertEqual(Binary("+1.1").isclose(4 / 2), False)
+        self.assertEqual(Binary("+1.1").isclose(2.5), False)
+        self.assertEqual(Binary("+1.0").isclose(2), False)
+        self.assertEqual(Binary("+1.0e+1").isclose(3), False)
+        self.assertEqual(Binary("-100.0e-1").isclose(4), False)
+        self.assertEqual(
+            Binary("0.000000000000000101").isclose(Fraction(5, 2 ** 18)), True
+        )
+        self.assertEqual(
+            Binary("-100.00000001e-100").isclose("-100.0000000101e-100"), False
+        )
+        self.assertEqual(
+            Binary("-100.00000001e-100").isclose("-100.0000000101e-100", 0.1), True
+        )
+        self.assertEqual(
+            Binary("-100.00000001e-100").isclose(
+                "-100.000000010000000000000000000000000001e-100"
+            ),
+            True,
+        )
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2").isclose("102")  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2").isclose(complex(1, 1))  # should fail
 
     def test___eq__(self):
         """Test function/method."""
@@ -3675,7 +3810,234 @@ class TestBinary(unittest.TestCase):
         with self.assertRaises(TypeError):
             Binary("-0.01e-2") < complex(1, 1)  # should fail
 
+    def test___gt__(self):
+        """Test function/method."""
+        # indirect test of test__cmp()
+        self.assertEqual(Binary("inf") > Binary("infinity"), False)
+        self.assertEqual(Binary("-inf") > Binary("-infinity"), False)
+        self.assertEqual(Binary("nan") > 1, False)
+        self.assertEqual(Binary("nan") > "NaN", False)
+        self.assertEqual(Binary("nan") > Binary("nan"), False)
+        self.assertEqual(Binary("nan") > Binary("inf"), False)
+        self.assertEqual(Binary("-inf") > Binary("inf"), False)
+        self.assertEqual(Binary("-0.0101e-2") > Binary("-1.0e-4"), False)
+        self.assertEqual(Binary("-0.01e-2") > Binary(Fraction(-0, 16)), False)
+        self.assertEqual(Binary("+1.1") > Binary(Fraction(4, 2)), False)
+        self.assertEqual(Binary("+1.1") > Fraction(4, 2), False)
+        self.assertEqual(Binary("+1.1") > (4 / 2), False)
+        self.assertEqual(Binary("+1.1") > 1.6, False)
+        self.assertEqual(Binary("+1.0") > 1.01, False)
+        self.assertEqual(Binary("+1.0e+1") > 2.2, False)
+        self.assertEqual(Binary("-100.0e-1") > -1.2, False)
+        self.assertEqual(Binary("+1.1") > Binary(Fraction(1, 2)), True)
+        self.assertEqual(Binary("+1.1") > Fraction(1, 2), True)
+        self.assertEqual(Binary("+1.1") > (1 / 2), True)
+        self.assertEqual(Binary("+1.1") > 0.5, True)
+        self.assertEqual(Binary("+1.0") > 0.5, True)
+        self.assertEqual(Binary("+1.0e+1") > 1, True)
+        self.assertEqual(Binary("-100.0e-1") > -13, True)
+        self.assertEqual(Binary("0.000000000000000101") > Fraction(6, 2 ** 18), False)
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") > "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") > complex(1, 1)  # should fail
+
+    def test___le__(self):
+        """Test function/method."""
+        # indirect test of test__cmp()
+        self.assertEqual(Binary("inf") <= Binary("infinity"), True)
+        self.assertEqual(Binary("-inf") <= Binary("-infinity"), True)
+        self.assertEqual(Binary("nan") <= 1, False)
+        self.assertEqual(Binary("nan") <= "NaN", False)
+        self.assertEqual(Binary("nan") <= Binary("nan"), False)
+        self.assertEqual(Binary("nan") <= Binary("inf"), False)
+        self.assertEqual(Binary("-inf") <= Binary("inf"), True)
+        self.assertEqual(Binary("-0.0101e-2") <= Binary("-1.0e-4"), True)
+        self.assertEqual(Binary("-0.01e-2") <= Binary(Fraction(-0, 16)), True)
+        self.assertEqual(Binary("+1.1") <= Binary(Fraction(4, 2)), True)
+        self.assertEqual(Binary("+1.1") <= Fraction(4, 2), True)
+        self.assertEqual(Binary("+1.1") <= (4 / 2), True)
+        self.assertEqual(Binary("+1.1") <= 1.6, True)
+        self.assertEqual(Binary("+1.0") <= 1.01, True)
+        self.assertEqual(Binary("+1.0e+1") <= 2.2, True)
+        self.assertEqual(Binary("-100.0e-1") <= -1.2, True)
+        self.assertEqual(Binary("+1.1") <= Binary(Fraction(1, 2)), False)
+        self.assertEqual(Binary("+1.1") <= Fraction(1, 2), False)
+        self.assertEqual(Binary("+1.1") <= (1 / 2), False)
+        self.assertEqual(Binary("+1.1") <= 0.5, False)
+        self.assertEqual(Binary("+1.0") <= 0.5, False)
+        self.assertEqual(Binary("+1.0e+1") <= 1, False)
+        self.assertEqual(Binary("-100.0e-1") <= -13, False)
+        self.assertEqual(Binary("0.000000000000000101") <= Fraction(6, 2 ** 18), True)
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") <= "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") <= complex(1, 1)  # should fail
+
+    def test___ge__(self):
+        """Test function/method."""
+        # indirect test of test__cmp()
+        self.assertEqual(Binary("inf") >= Binary("infinity"), True)
+        self.assertEqual(Binary("-inf") >= Binary("-infinity"), True)
+        self.assertEqual(Binary("nan") >= 1, False)
+        self.assertEqual(Binary("nan") >= "NaN", False)
+        self.assertEqual(Binary("nan") >= Binary("nan"), False)
+        self.assertEqual(Binary("nan") >= Binary("inf"), False)
+        self.assertEqual(Binary("-inf") >= Binary("inf"), False)
+        self.assertEqual(Binary("-0.0101e-2") >= Binary("-1.0e-4"), False)
+        self.assertEqual(Binary("-0.01e-2") >= Binary(Fraction(-0, 16)), False)
+        self.assertEqual(Binary("+1.1") >= Binary(Fraction(4, 2)), False)
+        self.assertEqual(Binary("+1.1") >= Fraction(4, 2), False)
+        self.assertEqual(Binary("+1.1") >= (4 / 2), False)
+        self.assertEqual(Binary("+1.1") >= 1.6, False)
+        self.assertEqual(Binary("+1.0") >= 1.01, False)
+        self.assertEqual(Binary("+1.0e+1") >= 2.2, False)
+        self.assertEqual(Binary("-100.0e-1") >= -1.2, False)
+        self.assertEqual(Binary("+1.1") >= Binary(Fraction(1, 2)), True)
+        self.assertEqual(Binary("+1.1") >= Fraction(1, 2), True)
+        self.assertEqual(Binary("+1.1") >= (1 / 2), True)
+        self.assertEqual(Binary("+1.1") >= 0.5, True)
+        self.assertEqual(Binary("+1.0") >= 0.5, True)
+        self.assertEqual(Binary("+1.0e+1") >= 1, True)
+        self.assertEqual(Binary("-100.0e-1") >= -13, True)
+        self.assertEqual(Binary("0.000000000000000101") >= Fraction(6, 2 ** 18), False)
+        with self.assertRaises(ValueError):
+            Binary("-0.01e-2") >= "102"  # should fail
+        with self.assertRaises(TypeError):
+            Binary("-0.01e-2") >= complex(1, 1)  # should fail
+
+    def test___add__(self):
+        """Test function/method."""
+        self.assertEqual(Binary("inf") + Binary("inf"), Binary("infinity"))
+        self.assertEqual(Binary("inf") + 1, Binary("infinity"))
+        self.assertEqual(Binary("-inf") + Binary("-inf"), Binary("-infinity"))
+        self.assertEqual(Binary("-inf") + 1, Binary("-infinity"))
+        self.assertEqual((Binary("-inf") + Binary("inf")).isnan(), True)
+        self.assertEqual((Binary("inf") + Binary("-inf")).isnan(), True)
+        self.assertEqual((Binary("nan") + 1).isnan(), True)
+        self.assertEqual((Binary("inf") + Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") + Binary("nan")).isnan(), True)
+        self.assertEqual(Binary(1) + Binary("1"), 2)
+        self.assertEqual(Binary(-1) + Binary("1"), 0)
+        self.assertEqual(Binary(0.5) + Binary(0.5), 1)
+        self.assertEqual(Binary("-1.1") + Binary("0.1"), -1)
+        self.assertEqual(Binary(1) + 1, 2)
+        self.assertEqual(Binary(-1) + 1, 0)
+        self.assertEqual(Binary(0.5) + 0.5, 1)
+        self.assertEqual(Binary("-1.1") + 0.5, -1)
+        with self.assertRaises(ValueError):
+            Binary("102") + "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) + complex(1, 1)  # should fail
+
+    def test___sub__(self):
+        """Test function/method."""
+        self.assertEqual((Binary("inf") - Binary("inf")).isnan(), True)
+        self.assertEqual(Binary("inf") - 1, Binary("infinity"))
+        self.assertEqual((Binary("-inf") - Binary("-inf")).isnan(), True)
+        self.assertEqual(Binary("-inf") - 1, Binary("-infinity"))
+        self.assertEqual(Binary("-inf") - Binary("inf"), Binary("-infinity"))
+        self.assertEqual(Binary("inf") - Binary("-inf"), Binary("infinity"))
+        self.assertEqual((Binary("nan") - 1).isnan(), True)
+        self.assertEqual((Binary("inf") - Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") - Binary("nan")).isnan(), True)
+        self.assertEqual(
+            Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
+        )
+        self.assertEqual(Binary(1) - Binary(1), 0)
+        self.assertEqual(Binary(0) - Binary(1), -1)
+        self.assertEqual(Binary(0.1) - Binary(0.2), -0.1)
+        self.assertEqual(Binary(1) - Binary(0.5), 0.5)
+        self.assertEqual(Binary(1) - 1, 0)
+        self.assertEqual(Binary(0) - 1, -1)
+        self.assertEqual(Binary(0.1) - 0.2, -0.1)
+        self.assertEqual(Binary(1) - 0.5, 0.5)
+        with self.assertRaises(ValueError):
+            Binary("102") - "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) - complex(1, 1)  # should fail
+
+    def test___mul__(self):
+        """Test function/method."""
+        self.assertEqual(Binary("inf") * Binary("inf"), Binary("inf"))
+        self.assertEqual(Binary("inf") * 1, Binary("infinity"))
+        self.assertEqual(Binary("-inf") * Binary("-inf"), Binary("inf"))
+        self.assertEqual(Binary("-inf") * 1, Binary("-infinity"))
+        self.assertEqual(Binary("-inf") * Binary("inf"), Binary("-infinity"))
+        self.assertEqual(Binary("inf") * Binary("-inf"), Binary("-infinity"))
+        self.assertEqual((Binary("nan") * 1).isnan(), True)
+        self.assertEqual((Binary("inf") * Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") * Binary("nan")).isnan(), True)
+        self.assertEqual(Binary(0) * Binary(1), 0)
+        self.assertEqual(Binary(1) * Binary(1), 1)
+        self.assertEqual(Binary(100) * Binary(Fraction(1, 10)), 10)
+        self.assertEqual(Binary(0) * 1, 0)
+        self.assertEqual(Binary(1) * 1, 1)
+        self.assertEqual((Binary(100) * (1 / 10)).isclose(10), True)
+        self.assertEqual(Binary(1) * 1.5, 1.5)
+        self.assertEqual((Binary(100) * (1.11 / 10)).isclose(11.1), True)
+        with self.assertRaises(ValueError):
+            Binary("102") * "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) * complex(1, 1)  # should fail
+
     # ZZZ
+
+    def test___truediv__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(100) / Binary(Fraction(1, 10)), 1000)
+        self.assertEqual(Binary(0) / Binary(10), 0)
+        self.assertEqual(Binary(1) / Binary(2), 0.5)
+        with self.assertRaises(ValueError):
+            Binary("102") / "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) / complex(1, 1)  # should fail
+
+    def test___floordiv__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(10) // Binary(3), 3)
+        self.assertEqual(Binary(7) // Binary(2), 3)
+        self.assertEqual(Binary(8) // Binary(3), 2)
+        with self.assertRaises(ValueError):
+            Binary("102") // "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) // complex(1, 1)  # should fail
+
+    def test___mod__(self):
+        """Test function/method."""
+        self.assertEqual(Binary(5) % Binary(3), 2)
+        self.assertEqual(Binary(7) % Binary(4), 3)
+        self.assertEqual(Binary("111") % Binary("11"), 1)
+        self.assertEqual(Binary(5.0) % Binary(1.5), 0.5)
+        self.assertEqual(Binary("-101.0") % Binary("-1.1"), -0.5)
+        with self.assertRaises(ValueError):
+            Binary("102") % "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) % complex(1, 1)  # should fail
+
+    def test___abs__(self):
+        """Test function/method."""
+        self.assertEqual(abs(Binary(5)), 5)
+        self.assertEqual(abs(Binary(-7)), 7)
+        self.assertEqual(abs(Binary("111")), 7)
+        self.assertEqual(abs(Binary(-1.5)), 1.5)
+        self.assertEqual(abs(Binary("-101.1")), 5.5)
+
+    def test___ceil__(self):
+        """Test function/method."""
+        self.assertEqual(math.ceil(Binary(5)), math.ceil(5))
+        self.assertEqual(math.ceil(Binary(-7)), math.ceil(-7))
+        self.assertEqual(math.ceil(Binary("111")), math.ceil(7))
+        self.assertEqual(math.ceil(Binary(-1.5)), math.ceil(-1.5))
+        self.assertEqual(math.ceil(Binary("-101.1")), math.ceil(-5.5))
+
+    def test___floor__(self):
+        """Test function/method."""
+        self.assertEqual(math.floor(Binary(5)), math.floor(5))
+        self.assertEqual(math.floor(Binary(-7)), math.floor(-7))
+        self.assertEqual(math.floor(Binary("111")), math.floor(7))
+        self.assertEqual(math.floor(Binary(-1.5)), math.floor(-1.5))
+        self.assertEqual(math.floor(Binary("-101.1")), math.floor(-5.5))
 
     def test_invert(self):
         """Test function/method."""
@@ -3758,97 +4120,6 @@ class TestBinary(unittest.TestCase):
             Binary.from_twoscomplement("102")  # should fail
         with self.assertRaises(TypeError):
             Binary.from_twoscomplement(Binary(1))  # should fail
-
-    def test___add__(self):
-        """Test function/method."""
-        self.assertEqual(Binary(1) + Binary("1"), 2)
-        self.assertEqual(Binary(-1) + Binary("1"), 0)
-        self.assertEqual(Binary(0.5) + Binary(0.5), 1)
-        self.assertEqual(Binary("-1.1") + Binary("0.1"), -1)
-        with self.assertRaises(ValueError):
-            Binary("102") + "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) + complex(1, 1)  # should fail
-
-    def test___sub__(self):
-        """Test function/method."""
-        self.assertEqual(
-            Binary(Fraction(1, 3)) - Binary(Fraction(2, 3)), Fraction(-1, 3)
-        )
-        self.assertEqual(Binary(1) - Binary(1), 0)
-        self.assertEqual(Binary(0) - Binary(1), -1)
-        self.assertEqual(Binary(0.1) - Binary(0.2), -0.1)
-        self.assertEqual(Binary(1) - Binary(0.5), 0.5)
-        with self.assertRaises(ValueError):
-            Binary("102") - "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) - complex(1, 1)  # should fail
-
-    def test___mul__(self):
-        """Test function/method."""
-        self.assertEqual(Binary(0) * Binary(1), 0)
-        self.assertEqual(Binary(1) * Binary(1), 1)
-        self.assertEqual(Binary(100) * Binary(Fraction(1, 10)), 10)
-        with self.assertRaises(ValueError):
-            Binary("102") * "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) * complex(1, 1)  # should fail
-
-    def test___truediv__(self):
-        """Test function/method."""
-        self.assertEqual(Binary(100) / Binary(Fraction(1, 10)), 1000)
-        self.assertEqual(Binary(0) / Binary(10), 0)
-        self.assertEqual(Binary(1) / Binary(2), 0.5)
-        with self.assertRaises(ValueError):
-            Binary("102") / "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) / complex(1, 1)  # should fail
-
-    def test___floordiv__(self):
-        """Test function/method."""
-        self.assertEqual(Binary(10) // Binary(3), 3)
-        self.assertEqual(Binary(7) // Binary(2), 3)
-        self.assertEqual(Binary(8) // Binary(3), 2)
-        with self.assertRaises(ValueError):
-            Binary("102") // "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) // complex(1, 1)  # should fail
-
-    def test___mod__(self):
-        """Test function/method."""
-        self.assertEqual(Binary(5) % Binary(3), 2)
-        self.assertEqual(Binary(7) % Binary(4), 3)
-        self.assertEqual(Binary("111") % Binary("11"), 1)
-        self.assertEqual(Binary(5.0) % Binary(1.5), 0.5)
-        self.assertEqual(Binary("-101.0") % Binary("-1.1"), -0.5)
-        with self.assertRaises(ValueError):
-            Binary("102") % "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) % complex(1, 1)  # should fail
-
-    def test___abs__(self):
-        """Test function/method."""
-        self.assertEqual(abs(Binary(5)), 5)
-        self.assertEqual(abs(Binary(-7)), 7)
-        self.assertEqual(abs(Binary("111")), 7)
-        self.assertEqual(abs(Binary(-1.5)), 1.5)
-        self.assertEqual(abs(Binary("-101.1")), 5.5)
-
-    def test___ceil__(self):
-        """Test function/method."""
-        self.assertEqual(math.ceil(Binary(5)), math.ceil(5))
-        self.assertEqual(math.ceil(Binary(-7)), math.ceil(-7))
-        self.assertEqual(math.ceil(Binary("111")), math.ceil(7))
-        self.assertEqual(math.ceil(Binary(-1.5)), math.ceil(-1.5))
-        self.assertEqual(math.ceil(Binary("-101.1")), math.ceil(-5.5))
-
-    def test___floor__(self):
-        """Test function/method."""
-        self.assertEqual(math.floor(Binary(5)), math.floor(5))
-        self.assertEqual(math.floor(Binary(-7)), math.floor(-7))
-        self.assertEqual(math.floor(Binary("111")), math.floor(7))
-        self.assertEqual(math.floor(Binary(-1.5)), math.floor(-1.5))
-        self.assertEqual(math.floor(Binary("-101.1")), math.floor(-5.5))
 
     def test___and__(self):
         """Test function/method."""

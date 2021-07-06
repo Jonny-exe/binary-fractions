@@ -106,9 +106,9 @@
     * [test\_isclose](#binary.TestBinary.test_isclose)
     * [test\_\_\_eq\_\_](#binary.TestBinary.test___eq__)
     * [test\_\_\_lt\_\_](#binary.TestBinary.test___lt__)
-    * [test\_invert](#binary.TestBinary.test_invert)
-    * [test\_to\_twoscomplement](#binary.TestBinary.test_to_twoscomplement)
-    * [test\_from\_twoscomplement](#binary.TestBinary.test_from_twoscomplement)
+    * [test\_\_\_gt\_\_](#binary.TestBinary.test___gt__)
+    * [test\_\_\_le\_\_](#binary.TestBinary.test___le__)
+    * [test\_\_\_ge\_\_](#binary.TestBinary.test___ge__)
     * [test\_\_\_add\_\_](#binary.TestBinary.test___add__)
     * [test\_\_\_sub\_\_](#binary.TestBinary.test___sub__)
     * [test\_\_\_mul\_\_](#binary.TestBinary.test___mul__)
@@ -118,6 +118,9 @@
     * [test\_\_\_abs\_\_](#binary.TestBinary.test___abs__)
     * [test\_\_\_ceil\_\_](#binary.TestBinary.test___ceil__)
     * [test\_\_\_floor\_\_](#binary.TestBinary.test___floor__)
+    * [test\_invert](#binary.TestBinary.test_invert)
+    * [test\_to\_twoscomplement](#binary.TestBinary.test_to_twoscomplement)
+    * [test\_from\_twoscomplement](#binary.TestBinary.test_from_twoscomplement)
     * [test\_\_\_and\_\_](#binary.TestBinary.test___and__)
     * [test\_\_\_not\_\_](#binary.TestBinary.test___not__)
     * [test\_\_\_invert\_\_](#binary.TestBinary.test___invert__)
@@ -1202,10 +1205,25 @@ This is a utility function.
 #### isclose
 
 ```python
- | isclose(other: Any) -> int
+ | isclose(other: Any, rel_tol: float = _BINARY_RELATIVE_TOLERANCE) -> bool
 ```
 
 Compare two objects to see if they are mathematically close.
+
+This is a utility function. Useful for floats that have been converted
+to binary fractions. A substitute for == for binary fractions
+created from floats with precision errors.
+
+**Arguments**:
+
+- `other` _Any, int, float, Fraction, Binary_ - value of number
+- `rel_tol` _float_ - relative tolerance as epsilon-value
+  to decide if two numbers are close relative to each other
+
+
+**Returns**:
+
+- `bool` - True if two numbers are close, False otherwise
 
 <a name="binary.Binary.compare"></a>
 #### compare
@@ -1234,18 +1252,30 @@ a > b           ==> Binary('1')
 #### \_\_eq\_\_
 
 ```python
- | __eq__(other: Any) -> int
+ | __eq__(other: Any) -> bool
 ```
 
 Implements equal, implements operand ==.
 
 See _cmp() for details.
 
+Method that implements "==" operand.
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Any_ - binary number
+
+
+**Returns**:
+
+- `bool` - result
+
 <a name="binary.Binary.__lt__"></a>
 #### \_\_lt\_\_
 
 ```python
- | __lt__(other)
+ | __lt__(other: Any) -> bool
 ```
 
 Less than operation.
@@ -1255,18 +1285,18 @@ Method that implements "<" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
 
-- `bool` - condition result
+- `bool` - result
 
 <a name="binary.Binary.__gt__"></a>
 #### \_\_gt\_\_
 
 ```python
- | __gt__(other)
+ | __gt__(other: Any) -> bool
 ```
 
 Greater than operation.
@@ -1276,18 +1306,18 @@ Method that implements ">" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
 
-- `bool` - condition result
+- `bool` - result
 
 <a name="binary.Binary.__le__"></a>
 #### \_\_le\_\_
 
 ```python
- | __le__(other)
+ | __le__(other: Any) -> bool
 ```
 
 Less or equal operation.
@@ -1297,18 +1327,18 @@ Method that implements "<=" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
 
-- `bool` - condition result
+- `bool` - result
 
 <a name="binary.Binary.__ge__"></a>
 #### \_\_ge\_\_
 
 ```python
- | __ge__(other)
+ | __ge__(other: Any) -> bool
 ```
 
 Greater or equal operation.
@@ -1318,28 +1348,28 @@ Method that implements ">=" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
 
-- `bool` - condition result
+- `bool` - result
 
 <a name="binary.Binary.__add__"></a>
 #### \_\_add\_\_
 
 ```python
- | __add__(other)
+ | __add__(other: Any) -> Binary
 ```
 
 Add operation.
 
-Method that implements the * operand.
+Method that implements the + operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
@@ -1350,28 +1380,28 @@ Method that implements the * operand.
 #### \_\_sub\_\_
 
 ```python
- | __sub__(other)
+ | __sub__(other: Any) -> Binary
 ```
 
-Subtract operation.
+Subtraction operation.
 
 Method that implements the - operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
 
-- `Binary` - subtraction of the two numbers
+- `Binary` - addittion of the two numbers
 
 <a name="binary.Binary.__mul__"></a>
 #### \_\_mul\_\_
 
 ```python
- | __mul__(other)
+ | __mul__(other: Any) -> Binary
 ```
 
 Multiply operation.
@@ -1381,7 +1411,7 @@ Method that implements the * operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -1392,17 +1422,17 @@ Method that implements the * operand.
 #### \_\_truediv\_\_
 
 ```python
- | __truediv__(other)
+ | __truediv__(other: Any) -> Binary
 ```
 
-True division operation
+True division operation.
 
 Method that implements the / operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -1413,17 +1443,17 @@ Method that implements the / operand.
 #### \_\_floordiv\_\_
 
 ```python
- | __floordiv__(other)
+ | __floordiv__(other: Any) -> Binary
 ```
 
-Floor division operation
+Floor division operation.
 
 Method that implements the // operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
@@ -1434,10 +1464,10 @@ Method that implements the // operand.
 #### \_\_mod\_\_
 
 ```python
- | __mod__(other)
+ | __mod__(other: Any) -> Binary
 ```
 
-Compute modular operation
+Compute module operation.
 
 Method that implements module, i.e. it returns the integer remainder.
 Method that implements the % operand.
@@ -1445,7 +1475,7 @@ Method that implements the % operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - binary number
 
 
 **Returns**:
@@ -1456,7 +1486,7 @@ Method that implements the % operand.
 #### \_\_pow\_\_
 
 ```python
- | __pow__(other)
+ | __pow__(other: Any) -> Binary
 ```
 
 Powwer of operation.
@@ -1466,18 +1496,18 @@ Method that implements the ** operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Binary_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
 
-- `Binary` - powwer of the two numbers
+- `Binary` - power of the two numbers
 
 <a name="binary.Binary.__abs__"></a>
 #### \_\_abs\_\_
 
 ```python
- | __abs__()
+ | __abs__() -> Binary
 ```
 
 Compute absolute value.
@@ -1497,7 +1527,7 @@ Method that implements absolute value, i.e. the positive value.
 #### \_\_ceil\_\_
 
 ```python
- | __ceil__()
+ | __ceil__() -> Binary
 ```
 
 Perform math ceiling operation.
@@ -1518,7 +1548,7 @@ For example, '1.11' will return '10'.
 #### \_\_floor\_\_
 
 ```python
- | __floor__()
+ | __floor__() -> Binary
 ```
 
 Perform math floor operation.
@@ -1539,7 +1569,7 @@ For example, '1.11' will return '1'.
 #### \_\_rshift\_\_
 
 ```python
- | __rshift__(ndigits: int)
+ | __rshift__(ndigits: int) -> Binary
 ```
 
 Shifts number n digits (bits) to the right.
@@ -1567,7 +1597,7 @@ moved to the left.
 #### \_\_lshift\_\_
 
 ```python
- | __lshift__(ndigits: int)
+ | __lshift__(ndigits: int) -> Binary
 ```
 
 Shifts number n digits (bits) to the left.
@@ -1595,7 +1625,7 @@ moved to the right.
 #### \_\_bool\_\_
 
 ```python
- | __bool__()
+ | __bool__() -> bool
 ```
 
 Boolean transformation. Used for not operand.
@@ -2265,29 +2295,29 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestBinary.test_invert"></a>
-#### test\_invert
+<a name="binary.TestBinary.test___gt__"></a>
+#### test\_\_\_gt\_\_
 
 ```python
- | test_invert()
+ | test___gt__()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_to_twoscomplement"></a>
-#### test\_to\_twoscomplement
+<a name="binary.TestBinary.test___le__"></a>
+#### test\_\_\_le\_\_
 
 ```python
- | test_to_twoscomplement()
+ | test___le__()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_from_twoscomplement"></a>
-#### test\_from\_twoscomplement
+<a name="binary.TestBinary.test___ge__"></a>
+#### test\_\_\_ge\_\_
 
 ```python
- | test_from_twoscomplement()
+ | test___ge__()
 ```
 
 Test function/method.
@@ -2369,6 +2399,33 @@ Test function/method.
 
 ```python
  | test___floor__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_invert"></a>
+#### test\_invert
+
+```python
+ | test_invert()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_to_twoscomplement"></a>
+#### test\_to\_twoscomplement
+
+```python
+ | test_to_twoscomplement()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_from_twoscomplement"></a>
+#### test\_from\_twoscomplement
+
+```python
+ | test_from_twoscomplement()
 ```
 
 Test function/method.
