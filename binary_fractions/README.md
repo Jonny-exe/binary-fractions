@@ -58,11 +58,10 @@
     * [\_\_rshift\_\_](#binary.Binary.__rshift__)
     * [\_\_lshift\_\_](#binary.Binary.__lshift__)
     * [\_\_bool\_\_](#binary.Binary.__bool__)
+    * [\_\_not\_\_](#binary.Binary.__not__)
     * [\_\_and\_\_](#binary.Binary.__and__)
     * [\_\_or\_\_](#binary.Binary.__or__)
-    * [and\_or](#binary.Binary.and_or)
     * [\_\_xor\_\_](#binary.Binary.__xor__)
-    * [\_\_not\_\_](#binary.Binary.__not__)
     * [\_\_invert\_\_](#binary.Binary.__invert__)
     * [invert](#binary.Binary.invert)
     * [to\_twoscomplement](#binary.Binary.to_twoscomplement)
@@ -115,17 +114,21 @@
     * [test\_\_\_truediv\_\_](#binary.TestBinary.test___truediv__)
     * [test\_\_\_floordiv\_\_](#binary.TestBinary.test___floordiv__)
     * [test\_\_\_mod\_\_](#binary.TestBinary.test___mod__)
+    * [test\_\_\_pow\_\_](#binary.TestBinary.test___pow__)
     * [test\_\_\_abs\_\_](#binary.TestBinary.test___abs__)
     * [test\_\_\_ceil\_\_](#binary.TestBinary.test___ceil__)
     * [test\_\_\_floor\_\_](#binary.TestBinary.test___floor__)
+    * [test\_\_\_rshift\_\_](#binary.TestBinary.test___rshift__)
+    * [test\_\_\_lshift\_\_](#binary.TestBinary.test___lshift__)
+    * [test\_\_\_bool\_\_](#binary.TestBinary.test___bool__)
+    * [test\_\_\_not\_\_](#binary.TestBinary.test___not__)
+    * [test\_\_\_and\_\_](#binary.TestBinary.test___and__)
+    * [test\_\_\_or\_\_](#binary.TestBinary.test___or__)
+    * [test\_\_\_xor\_\_](#binary.TestBinary.test___xor__)
+    * [test\_\_\_invert\_\_](#binary.TestBinary.test___invert__)
     * [test\_invert](#binary.TestBinary.test_invert)
     * [test\_to\_twoscomplement](#binary.TestBinary.test_to_twoscomplement)
     * [test\_from\_twoscomplement](#binary.TestBinary.test_from_twoscomplement)
-    * [test\_\_\_and\_\_](#binary.TestBinary.test___and__)
-    * [test\_\_\_not\_\_](#binary.TestBinary.test___not__)
-    * [test\_\_\_invert\_\_](#binary.TestBinary.test___invert__)
-    * [test\_\_\_rshift\_\_](#binary.TestBinary.test___rshift__)
-    * [test\_\_\_lshift\_\_](#binary.TestBinary.test___lshift__)
 
 <a name="binary"></a>
 # binary
@@ -239,7 +242,7 @@ Enjoy :heart: !
      ||   |
      ||   |    exponent separator
      ||   |    |
-     ||   |    | exponent in base 10 (not base 2!)
+     ||   |    | exponent in base 10 (ool(base 2!)
      ||   |    | ||
     -0b101.0101e-34  <-- example floating-point binary fraction
     |  ||| |||| |
@@ -1467,9 +1470,9 @@ Method that implements the // operand.
  | __mod__(other: Any) -> Binary
 ```
 
-Compute module operation.
+Compute modulo operation.
 
-Method that implements module, i.e. it returns the integer remainder.
+Method that implements modulo, i.e. it returns the integer remainder.
 Method that implements the % operand.
 
 **Arguments**:
@@ -1489,7 +1492,7 @@ Method that implements the % operand.
  | __pow__(other: Any) -> Binary
 ```
 
-Powwer of operation.
+Power of operation.
 
 Method that implements the ** operand.
 
@@ -1527,13 +1530,14 @@ Method that implements absolute value, i.e. the positive value.
 #### \_\_ceil\_\_
 
 ```python
- | __ceil__() -> Binary
+ | __ceil__() -> int
 ```
 
 Perform math ceiling operation.
 
 Method that implements ceiling. Method for "ceil".
 For example, '1.11' will return '10'.
+Note, that math.ceil() will return an int.
 
 **Arguments**:
 
@@ -1542,19 +1546,20 @@ For example, '1.11' will return '10'.
 
 **Returns**:
 
-- `Binary` - ceiling of the number
+- `int` - ceiling of the number
 
 <a name="binary.Binary.__floor__"></a>
 #### \_\_floor\_\_
 
 ```python
- | __floor__() -> Binary
+ | __floor__() -> int
 ```
 
 Perform math floor operation.
 
 Method that implements floor.
 For example, '1.11' will return '1'.
+Note, that math.floor() will return an int.
 
 **Arguments**:
 
@@ -1628,9 +1633,10 @@ moved to the right.
  | __bool__() -> bool
 ```
 
-Boolean transformation. Used for not operand.
+Boolean transformation. Used for bool() and not operand.
 
-Method that implements boolian operation "not".
+Method that implements transformation to boolean. This
+boolian transformation is then used by operations like "not".
 
 **Arguments**:
 
@@ -1640,96 +1646,6 @@ Method that implements boolian operation "not".
 **Returns**:
 
 - `bool` - boolean transformation of the number
-
-<a name="binary.Binary.__and__"></a>
-#### \_\_and\_\_
-
-```python
- | __and__(other)
-```
-
-Return the bitwise and of self and other.
-
-Method that implements the & operand.
-
-For example, '11.1' ^ '10.1' will return '10.1'
-
-**Arguments**:
-
-- `self` _Binary_ - number
-- `other` _Binary_ - number
-
-
-**Returns**:
-
-- `Binary` - bitwise and of the two numbers
-
-<a name="binary.Binary.__or__"></a>
-#### \_\_or\_\_
-
-```python
- | __or__(other)
-```
-
-Return the bitwise or of self and other.
-
-Method that implements the | operand.
-
-For example, '11.1' ^ '10.1' will return '11.1'
-
-**Arguments**:
-
-- `self` _Binary_ - number
-- `other` _Binary_ - number
-
-
-**Returns**:
-
-- `Binary` - bitwise or of the two numbers
-
-<a name="binary.Binary.and_or"></a>
-#### and\_or
-
-```python
- | and_or(this, other, which)
-```
-
-Shifts number to the left n times # TODO
-
-This is a function, not a method.
-
-**Arguments**:
-
-- `self` _Binary_ - number to be shifted  # TODO
-- `ndigits` _int_ - numner times to be shifted # TODO
-
-
-**Returns**:
-
-- `Binary` - shifted number # TODO
-
-<a name="binary.Binary.__xor__"></a>
-#### \_\_xor\_\_
-
-```python
- | __xor__(other)
-```
-
-Return the bitwise or of self and other.
-
-Method that implements the ^ operand.
-
-For example, '11.1' ^ '10.1' will return '11.1'
-
-**Arguments**:
-
-- `self` _Binary_ - number
-- `other` _Binary_ - number
-
-
-**Returns**:
-
-- `Binary` - bitwise exclusive or of the two numbers
 
 <a name="binary.Binary.__not__"></a>
 #### \_\_not\_\_
@@ -1758,17 +1674,110 @@ For example: not Binary(3.5) returns False.
 
 - `Binary` - 'boolean not' of number
 
+<a name="binary.Binary.__and__"></a>
+#### \_\_and\_\_
+
+```python
+ | __and__(other: Any) -> Binary
+```
+
+Return the bitwise 'and' of self and other.
+
+Method that implements the & operand.
+
+For example, '11.1' & '10.1' will return '10.1'
+'-0.1' & '+1' will return '-1' because twos-complement of
+'-0.1' is 1.1; and 1.1 & 01.0 results in twos-complement 1.0;
+and 1.0 in twos-complement is '-1' in binary fraction.
+In short, any negative number will be converted into twos-complement
+representation, than bitwise-and will be done, then the resulting
+number will be converted back from twos-complement to
+binary string format.
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Any_ - number
+
+
+**Returns**:
+
+- `Binary` - bitwise 'and' of the two numbers in binary fraction format
+
+<a name="binary.Binary.__or__"></a>
+#### \_\_or\_\_
+
+```python
+ | __or__(other: Any) -> Binary
+```
+
+Return the bitwise 'or' of self and other.
+
+Method that implements the | operand.
+
+For example, '11.1' | '10.1' will return '11.1'
+'-0.1' | '+1' will return '-0.1' because twos-complement of
+'-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
+and 1.1 in twos-complement is '-0.1' in binary fraction.
+In short, any negative number will be converted into twos-complement
+representation, than bitwise-or will be done, then the resulting
+number will be converted back from twos-complement to
+binary string format.
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Any_ - number
+
+
+**Returns**:
+
+- `Binary` - bitwise 'or' of the two numbers in binary fraction format
+
+<a name="binary.Binary.__xor__"></a>
+#### \_\_xor\_\_
+
+```python
+ | __xor__(other: Any) -> Binary
+```
+
+Return the bitwise 'xor' of self and other.
+
+Method that implements the ^ operand.
+
+For example, '11.1' ^ '10.1' will return '1'.
+'-0.1' ^ '+1' will return '-1.1' because twos-complement of
+'-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
+and 10.1 in twos-complement is '-1.1' in binary fraction.
+In short, any negative number will be converted into twos-complement
+representation, than bitwise-or will be done, then the resulting
+number will be converted back from twos-complement to
+binary string format.
+
+**Arguments**:
+
+- `self` _Binary_ - binary number
+- `other` _Any_ - number
+
+
+**Returns**:
+
+- `Binary` - bitwise 'xor' (bitwise exclusive or) of the
+  two numbers in binary fraction format
+
 <a name="binary.Binary.__invert__"></a>
 #### \_\_invert\_\_
 
 ```python
- | __invert__()
+ | __invert__() -> Binary
 ```
 
-Return the 'bitwise not' of self.
+Returns the 'bitwise not' of self.
 
 Method that implements the ~ operand.
 This is also called the 'invert' operand, or the 'bitwise not' operand.
+Do not confuse it with the 'boolean not' operand implemented
+via the 'not' operand and the __not__() method.
 
 It is only defined for integers. If self is not an integer it
 will raise an exception. For integers ~ is defined as
@@ -1788,7 +1797,7 @@ For more information, see also the invert() function.
 #### invert
 
 ```python
- | invert(value: str, strict=True) -> str
+ | invert(value: str, strict: bool = False) -> str
 ```
 
 Inverts (bitwise negates) string that is in twos-complement format.
@@ -1798,27 +1807,36 @@ It negates (flips) every bit in the string.
 Input must be of format: twos-complement format.
 Do NOT use this function on negative binary fractions strings.
 
-Examples inputs are:
-0...not valid, missing sign, or missing digits
-1...not valid, missing sign, or missing digits
-01...1, 010...2, 011...3
-10..-0, 111110..-0
+Examples for input "value" string are:
+# leading 0: positive
+0...0
+01...1
+010...2
+011...3
+0100...4
+01.1...1.5
+010.11...2.75
+01.1e-4...1.5e-4
+010.11e-4...2.75e-4,
+# leading 1: negative
+1...-1
 11...-1, 111...-1, 111111111...-1
+10...-2, 111110...-2
 110...-2, 1110...-2,
 1101...-3, 111101...-3
-01.1...1.5, 010.11...2.75,
-111.1...-0.5, 111.11...-0.25
-01.1e-4...1.5e-4, 010.11e-4...2.75e-4,
-111.1e3...-0.5e3, 111.11e3...-0.25e3
+111.1...-0.5
+111.11...-0.25
+111.1e3...-0.5e3
+111.11e3...-0.25e3
 
-invert('0') raises exception
-invert('1') raises exception
-invert('1..1') raises exception
-invert('34') raises exception
-invert('1ee2') raises exception
-invert('1e') raises exception
-invert('01') returns '10'
-invert('10') returns '01'
+invert('01') returns '10' (like decimal: ~1==-2)
+invert('0') returns 1  (like decimal: ~0==-1)
+invert('1') returns 0  (like decimal: ~-1==0)
+invert('1..1') raises exception, 2 decimal points
+invert('34') raises exception, not binary
+invert('1ee2') raises exception, two exponential signs
+invert('1e') raises exception, missing exponent digit
+invert('10') returns '01'  (like decimal: ~-2==1)
 invert('101010') returns '010101'
 invert('0101010') returns '1010101'
 invert('0101010e-34') returns '1010101e-34'
@@ -1827,6 +1845,15 @@ invert(invert('0101010e-34')) returns '0101010e-34'
 invert(invert('101010e34')) returns '101010e34'
 
 invert(invert(n)) == for all valid n
+
+**Arguments**:
+
+- `value` _str_ - string representation of twos-complement
+- `strict` _bool_ - if True try to change the string as little as
+  possible in format
+  if False, returned string will also be simplified
+  by removing unnecessary digits.
+
 
 **Returns**:
 
@@ -1904,7 +1931,17 @@ This is a method returning a string.
 
 **Arguments**:
 
-- `length` _int_ - que cuantity of 0 or 1 at the beginning of the number
+- `length` _int_ - this increases the length of the returned string
+  to a lenght of "length" by prefilling it with leading
+  0s for positive numbers, and 1s for negative numbers.
+  length == -1 means that the string will be returned as short
+  as possible without prefilling. If the desired "length"
+  is shorter than needed to represent the number, the exception
+  OverflowError will be raised. The length is counted in a
+  non-exponential representation with the decimal point counting
+  as 1. So, for example, '11.01' has a length of 5. The same
+  value in length 8 would be '11111.01'. Or, the decimal 2 in
+  length 8 would be '00000010'.
 
 
 **Returns**:
@@ -1915,7 +1952,7 @@ This is a method returning a string.
 #### from\_twoscomplement
 
 ```python
- | from_twoscomplement(value: str, strict=False) -> str
+ | from_twoscomplement(value: str, strict: bool = False) -> str
 ```
 
 The opposite of to_twoscomplement() function:
@@ -1927,10 +1964,18 @@ on twos-complement format.
 
 Converts '1101' to '-11' (-3)
 convert '1101.1e-2' to '-11.1e-2'  (-3.5/4)
-strict True, leaves it as much as unchanged as possivle
-strict False simplifies representation
 
-input "value" is string.
+**Arguments**:
+
+- `value` _str_ - string in twos-complement format
+  strict (bool):
+  If strict is True, leaves it as much as unchanged as possible.
+  If strict is False simplifies returned binary string representation.
+
+
+**Returns**:
+
+- `str` - string in binary fraction format
 
 <a name="binary.TestBinary"></a>
 ## TestBinary Objects
@@ -2376,6 +2421,15 @@ Test function/method.
 
 Test function/method.
 
+<a name="binary.TestBinary.test___pow__"></a>
+#### test\_\_\_pow\_\_
+
+```python
+ | test___pow__()
+```
+
+Test function/method.
+
 <a name="binary.TestBinary.test___abs__"></a>
 #### test\_\_\_abs\_\_
 
@@ -2403,6 +2457,78 @@ Test function/method.
 
 Test function/method.
 
+<a name="binary.TestBinary.test___rshift__"></a>
+#### test\_\_\_rshift\_\_
+
+```python
+ | test___rshift__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___lshift__"></a>
+#### test\_\_\_lshift\_\_
+
+```python
+ | test___lshift__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___bool__"></a>
+#### test\_\_\_bool\_\_
+
+```python
+ | test___bool__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___not__"></a>
+#### test\_\_\_not\_\_
+
+```python
+ | test___not__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___and__"></a>
+#### test\_\_\_and\_\_
+
+```python
+ | test___and__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___or__"></a>
+#### test\_\_\_or\_\_
+
+```python
+ | test___or__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___xor__"></a>
+#### test\_\_\_xor\_\_
+
+```python
+ | test___xor__()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test___invert__"></a>
+#### test\_\_\_invert\_\_
+
+```python
+ | test___invert__()
+```
+
+Test function/method.
+
 <a name="binary.TestBinary.test_invert"></a>
 #### test\_invert
 
@@ -2426,51 +2552,6 @@ Test function/method.
 
 ```python
  | test_from_twoscomplement()
-```
-
-Test function/method.
-
-<a name="binary.TestBinary.test___and__"></a>
-#### test\_\_\_and\_\_
-
-```python
- | test___and__()
-```
-
-Test function/method.
-
-<a name="binary.TestBinary.test___not__"></a>
-#### test\_\_\_not\_\_
-
-```python
- | test___not__()
-```
-
-Test function/method.
-
-<a name="binary.TestBinary.test___invert__"></a>
-#### test\_\_\_invert\_\_
-
-```python
- | test___invert__()
-```
-
-Test function/method.
-
-<a name="binary.TestBinary.test___rshift__"></a>
-#### test\_\_\_rshift\_\_
-
-```python
- | test___rshift__()
-```
-
-Test function/method.
-
-<a name="binary.TestBinary.test___lshift__"></a>
-#### test\_\_\_lshift\_\_
-
-```python
- | test___lshift__()
 ```
 
 Test function/method.

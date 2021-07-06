@@ -57,7 +57,7 @@ Let's have a look at an example binary float value to see how it is represented.
      ||   |
      ||   |    exponent separator
      ||   |    |
-     ||   |    | exponent in base 10 (not base 2!)
+     ||   |    | exponent in base 10 (ool(base 2!)
      ||   |    | ||
     -0b101.0101e-34  <-- example floating-point binary fraction
     |  ||| |||| |
@@ -257,7 +257,9 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210706-133313"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210706-213957"  # format: date +%Y%m%d-%H%M%S
+# _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
+_BINARY_TOTAL_TESTS = 1150  # number of asserts in .py file
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -2007,8 +2009,6 @@ class Binary(object):
             return Binary(_INF)
         return Binary(self._fraction * other._fraction)
 
-    ## TODO Alfred did the revision until here ZZZ
-
     def __truediv__(self: Binary, other: Any) -> Binary:
         """True division operation.
 
@@ -2021,8 +2021,30 @@ class Binary(object):
         Returns:
         Binary: true division of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity():
+            return Binary(_NINF)
+        if other.isnegativeinfinity():
+            return Binary(0)
+        if other.ispositiveinfinity():
+            return Binary(-0)
+        if other._fraction == 0:
+            raise ZeroDivisionError(f"ZeroDivisionError: Binary division by zero.")
         return Binary(self._fraction / other._fraction)
 
     def __floordiv__(self: Binary, other: Any) -> Binary:
@@ -2037,14 +2059,36 @@ class Binary(object):
         Returns:
         Binary: floor division of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity():
+            return Binary(_NAN)
+        if other.isnegativeinfinity():
+            return Binary(0) if self._sign else Binary(-1)
+        if other.ispositiveinfinity():
+            return Binary(-1) if self._sign else Binary(0)
+        if other._fraction == 0:
+            raise ZeroDivisionError(f"ZeroDivisionError: Binary division by zero.")
         return Binary(self._fraction // other._fraction)
 
     def __mod__(self: Binary, other: Any) -> Binary:
-        """Compute module operation.
+        """Compute modulo operation.
 
-        Method that implements module, i.e. it returns the integer remainder.
+        Method that implements modulo, i.e. it returns the integer remainder.
         Method that implements the % operand.
 
         Parameters:
@@ -2054,12 +2098,34 @@ class Binary(object):
         Returns:
         Binary: modulation of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(_NAN)
+        if self.ispositiveinfinity():
+            return Binary(_NAN)
+        if self.isnegativeinfinity():
+            return Binary(_NAN)
+        if other.isnegativeinfinity():
+            return self if self._sign else Binary(_NINF)
+        if other.ispositiveinfinity():
+            return Binary(_INF) if self._sign else self
+        if other._fraction == 0:
+            raise ZeroDivisionError(f"ZeroDivisionError: Binary modulo.")
         return Binary(self._fraction % other._fraction)
 
     def __pow__(self: Binary, other: Any) -> Binary:
-        """Powwer of operation.
+        """Power of operation.
 
         Method that implements the ** operand.
 
@@ -2070,28 +2136,39 @@ class Binary(object):
         Returns:
         Binary: power of the two numbers
         """
-        if not isinstance(other, Binary) or not isinstance(self, Binary):
-            raise TypeError(f"Argument {other} and {self} must be of type Binary.")
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self.isnan() or other.isnan():
+            return Binary(_NAN)
+        if self.ispositiveinfinity() and other.ispositiveinfinity():
+            return Binary(_INF)
+        if self.isnegativeinfinity() and other.isnegativeinfinity():
+            return Binary(0)
+        if self.isnegativeinfinity() and other.ispositiveinfinity():
+            return Binary(_INF)
+        if self.ispositiveinfinity() and other.isnegativeinfinity():
+            return Binary(0)
+        if self.ispositiveinfinity():
+            return Binary(0) if other._sign else Binary(_INF)
+        if self.isnegativeinfinity():
+            return Binary(-0) if other._sign else Binary(_NINF)
+        if other.isnegativeinfinity():
+            return Binary(0)
+        if other.ispositiveinfinity():
+            return Binary(_INF)
+        if other._fraction == 0:
+            return Binary(1)
         po = self._fraction ** other._fraction
-        # (-3.4)**(-3.4)
-        # (-0.00481896804140973+0.014831258607220378j)
-        # >>> type((-3.4)**(-3.4))
-        # <class 'complex'>
-
+        # (-3.4)**(-3.4)  ==>  (-0.00481896804140973+0.014831258607220378j)
+        # type((-3.4)**(-3.4))  ==>  <class 'complex'>
         if isinstance(po, complex):
-            raise ValueError(
+            raise ArithmeticError(
                 f"Argument {self} to the power of {other} is a "
                 "complex number which cannot be represented as a Binary."
             )
         return Binary(po)
-
-    # TODO: for testing pow
-    # (-3.4)**(-3.4) should raise Exception
-    # (-3.4)**(-4.0) should work
-    # (-3.4)**(+3.4) should raise Exception
-    # (-3.4)**(+4.0) should work
-    # (+3.4)**(+3.4) should work
-    # (+3.4)**(-3.4) should work
 
     def __abs__(self: Binary) -> Binary:
         """Compute absolute value.
@@ -2106,29 +2183,41 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if self.isnan():
+            return Binary(_NAN)
+        if self.isinfinity():
+            return Binary(_INF)
         return Binary(abs(self._fraction))
 
-    def __ceil__(self: Binary) -> Binary:
+    def __ceil__(self: Binary) -> int:
         """Perform math ceiling operation.
 
         Method that implements ceiling. Method for "ceil".
         For example, '1.11' will return '10'.
+        Note, that math.ceil() will return an int.
 
         Parameters:
         self (Binary): binary number
 
         Returns:
-        Binary: ceiling of the number
+        int: ceiling of the number
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(math.ceil(self._fraction))
+        if self.isnan():
+            raise ValueError(f"ValueError: cannot convert Binary NaN to integer.")
+        if self.isinfinity():
+            raise OverflowError(
+                f"OverflowError: cannot convert Binary infinity to integer."
+            )
+        return math.ceil(self._fraction)
 
-    def __floor__(self: Binary) -> Binary:
+    def __floor__(self: Binary) -> int:
         """Perform math floor operation.
 
         Method that implements floor.
         For example, '1.11' will return '1'.
+        Note, that math.floor() will return an int.
 
         Parameters:
         self (Binary): binary number
@@ -2138,7 +2227,13 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary(math.floor(self._fraction))
+        if self.isnan():
+            raise ValueError(f"ValueError: cannot convert Binary NaN to integer.")
+        if self.isinfinity():
+            raise OverflowError(
+                f"OverflowError: cannot convert Binary infinity to integer."
+            )
+        return math.floor(self._fraction)
 
     def __rshift__(self: Binary, ndigits: int) -> Binary:
         """Shifts number n digits (bits) to the right.
@@ -2164,8 +2259,15 @@ class Binary(object):
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
         if ndigits < 0:
-            raise ValueError(f"negative shift count")
-
+            raise ValueError(f"ValueError: negative shift count")
+        if self.isnan():
+            return Binary(_NAN)
+        if self.isnegativeinfinity():
+            return Binary(_NINF)
+        if self.ispositiveinfinity():
+            return Binary(_INF)
+        if ndigits == 0:
+            return self
         if _EXP in self._value:
             sign, intpart, fracpart, exp = Binary.get_components(self._value)
             shifted = (
@@ -2210,15 +2312,23 @@ class Binary(object):
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
         if ndigits < 0:
-            raise ValueError(f"negative shift count")
-        if "e" in self._value:
+            raise ValueError(f"ValueError: negative shift count")
+        if self.isnan():
+            return Binary(_NAN)
+        if self.isnegativeinfinity():
+            return Binary(_NINF)
+        if self.ispositiveinfinity():
+            return Binary(_INF)
+        if ndigits == 0:
+            return self
+        if _EXP in self._value:
             sign, intpart, fracpart, exp = Binary.get_components(self._value)
             shifted = (
                 sign * "-"
                 + intpart
                 + "."
                 + (fracpart if len(fracpart) > 0 else "0")
-                + "e"
+                + _EXP
                 + str(exp + ndigits)
             )
         else:
@@ -2233,18 +2343,11 @@ class Binary(object):
             shifted = Binary.simplify(shifted_intpart + shifted_fracpart)
         return Binary(shifted)
 
-    def rrotate(self, ndigits: int):
-        # # TODO:
-        return None  # TODO
-
-    def lrotate(self, ndigits: int):
-        # # TODO:
-        return None  # TODO
-
     def __bool__(self: Binary) -> bool:
-        """Boolean transformation. Used for not operand.
+        """Boolean transformation. Used for bool() and not operand.
 
-        Method that implements boolian operation "not".
+        Method that implements transformation to boolean. This
+        boolian transformation is then used by operations like "not".
 
         Parameters:
         self (Binary): binary number
@@ -2254,66 +2357,167 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if self.isnan() or self.isinfinity():
+            return True
         return bool(self._fraction)
 
-    def __and__(self, other):
-        """Return the bitwise and of self and other.
+    def __not__(self: Binary) -> bool:
+        """Return the 'boolean not' of self.
+
+        Method that implements the 'not' operand.
+        Do not confuse it with the 'bitwise not' operand ~.
+
+        If self is 0, then method returns True.
+        For all other values it returns False.
+
+        For example: not Binary(0) returns True.
+        For example: not Binary(3.5) returns False.
+
+        Parameters:
+        self (Binary): number
+
+        Returns:
+        Binary: 'boolean not' of number
+        """
+        return not self._fraction
+
+    def __and__(self: Binary, other: Any) -> Binary:
+        """Return the bitwise 'and' of self and other.
 
         Method that implements the & operand.
 
-        For example, '11.1' ^ '10.1' will return '10.1'
+        For example, '11.1' & '10.1' will return '10.1'
+        '-0.1' & '+1' will return '-1' because twos-complement of
+        '-0.1' is 1.1; and 1.1 & 01.0 results in twos-complement 1.0;
+        and 1.0 in twos-complement is '-1' in binary fraction.
+        In short, any negative number will be converted into twos-complement
+        representation, than bitwise-and will be done, then the resulting
+        number will be converted back from twos-complement to
+        binary string format.
 
         Parameters:
-        self (Binary): number
-        other (Binary): number
+        self (Binary): binary number
+        other (Any): number
 
         Returns:
-        Binary: bitwise and of the two numbers
+        Binary: bitwise 'and' of the two numbers in binary fraction format
         """
-        return Binary.and_or(
-            self, other, "and"
-        )  # TODO , do you really need the and_or function?
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self._is_special or other._is_special:
+            raise ArithmeticError(
+                f"ArithmeticError: one of the arguments {self}, {other} "
+                "is NaN or infinity."
+            )
+        # TODO needs to be implemented
+        return Binary._and_or(self, other, "and")
 
-    def __or__(self, other):
-        """Return the bitwise or of self and other.
+    def __or__(self: Binary, other: Any) -> Binary:
+        """Return the bitwise 'or' of self and other.
 
         Method that implements the | operand.
 
-        For example, '11.1' ^ '10.1' will return '11.1'
+        For example, '11.1' | '10.1' will return '11.1'
+        '-0.1' | '+1' will return '-0.1' because twos-complement of
+        '-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
+        and 1.1 in twos-complement is '-0.1' in binary fraction.
+        In short, any negative number will be converted into twos-complement
+        representation, than bitwise-or will be done, then the resulting
+        number will be converted back from twos-complement to
+        binary string format.
 
         Parameters:
-        self (Binary): number
-        other (Binary): number
+        self (Binary): binary number
+        other (Any): number
 
         Returns:
-        Binary: bitwise or of the two numbers
+        Binary: bitwise 'or' of the two numbers in binary fraction format
         """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self._is_special or other._is_special:
+            raise ArithmeticError(
+                f"ArithmeticError: one of the arguments {self}, {other} "
+                "is NaN or infinity."
+            )
         # TODO needs to be implemented
-        return Binary._or(self, other)  # TODO
+        return Binary._and_or(self, other, "or")
 
-    def _or(self, other):
+    def __xor__(self: Binary, other: Any) -> Binary:
+        """Return the bitwise 'xor' of self and other.
+
+        Method that implements the ^ operand.
+
+        For example, '11.1' ^ '10.1' will return '1'.
+        '-0.1' ^ '+1' will return '-1.1' because twos-complement of
+        '-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
+        and 10.1 in twos-complement is '-1.1' in binary fraction.
+        In short, any negative number will be converted into twos-complement
+        representation, than bitwise-or will be done, then the resulting
+        number will be converted back from twos-complement to
+        binary string format.
+
+        Parameters:
+        self (Binary): binary number
+        other (Any): number
+
+        Returns:
+        Binary: bitwise 'xor' (bitwise exclusive or) of the
+            two numbers in binary fraction format
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(other, Binary):
+            other = Binary(other)
+        if self._is_special or other._is_special:
+            raise ArithmeticError(
+                f"ArithmeticError: one of the arguments {self}, {other} "
+                "is NaN or infinity."
+            )
         # TODO needs to be implemented
-        return None  # TODO
+        return Binary._and_or(self, other, "xor")
 
-    # is this necessary? can't we just call the corresponding function from Fractions?
-    # can't we just call binary operands on Fractions and not implement anything?
-    def and_or(this, other, which):  # TODO is this function still used? Still needed?
-        """Shifts number to the left n times # TODO
+    def _and_or(this: Binary, other: Binary, which: str) -> Binary:
+        """Performs bitwise 'and', 'or', or 'xor' on two binary fractions.
 
         This is a function, not a method.
 
         Parameters:
-        self (Binary): number to be shifted  # TODO
-        ndigits (int): numner times to be shifted # TODO
+        this (Binary): number, binary fraction
+        other (Binary): number, binary fraction
+        which (str): 'and' or 'or' or 'xor'
 
         Returns:
-        Binary: shifted number # TODO
+        Binary: 'and'ed or 'or'ed binary fraction
         """
-        # TODO: make this work with negative numbers
         if not isinstance(this, Binary) or not isinstance(other, Binary):
             raise TypeError(
                 f"Arguments {this} {other} must be of type Binary and Binary."
             )
+        if not isinstance(which, str):
+            raise TypeError(f"Arguments {which} must be of type str.")
+        if this._is_special or other._is_special:
+            raise ArithmeticError(
+                f"ArithmeticError: one of the arguments {this}, {other} "
+                "is NaN or infinity."
+            )
+        which = which.lower()
+        if which != "and" and which != "or" and which != "xor":
+            raise ValueError(
+                f"ValueError: which ({which}) should be 'and', 'or', or 'xor'."
+            )
+
+        # TODO: make this work with negative numbers
+        # TODO: make this work for 'xor'
+        # TODO: I have not looked at this function at all, but I doubt that it will be correct
+        # remove exponent on both args, operate on strings
+        # convert any of the 2 negative args into twos-complement representation
+        # TODO needs to be implemented
+
         sign1, intpart1, fracpart1, exp1 = this.components()
         sign2, intpart2, fracpart2, exp2 = other.components()
         # print("Fracpart: ", fracpart1, fracpart2)
@@ -2353,50 +2557,13 @@ class Binary(object):
             result = "0"
         return Binary(Binary.simplify(result))
 
-    def __xor__(self, other):
-        """Return the bitwise or of self and other.
-
-        Method that implements the ^ operand.
-
-        For example, '11.1' ^ '10.1' will return '11.1'
-
-        Parameters:
-        self (Binary): number
-        other (Binary): number
-
-        Returns:
-        Binary: bitwise exclusive or of the two numbers
-        """
-        # remove exponent on both args, operate on strings
-        # TODO needs to be implemented
-        return None  # TODO
-
-    def __not__(self) -> bool:
-        """Return the 'boolean not' of self.
-
-        Method that implements the 'not' operand.
-        Do not confuse it with the 'bitwise not' operand ~.
-
-        If self is 0, then method returns True.
-        For all other values it returns False.
-
-        For example: not Binary(0) returns True.
-        For example: not Binary(3.5) returns False.
-
-        Parameters:
-        self (Binary): number
-
-        Returns:
-        Binary: 'boolean not' of number
-        """
-        # for integers it is defined as -(x+1). So ~9 is -10.
-        return not self._fraction
-
-    def __invert__(self):
-        """Return the 'bitwise not' of self.
+    def __invert__(self: Binary) -> Binary:
+        """Returns the 'bitwise not' of self.
 
         Method that implements the ~ operand.
         This is also called the 'invert' operand, or the 'bitwise not' operand.
+        Do not confuse it with the 'boolean not' operand implemented
+        via the 'not' operand and the __not__() method.
 
         It is only defined for integers. If self is not an integer it
         will raise an exception. For integers ~ is defined as
@@ -2409,6 +2576,12 @@ class Binary(object):
         Returns:
         Binary: 'bitwise not' of integer number
         """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Arguments {self} must be of type Binary.")
+        if self._is_special:
+            raise ArithmeticError(
+                f"ArithmeticError: argument {self} is NaN or infinity."
+            )
         # for integers it is defined as -(x+1). So ~9 is -10.
         if Binary.isint(self):
             # for integers ~ is defined as: ~n = - (n+1) formula
@@ -2432,7 +2605,7 @@ class Binary(object):
                 "Binary.invert(Binary.to_twoscomplement(value))."
             )
 
-    def invert(value: str, strict=True) -> str:
+    def invert(value: str, strict: bool = False) -> str:
         """Inverts (bitwise negates) string that is in twos-complement format.
 
         This is a utility function.
@@ -2440,27 +2613,36 @@ class Binary(object):
         Input must be of format: twos-complement format.
         Do NOT use this function on negative binary fractions strings.
 
-        Examples inputs are:
-            0...not valid, missing sign, or missing digits
-            1...not valid, missing sign, or missing digits
-            01...1, 010...2, 011...3
-            10..-0, 111110..-0
+        Examples for input "value" string are:
+            # leading 0: positive
+            0...0
+            01...1
+            010...2
+            011...3
+            0100...4
+            01.1...1.5
+            010.11...2.75
+            01.1e-4...1.5e-4
+            010.11e-4...2.75e-4,
+            # leading 1: negative
+            1...-1
             11...-1, 111...-1, 111111111...-1
+            10...-2, 111110...-2
             110...-2, 1110...-2,
             1101...-3, 111101...-3
-            01.1...1.5, 010.11...2.75,
-            111.1...-0.5, 111.11...-0.25
-            01.1e-4...1.5e-4, 010.11e-4...2.75e-4,
-            111.1e3...-0.5e3, 111.11e3...-0.25e3
+            111.1...-0.5
+            111.11...-0.25
+            111.1e3...-0.5e3
+            111.11e3...-0.25e3
 
-            invert('0') raises exception
-            invert('1') raises exception
-            invert('1..1') raises exception
-            invert('34') raises exception
-            invert('1ee2') raises exception
-            invert('1e') raises exception
-            invert('01') returns '10'
-            invert('10') returns '01'
+            invert('01') returns '10' (like decimal: ~1==-2)
+            invert('0') returns 1  (like decimal: ~0==-1)
+            invert('1') returns 0  (like decimal: ~-1==0)
+            invert('1..1') raises exception, 2 decimal points
+            invert('34') raises exception, not binary
+            invert('1ee2') raises exception, two exponential signs
+            invert('1e') raises exception, missing exponent digit
+            invert('10') returns '01'  (like decimal: ~-2==1)
             invert('101010') returns '010101'
             invert('0101010') returns '1010101'
             invert('0101010e-34') returns '1010101e-34'
@@ -2470,11 +2652,27 @@ class Binary(object):
 
             invert(invert(n)) == for all valid n
 
+        Arguments:
+        value (str): string representation of twos-complement
+        strict (bool): if True try to change the string as little as
+            possible in format
+            if False, returned string will also be simplified
+            by removing unnecessary digits.
+
         Returns:
         str: bitwise negated string, a twos-complement formated string
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
+        if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
+            raise ArithmeticError(
+                f"ArithmeticError: argument {self} is NaN or infinity."
+            )
+        if not Binary.istwoscomplement(value):
+            raise ValueError(f"Argument {value} not a valid twos-complement literal.")
+
+        # TODO: do you handle exp part?
+        # TODO: do you handle negative numbers?
 
         result = ""
         intpart = ""
@@ -2510,7 +2708,7 @@ class Binary(object):
         # TODO: do you handle exp part?
         return result
 
-    def to_twoscomplement(self, length: int = -1) -> str:
+    def to_twoscomplement(self: Binary, length: int = -1) -> str:
         """Computes the representation as a string in twos-complement.
 
         If you are curious about Two's complement:
@@ -2572,7 +2770,17 @@ class Binary(object):
             Converts '-2.5e89' to '101.1e89'
 
         Parameters:
-        length (int): que cuantity of 0 or 1 at the beginning of the number
+        length (int): this increases the length of the returned string
+            to a lenght of "length" by prefilling it with leading
+            0s for positive numbers, and 1s for negative numbers.
+            length == -1 means that the string will be returned as short
+            as possible without prefilling. If the desired "length"
+            is shorter than needed to represent the number, the exception
+            OverflowError will be raised. The length is counted in a
+            non-exponential representation with the decimal point counting
+            as 1. So, for example, '11.01' has a length of 5. The same
+            value in length 8 would be '11111.01'. Or, the decimal 2 in
+            length 8 would be '00000010'.
 
         Returns:
         str: binary string representation in twos-complement
@@ -2581,14 +2789,18 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(length, int):
             raise TypeError(f"Argument {length} must be of type int.")
-
         if length <= 0 and length != -1:
             raise ValueError(f"Argument {length} must be bigger than 0 or -1")
+        if self._is_special:
+            raise ArithmeticError(
+                f"ArithmeticError: argument {self} is NaN or infinity."
+            )
+
+        # TODO, BUG: we changed our mind, now '0' is a valid binary fraction
+        # TODO: BUG: 0 is 0 in decimal, 0 in binary fraction, 0 in twos-complement
+        # TODO: don't prefix 0.xxx with another 0. 00.xxxx is not nice.
+
         if self._fraction >= 0:
-            # TODO, BUG: we changed our mind, now '0' is a valid binary fraction
-            # TODO: BUG: as well as a valid twos-complement representation
-            # TODO, BUG: in short '0' or int 0 should return twos-complement '0'
-            # return "0" + self._value if self._value[0] != "0" else self._value
             result = self._value
             if result[0] != "0":
                 result = "0" + result
@@ -2627,7 +2839,7 @@ class Binary(object):
             raise OverflowError
         return result
 
-    def from_twoscomplement(value: str, strict=False) -> str:
+    def from_twoscomplement(value: str, strict: bool = False) -> str:
         """The opposite of to_twoscomplement() function:
 
         This is a utility function.
@@ -2637,14 +2849,26 @@ class Binary(object):
 
         Converts '1101' to '-11' (-3)
         convert '1101.1e-2' to '-11.1e-2'  (-3.5/4)
-        strict True, leaves it as much as unchanged as possivle
-        strict False simplifies representation
 
-        input "value" is string.
+        Arguments:
+        value (str): string in twos-complement format
+        strict (bool):
+            If strict is True, leaves it as much as unchanged as possible.
+            If strict is False simplifies returned binary string representation.
+
+        Returns:
+        str: string in binary fraction format
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
-        # TODO zzz should be prefix return value with 0b ???
+        if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
+            raise ArithmeticError(
+                f"ArithmeticError: argument {self} is NaN or infinity."
+            )
+        if not Binary.istwoscomplement(value):
+            raise ValueError(f"Argument {value} not a valid twos-complement literal.")
+
+        # TODO zzz should we prefix return value with 0b ???
         sign, intpart, fracpart, exp = Binary.get_twoscomplement_components(
             value, strict=strict
         )
@@ -2708,11 +2932,12 @@ class TestBinary(unittest.TestCase):
         success = test_result.wasSuccessful()
         print("")
         print(f"Test results are: ")
-        print(f"    Total number of unit tests = {ttl}")
-        print(f"    Tests executed             = {run}")
-        print(f"    Tests skipped              = {skip}")
-        print(f"    Tests failed               = {fail}")
-        print(f"    Tests with error           = {err}")
+        print(f"    Total number of individual tests = {_BINARY_TOTAL_TESTS}")
+        print(f"    Total number of unit tests       = {ttl}")
+        print(f"    Unit tests executed              = {run}")
+        print(f"    Unit tests skipped               = {skip}")
+        print(f"    Unit tests failed                = {fail}")
+        print(f"    Unit tests with error            = {err}")
         if success:
             result = f"Self-Test: 😃 All {run} out of {ttl} unit tests passed ✅"
             ret = True
@@ -2720,7 +2945,7 @@ class TestBinary(unittest.TestCase):
             plural = "" if run - err - fail == 1 else "s"
             result = f"Self-Test: {run-err-fail} unit test{plural} passed ✅\n"
             plural = "" if err + fail == 1 else "s"
-            result += f"Self-Test: {err+fail} unit test{plural} failed   ❌"
+            result += f"Self-Test: {err+fail} unit test{plural} failed  ❌"
             ret = False
         print(f"{result}")
         return ret
@@ -3981,13 +4206,33 @@ class TestBinary(unittest.TestCase):
         with self.assertRaises(TypeError):
             Binary(1) * complex(1, 1)  # should fail
 
-    # ZZZ
-
     def test___truediv__(self):
         """Test function/method."""
+        self.assertEqual((Binary("inf") / Binary("inf")).isnan(), True)
+        self.assertEqual(Binary("inf") / 1, Binary("infinity"))
+        self.assertEqual((Binary("-inf") / Binary("-inf")).isnan(), True)
+        self.assertEqual(Binary("-inf") / 1, Binary("-infinity"))
+        self.assertEqual((Binary("-inf") / Binary("inf")).isnan(), True)
+        self.assertEqual((Binary("inf") / Binary("-inf")).isnan(), True)
+        self.assertEqual((Binary("nan") / 1).isnan(), True)
+        self.assertEqual((Binary("inf") / Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") / Binary("nan")).isnan(), True)
         self.assertEqual(Binary(100) / Binary(Fraction(1, 10)), 1000)
         self.assertEqual(Binary(0) / Binary(10), 0)
         self.assertEqual(Binary(1) / Binary(2), 0.5)
+        self.assertEqual(Binary(100) / Fraction(1, 10), 1000)
+        self.assertEqual(Binary(0) / 10, 0)
+        self.assertEqual(Binary(1) / 2, 0.5)
+        self.assertEqual(Binary(0) / 10.5, 0)
+        self.assertEqual((Binary(1) / 2.5).isclose(0.4), True)
+        self.assertEqual(Binary(-1) / Fraction(5, 2), Fraction(-4, 10))
+        self.assertEqual((Binary(1) / (-2.5)).isclose(-0.4), True)
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) / Binary(0)
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) / 0.0
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) / 0
         with self.assertRaises(ValueError):
             Binary("102") / "103"  # should fail
         with self.assertRaises(TypeError):
@@ -3995,9 +4240,42 @@ class TestBinary(unittest.TestCase):
 
     def test___floordiv__(self):
         """Test function/method."""
+        self.assertEqual((Binary("inf") // Binary("inf")).isnan(), True)
+        self.assertEqual((Binary("inf") // 1).isnan(), True)
+        self.assertEqual((Binary("-inf") // Binary("-inf")).isnan(), True)
+        self.assertEqual((Binary("-inf") // 1).isnan(), True)
+        self.assertEqual((Binary("-inf") // Binary("inf")).isnan(), True)
+        self.assertEqual((Binary("inf") // Binary("-inf")).isnan(), True)
+        self.assertEqual((Binary("nan") // 1).isnan(), True)
+        self.assertEqual((Binary("inf") // Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") // Binary("nan")).isnan(), True)
+        self.assertEqual(Binary(1234) // Binary(Fraction(1, 10)), 12340)
+        self.assertEqual(Binary(0) // Binary(10), 0)
+        self.assertEqual(Binary(1) // Binary(2), 0)
+        self.assertEqual(Binary(100) // Fraction(1, 10), 1000)
+        self.assertEqual(Binary(0) // 10, 0)
+        self.assertEqual(Binary(1) // 2, 0.0)
+        self.assertEqual(Binary(0) // 10.5, 0)
+        self.assertEqual((Binary(1) // 2.5).isclose(0), True)
+        self.assertEqual(Binary(-1) // Fraction(5, 2), -1)
+        self.assertEqual((Binary(1) // (-2.5)).isclose(-1), True)
         self.assertEqual(Binary(10) // Binary(3), 3)
         self.assertEqual(Binary(7) // Binary(2), 3)
         self.assertEqual(Binary(8) // Binary(3), 2)
+        self.assertEqual(Binary(-10) // Binary(3), -4)
+        self.assertEqual(Binary(-7) // Binary(2), -4)
+        self.assertEqual(Binary(-8) // Binary(3), -3)
+        self.assertEqual(Binary(-6) // Binary(2), -3)
+        self.assertEqual(Binary(-6) // Binary("inf"), -1)
+        self.assertEqual(Binary(+6) // Binary("inf"), 0)
+        self.assertEqual(Binary(-6) // Binary("-inf"), 0)
+        self.assertEqual(Binary(+6) // Binary("-inf"), -1)
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) // Binary(0)
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) // 0.0
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) // 0
         with self.assertRaises(ValueError):
             Binary("102") // "103"  # should fail
         with self.assertRaises(TypeError):
@@ -4005,155 +4283,168 @@ class TestBinary(unittest.TestCase):
 
     def test___mod__(self):
         """Test function/method."""
+        self.assertEqual((Binary("inf") % Binary("inf")).isnan(), True)
+        self.assertEqual((Binary("inf") % 1).isnan(), True)
+        self.assertEqual((Binary("-inf") % Binary("-inf")).isnan(), True)
+        self.assertEqual((Binary("-inf") % 1).isnan(), True)
+        self.assertEqual((Binary("-inf") % Binary("inf")).isnan(), True)
+        self.assertEqual((Binary("inf") % Binary("-inf")).isnan(), True)
+        self.assertEqual((Binary("nan") % 1).isnan(), True)
+        self.assertEqual((Binary("inf") % Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") % Binary("nan")).isnan(), True)
+        self.assertEqual(Binary(1234) % Binary(Fraction(1, 10)), 0)
+        self.assertEqual(Binary(0) % Binary(10), 0)
+        self.assertEqual(Binary(1) % Binary(2), 1)
+        self.assertEqual(Binary(100) % Fraction(1, 10), 0)
+        self.assertEqual((Binary(100.23) % Fraction(1, 10)).isclose(0.03), True)
+        self.assertEqual(Binary(0) % 10, 0)
+        self.assertEqual(Binary(1) % 2, 1)
+        self.assertEqual(Binary(0) % 10.5, 0)
+        self.assertEqual((Binary(1) % 2.5).isclose(1), True)
+        self.assertEqual(Binary(-1) % Fraction(5, 2), 1.5)
+        self.assertEqual((Binary(1) % (-2.5)).isclose(-1.5), True)
+        self.assertEqual(Binary(10) % Binary(3), 1)
+        self.assertEqual(Binary(7) % Binary(2), 1)
+        self.assertEqual(Binary(8) % Binary(3), 2)
+        self.assertEqual(Binary(-10) % Binary(3), 2)
+        self.assertEqual(Binary(-7) % Binary(2), 1)
+        self.assertEqual(Binary(-8) % Binary(3), 1)
+        self.assertEqual(Binary(-6) % Binary(2), 0)
+        self.assertEqual(Binary(-6) % Binary("inf"), Binary("inf"))
+        self.assertEqual(Binary(+6) % Binary("inf"), 6)
+        self.assertEqual(Binary(-6) % Binary("-inf"), -6)
+        self.assertEqual(Binary(+6) % Binary("-inf"), Binary("-inf"))
         self.assertEqual(Binary(5) % Binary(3), 2)
+        self.assertEqual(Binary(5.5) % Binary(3), 2.5)
         self.assertEqual(Binary(7) % Binary(4), 3)
         self.assertEqual(Binary("111") % Binary("11"), 1)
         self.assertEqual(Binary(5.0) % Binary(1.5), 0.5)
         self.assertEqual(Binary("-101.0") % Binary("-1.1"), -0.5)
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) % Binary(0)
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) % 0.0
+        with self.assertRaises(ZeroDivisionError):
+            Binary(1) % 0
         with self.assertRaises(ValueError):
             Binary("102") % "103"  # should fail
         with self.assertRaises(TypeError):
             Binary(1) % complex(1, 1)  # should fail
 
+    def test___pow__(self):
+        """Test function/method."""
+        self.assertEqual((Binary("inf") ** Binary("inf")).ispositiveinfinity(), True)
+        self.assertEqual((Binary("inf") ** 1).ispositiveinfinity(), True)
+        self.assertEqual(Binary("-inf") ** Binary("-inf"), 0)
+        self.assertEqual((Binary("-inf") ** 1).isnegativeinfinity(), True)
+        self.assertEqual((Binary("-inf") ** Binary("inf")).ispositiveinfinity(), True)
+        self.assertEqual(Binary("inf") ** Binary("-inf"), 0)
+        self.assertEqual((Binary("nan") ** 1).isnan(), True)
+        self.assertEqual((Binary("inf") ** Binary("nan")).isnan(), True)
+        self.assertEqual((Binary("-inf") ** Binary("nan")).isnan(), True)
+        self.assertEqual(Binary(1234) ** Binary(Fraction(1, 10)), 1234 ** 0.1)
+        self.assertEqual(Binary(0) ** Binary(10), 0)
+        self.assertEqual(Binary(1) ** Binary(2), 1)
+        self.assertEqual(Binary(100) ** Fraction(1, 10), 100 ** 0.1)
+        self.assertEqual(
+            (Binary(100.23) ** Fraction(1, 10)).isclose(100.23 ** 0.1), True
+        )
+        self.assertEqual(Binary(0) ** 10, 0)
+        self.assertEqual(Binary(1) ** 2, 1)
+        self.assertEqual(Binary(0) ** 10.5, 0)
+        self.assertEqual((Binary(1) ** 2.5).isclose(1), True)
+        self.assertEqual((Binary(1) ** (-2.5)).isclose(1), True)
+        self.assertEqual(Binary(10) ** Binary(3), 1000)
+        self.assertEqual(Binary(7) ** Binary(2), 49)
+        self.assertEqual(Binary(8) ** Binary(3), 64 * 8)
+        self.assertEqual(Binary(-10) ** Binary(3), -1000)
+        self.assertEqual(Binary(-7) ** Binary(2), 49)
+        self.assertEqual(Binary(-8) ** Binary(3), -64 * 8)
+        self.assertEqual(Binary(-6) ** Binary(2), 36)
+        self.assertEqual(Binary(-6) ** Binary("inf"), Binary("inf"))
+        self.assertEqual(Binary(+6) ** Binary("inf"), Binary("inf"))
+        self.assertEqual(Binary(-6) ** Binary("-inf"), 0)
+        self.assertEqual(Binary(+6) ** Binary("-inf"), 0)
+        self.assertEqual(Binary(5) ** Binary(3), 125)
+        self.assertEqual(Binary(5.5) ** Binary(3), 5.5 ** 3)
+        self.assertEqual(Binary(7) ** Binary(4), 49 * 49)
+        self.assertEqual(Binary("111") ** Binary("11"), 49 * 7)
+        self.assertEqual(Binary(5.0) ** Binary(1.5), 5 ** 1.5)
+        self.assertEqual((Binary(-3.4) ** Binary(-4)).isclose((-3.4) ** (-4)), True)
+        self.assertEqual((Binary(-3.4) ** Binary(+4)).isclose((-3.4) ** (+4)), True)
+        self.assertEqual((Binary(+3.4) ** Binary(-3.4)).isclose((+3.4) ** (-3.4)), True)
+        self.assertEqual(Binary(1) ** Binary(0), 1)
+        self.assertEqual(Binary(1) ** 0.0, 1)
+        self.assertEqual(Binary(1) ** 0, 1)
+        with self.assertRaises(ValueError):
+            Binary("102") ** "103"  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary(-3.4) ** Binary(-3.4)  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary(-3.4) ** Binary(+3.4)  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) ** complex(1, 1)  # should fail
+
     def test___abs__(self):
         """Test function/method."""
+        self.assertIsInstance(abs(Binary(5)), Binary)
+        self.assertEqual(abs(Binary("inf")), Binary("inf"))
+        self.assertEqual(abs(Binary("-inf")), Binary("inf"))
+        self.assertEqual(abs(Binary("nan")).isnan(), True)
         self.assertEqual(abs(Binary(5)), 5)
         self.assertEqual(abs(Binary(-7)), 7)
         self.assertEqual(abs(Binary("111")), 7)
         self.assertEqual(abs(Binary(-1.5)), 1.5)
         self.assertEqual(abs(Binary("-101.1")), 5.5)
+        with self.assertRaises(ValueError):
+            abs(Binary("102"))  # should fail
+        with self.assertRaises(TypeError):
+            Binary.__abs__(1)  # should fail
 
     def test___ceil__(self):
         """Test function/method."""
+        self.assertIsInstance(math.ceil(Binary(5)), int)
         self.assertEqual(math.ceil(Binary(5)), math.ceil(5))
         self.assertEqual(math.ceil(Binary(-7)), math.ceil(-7))
         self.assertEqual(math.ceil(Binary("111")), math.ceil(7))
         self.assertEqual(math.ceil(Binary(-1.5)), math.ceil(-1.5))
         self.assertEqual(math.ceil(Binary("-101.1")), math.ceil(-5.5))
+        with self.assertRaises(ValueError):
+            math.ceil(Binary("102"))  # should fail
+        with self.assertRaises(TypeError):
+            Binary.__ceil__(1)  # should fail
+        with self.assertRaises(ValueError):
+            math.ceil(Binary("Nan"))  # should fail
+        with self.assertRaises(OverflowError):
+            math.ceil(Binary("inf"))  # should fail
+        with self.assertRaises(OverflowError):
+            math.ceil(Binary("-inf"))  # should fail
 
     def test___floor__(self):
         """Test function/method."""
+        self.assertIsInstance(math.floor(Binary(5)), int)
         self.assertEqual(math.floor(Binary(5)), math.floor(5))
         self.assertEqual(math.floor(Binary(-7)), math.floor(-7))
         self.assertEqual(math.floor(Binary("111")), math.floor(7))
         self.assertEqual(math.floor(Binary(-1.5)), math.floor(-1.5))
         self.assertEqual(math.floor(Binary("-101.1")), math.floor(-5.5))
-
-    def test_invert(self):
-        """Test function/method."""
-        self.assertEqual(Binary.invert("0001000"), "1110111")
-        self.assertEqual(Binary.invert("0001000", strict=False), "10111")
-        self.assertEqual(Binary.invert("1110110", strict=False), "01001")
-        self.assertEqual(Binary.invert("0.1101", strict=True), "1.0010")
-        self.assertEqual(Binary.invert("0.1101", strict=False), "1.001")
-        self.assertEqual(Binary.invert("11.1101", strict=False), "0.001")
-        self.assertEqual(Binary.invert("00.1101", strict=False), "1.001")
-        with self.assertRaises(TypeError):
-            Binary.invert(1975)  # should fail
-
-    def test_to_twoscomplement(self):
-        """Test function/method."""
-        self.assertEqual(Binary("10").to_twoscomplement(), Binary("10"))
-        self.assertEqual(Binary("1010").to_twoscomplement(), Binary("1010"))
-        self.assertEqual(Binary("-1").to_twoscomplement(length=12), "1" * 12)
-        self.assertEqual(Binary(-1975).to_twoscomplement(length=12), "100001001001")
-        self.assertEqual(Binary("-1.0").to_twoscomplement(length=12), "1" * 12)
-        self.assertEqual(Binary("-1.0010").to_twoscomplement(), "10.111")
-        self.assertEqual(Binary("-0.0010").to_twoscomplement(), "1.111")
-        self.assertEqual(Binary("-0.111").to_twoscomplement(), "1.001")
-        self.assertEqual(Binary("-0.10").to_twoscomplement(), "1.1")
-        self.assertEqual(Binary(0.25).to_twoscomplement(), "0.01")
-        self.assertEqual(Binary(-0.125).to_twoscomplement(), "1.111")
-        self.assertEqual(Binary(-0.25).to_twoscomplement(), "1.11")
-        self.assertEqual(Binary(-0.5).to_twoscomplement(), "1.1")
-        self.assertEqual(Binary(-1.0).to_twoscomplement(), "1")
-        self.assertEqual(Binary(-2).to_twoscomplement(), "10")
-        self.assertEqual(Binary(-3).to_twoscomplement(), "101")
-        self.assertEqual(Binary(-1.5).to_twoscomplement(), "10.1")
-        self.assertEqual(Binary(-2.5).to_twoscomplement(), "101.1")
-        self.assertEqual(Binary(-2).to_twoscomplement(4), "1110")
-        self.assertEqual(Binary(-3).to_twoscomplement(3), "101")
-        self.assertEqual(Binary(-1.5).to_twoscomplement(4), "10.1")
-        self.assertEqual(Binary(-2.5).to_twoscomplement(6), "1101.1")
-        self.assertEqual(Binary(+2).to_twoscomplement(5), "00010")
-        self.assertEqual(Binary(3).to_twoscomplement(3), "011")
-        self.assertEqual(Binary(1.5).to_twoscomplement(4), "01.1")
-        self.assertEqual(Binary(2.5).to_twoscomplement(6), "0010.1")
-        with self.assertRaises(OverflowError):
-            Binary(-3).to_twoscomplement(2)
-        with self.assertRaises(OverflowError):
-            Binary(3).to_twoscomplement(2)
-        with self.assertRaises(OverflowError):
-            Binary(-1.5).to_twoscomplement(3)
-        with self.assertRaises(OverflowError):
-            Binary(1.5).to_twoscomplement(2)
-        with self.assertRaises(OverflowError):
-            Binary(+3).to_twoscomplement(1)
         with self.assertRaises(ValueError):
-            Binary(+3).to_twoscomplement(-2)
+            math.floor(Binary("102"))  # should fail
         with self.assertRaises(TypeError):
-            Binary(+3).to_twoscomplement("1")
-        with self.assertRaises(TypeError):
-            Binary(+3).to_twoscomplement(1.0)
-
-    def test_from_twoscomplement(self):
-        """Test function/method."""
-        # TODO zzz add test case using to_twosco() and from_twosco() combined! looping
-        self.assertEqual(Binary.from_twoscomplement("10.1"), "-1.1")
-        self.assertEqual(Binary.from_twoscomplement("11"), "-1")
-        self.assertEqual(Binary.from_twoscomplement("11.111"), "-1.001")
-        self.assertEqual(Binary.from_twoscomplement("110.111"), "-10.001")
-        self.assertEqual(Binary.from_twoscomplement("110.001"), "-10.111")
-        self.assertEqual(Binary.from_twoscomplement("110"), "-10")
-        self.assertEqual(Binary.from_twoscomplement("00"), "0")
-        self.assertEqual(Binary.from_twoscomplement("01"), "1")
-        self.assertEqual(Binary.from_twoscomplement("00.11"), "0.11")
-        self.assertEqual(
-            Binary.from_twoscomplement("00.11111111111110"), "0.1111111111111"
-        )
-        self.assertEqual(Binary.from_twoscomplement("00.11e-5"), "0.11e-5")
-        self.assertEqual(
-            Binary.from_twoscomplement("00.11111111111110"), "0.1111111111111"
-        )
-        self.assertEqual(Binary.from_twoscomplement("00.00", strict=True), "00.00")
+            Binary.__floor__(1)  # should fail
         with self.assertRaises(ValueError):
-            Binary.from_twoscomplement("102")  # should fail
-        with self.assertRaises(TypeError):
-            Binary.from_twoscomplement(Binary(1))  # should fail
-
-    def test___and__(self):
-        """Test function/method."""
-        self.assertEqual(Binary(1) & Binary(1), Binary(1))
-        self.assertEqual(Binary(0) & Binary(1), Binary(0))
-        self.assertEqual(Binary("1000") & Binary("0"), Binary(0))
-        self.assertEqual(Binary("1010") & Binary("10"), Binary("10"))
-        with self.assertRaises(ValueError):
-            Binary("102") & "103"  # should fail
-        with self.assertRaises(TypeError):
-            Binary(1) & complex(1, 1)  # should fail
-
-    def test___not__(self):
-        """Test function/method."""
-        self.assertEqual(not Binary(9), False)
-        self.assertEqual(not Binary(-10.5), False)
-        self.assertEqual(not Binary(0), True)
-        self.assertEqual(not Binary(0.0), True)
-        with self.assertRaises(TypeError):
-            not Binary(complex(1, 1))  # should fail
-
-    def test___invert__(self):
-        """Test function/method."""
-        self.assertEqual(~Binary(9), Binary(-10))
-        self.assertEqual(~Binary(-10), Binary(9))
-        self.assertEqual(~~Binary(-109), Binary(-109))
-        self.assertEqual(~~Binary(9), Binary(9))
-        with self.assertRaises(ValueError):
-            ~Binary("-10.5")  # should fail
-        with self.assertRaises(TypeError):
-            ~Binary(complex(1, 1))  # should fail
+            math.floor(Binary("Nan"))  # should fail
+        with self.assertRaises(OverflowError):
+            math.floor(Binary("inf"))  # should fail
+        with self.assertRaises(OverflowError):
+            math.floor(Binary("-inf"))  # should fail
 
     def test___rshift__(self):
         """Test function/method."""
+        self.assertIsInstance(Binary(1) >> 1, Binary)
+        self.assertEqual(Binary("inf") >> 1, Binary("inf"))
+        self.assertEqual(Binary("-inf") >> 1, Binary("-inf"))
+        self.assertEqual((Binary("nan") >> 1).isnan(), True)
         self.assertEqual(Binary(1) >> 1, 0.5)
         self.assertEqual(Binary(2) >> 3, 0.25)
         self.assertEqual(Binary(0.25) >> 1, Fraction(1, 8))
@@ -4202,6 +4493,10 @@ class TestBinary(unittest.TestCase):
 
     def test___lshift__(self):
         """Test function/method."""
+        self.assertIsInstance(Binary(1) << 1, Binary)
+        self.assertEqual(Binary("inf") >> 1, Binary("inf"))
+        self.assertEqual(Binary("-inf") >> 1, Binary("-inf"))
+        self.assertEqual((Binary("nan") >> 1).isnan(), True)
         self.assertEqual(Binary(1) << 1, 2)
         self.assertEqual(Binary(2) << 3, 16)
         self.assertEqual(Binary(0.25) << 1, 0.5)
@@ -4232,6 +4527,312 @@ class TestBinary(unittest.TestCase):
             Binary("10") << -3  # should fail
         with self.assertRaises(TypeError):
             Binary(1) << complex(1, 1)  # should fail
+
+    def test___bool__(self):
+        """Test function/method."""
+        self.assertIsInstance(bool(Binary(1)), bool)
+        self.assertEqual(bool(Binary("inf")), True)
+        self.assertEqual(bool(Binary("-inf")), True)
+        self.assertEqual(bool(Binary("Nan")), True)
+        self.assertEqual(bool(Binary(9)), True)
+        self.assertEqual(bool(Binary(-10.5)), True)
+        self.assertEqual(bool(Binary(0)), False)
+        self.assertEqual(bool(Binary(0.0)), False)
+        with self.assertRaises(TypeError):
+            Binary.__bool__(complex(1, 1))  # should fail
+
+    def test___not__(self):
+        """Test function/method."""
+        self.assertIsInstance(not Binary(1), bool)
+        self.assertEqual(not Binary("inf"), False)
+        self.assertEqual(not Binary("-inf"), False)
+        self.assertEqual(not Binary("Nan"), False)
+        self.assertEqual(not Binary(9), False)
+        self.assertEqual(not Binary(-10.5), False)
+        self.assertEqual(not Binary(0), True)
+        self.assertEqual(not Binary(0.0), True)
+        with self.assertRaises(TypeError):
+            not Binary(complex(1, 1))  # should fail
+
+    def test___and__(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary(1) & Binary(1), Binary)
+        self.assertEqual(Binary(1) & Binary(1), Binary(1))
+        self.assertEqual(Binary(0) & Binary(1), Binary(0))
+        self.assertEqual(Binary("1000") & Binary("0"), Binary(0))
+        self.assertEqual(Binary("1010") & Binary("10"), Binary("10"))
+        self.assertEqual(Binary("1010") & Binary("11"), Binary("10"))
+        self.assertEqual(Binary("1111") & Binary("10"), Binary("10"))
+        self.assertEqual(Binary("1.1000") & Binary("0.0"), Binary(0))
+        self.assertEqual(Binary("1.1010") & Binary("0.10"), Binary("0.1"))
+        self.assertEqual(Binary("1.1010") & Binary("0.11"), Binary("0.1"))
+        self.assertEqual(Binary("1.1111") & Binary("0.10"), Binary("0.1"))
+        self.assertEqual(Binary("-0.1") & Binary("+1"), -1)
+        self.assertEqual(Binary(-5) & Binary(-6), -6)
+        self.assertEqual(Binary(-5) & Binary(-7), -7)
+        self.assertEqual(Binary(-5) & Binary(-8), -8)
+        self.assertEqual(Binary(-5) & Binary(-9), -13)
+        self.assertEqual(Binary(-5) & Binary(-10), -14)
+        self.assertEqual(Binary(5) & Binary(-10), 4)
+        self.assertEqual(Binary(5) & Binary(-9), 5)
+        self.assertEqual(Binary(5) & Binary(-8), 0)
+        self.assertEqual(Binary(5) & Binary(-7), 1)
+        self.assertEqual(Binary(5) & Binary(-6), 0)
+        self.assertEqual(Binary(5) & Binary(-5), 1)
+        with self.assertRaises(ValueError):
+            Binary("102") & "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) & complex(1, 1)  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary("inf") & Binary(1)
+        with self.assertRaises(ArithmeticError):
+            Binary(1) & Binary("inf")
+        with self.assertRaises(ArithmeticError):
+            Binary("nan") & Binary(1)
+        with self.assertRaises(ArithmeticError):
+            Binary(1) & Binary("nan")
+        with self.assertRaises(ArithmeticError):
+            Binary("-inf") & Binary("-inf")
+
+    def test___or__(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary(1) | Binary(1), Binary)
+        self.assertEqual(Binary(1) | Binary(1), Binary(1))
+        self.assertEqual(Binary(0) | Binary(1), Binary(1))
+        self.assertEqual(Binary("1000") | Binary("0"), Binary("1000"))
+        self.assertEqual(Binary("1010") | Binary("10"), Binary("1010"))
+        self.assertEqual(Binary("1010") | Binary("11"), Binary("1011"))
+        self.assertEqual(Binary("1111") | Binary("10"), Binary("1111"))
+        self.assertEqual(Binary("1.1000") | Binary("0.0"), Binary("1.1000"))
+        self.assertEqual(Binary("1.1010") | Binary("0.10"), Binary("1.1010"))
+        self.assertEqual(Binary("1.1010") | Binary("0.11"), Binary("1.1110"))
+        self.assertEqual(Binary("1.1111") | Binary("0.10"), Binary("1.1111"))
+        self.assertEqual(Binary("-0.1") | Binary("+1"), -0.5)
+        self.assertEqual(Binary(-5) | Binary(-6), -5 | -6)
+        self.assertEqual(Binary(-5) | Binary(-7), -5 | -7)
+        self.assertEqual(Binary(-5) | Binary(-8), -5 | -8)
+        self.assertEqual(Binary(-5) | Binary(-9), -5 | -9)
+        self.assertEqual(Binary(-5) | Binary(-10), -5 | -10)
+        self.assertEqual(Binary(5) | Binary(-10), 5 | -10)
+        self.assertEqual(Binary(5) | Binary(-9), 5 | -9)
+        self.assertEqual(Binary(5) | Binary(-8), 5 | -8)
+        self.assertEqual(Binary(5) | Binary(-7), 5 | -7)
+        self.assertEqual(Binary(5) | Binary(-6), 5 | -6)
+        self.assertEqual(Binary(5) | Binary(-5), 5 | -5)
+        with self.assertRaises(ValueError):
+            Binary("102") | "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) | complex(1, 1)  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary("inf") | Binary(1)
+        with self.assertRaises(ArithmeticError):
+            Binary(1) | Binary("inf")
+        with self.assertRaises(ArithmeticError):
+            Binary("nan") | Binary(1)
+        with self.assertRaises(ArithmeticError):
+            Binary(1) | Binary("nan")
+        with self.assertRaises(ArithmeticError):
+            Binary("-inf") | Binary("-inf")
+
+    def test___xor__(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary(1) ^ Binary(1), Binary)
+        self.assertEqual(Binary(1) ^ Binary(1), Binary(0))
+        self.assertEqual(Binary(0) ^ Binary(1), Binary(1))
+        self.assertEqual(Binary("1000") ^ Binary("0"), Binary("1000"))
+        self.assertEqual(Binary("1010") ^ Binary("10"), Binary("1000"))
+        self.assertEqual(Binary("1010") ^ Binary("11"), Binary("1001"))
+        self.assertEqual(Binary("1111") ^ Binary("10"), Binary("1101"))
+        self.assertEqual(Binary("1.1000") ^ Binary("0.0"), Binary("1.1000"))
+        self.assertEqual(Binary("1.1010") ^ Binary("0.10"), Binary("1.0010"))
+        self.assertEqual(Binary("1.1010") ^ Binary("0.11"), Binary("1.0110"))
+        self.assertEqual(Binary("1.1111") ^ Binary("0.10"), Binary("1.0111"))
+        self.assertEqual(Binary("-0.1") ^ Binary("+1"), -1.5)
+        self.assertEqual(Binary(-5) ^ Binary(-6), -5 ^ -6)
+        self.assertEqual(Binary(-5) ^ Binary(-7), -5 ^ -7)
+        self.assertEqual(Binary(-5) ^ Binary(-8), -5 ^ -8)
+        self.assertEqual(Binary(-5) ^ Binary(-9), -5 ^ -9)
+        self.assertEqual(Binary(-5) ^ Binary(-10), -5 ^ -10)
+        self.assertEqual(Binary(5) ^ Binary(-10), 5 ^ -10)
+        self.assertEqual(Binary(5) ^ Binary(-9), 5 ^ -9)
+        self.assertEqual(Binary(5) ^ Binary(-8), 5 ^ -8)
+        self.assertEqual(Binary(5) ^ Binary(-7), 5 ^ -7)
+        self.assertEqual(Binary(5) ^ Binary(-6), 5 ^ -6)
+        self.assertEqual(Binary(5) ^ Binary(-5), 5 ^ -5)
+        with self.assertRaises(ValueError):
+            Binary("102") ^ "103"  # should fail
+        with self.assertRaises(TypeError):
+            Binary(1) ^ complex(1, 1)  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary("inf") ^ Binary(1)
+        with self.assertRaises(ArithmeticError):
+            Binary(1) ^ Binary("inf")
+        with self.assertRaises(ArithmeticError):
+            Binary("nan") ^ Binary(1)
+        with self.assertRaises(ArithmeticError):
+            Binary(1) ^ Binary("nan")
+        with self.assertRaises(ArithmeticError):
+            Binary("-inf") ^ Binary("-inf")
+
+    def test___invert__(self):
+        """Test function/method."""
+        self.assertIsInstance(~Binary(1), Binary)
+        self.assertEqual(~Binary(-2), 1)
+        self.assertEqual(~Binary(-1), 0)
+        self.assertEqual(~Binary(0), -1)
+        self.assertEqual(~Binary(1), -2)
+        self.assertEqual(~Binary(9), Binary(-10))
+        self.assertEqual(~Binary(-10), Binary(9))
+        self.assertEqual(~~Binary(-109), Binary(-109))
+        self.assertEqual(~~Binary(9), Binary(9))
+        with self.assertRaises(ValueError):
+            ~Binary("-10.5")  # should fail
+        with self.assertRaises(ValueError):
+            ~Binary("+10.5")  # should fail
+        with self.assertRaises(TypeError):
+            ~Binary(complex(1, 1))  # should fail
+        with self.assertRaises(ArithmeticError):
+            ~Binary("inf")
+        with self.assertRaises(ArithmeticError):
+            ~Binary("-inf")
+        with self.assertRaises(ArithmeticError):
+            ~Binary("nan")
+
+    def test_invert(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary.invert("1"), str)
+        self.assertEqual(Binary.invert("0001000", True), "1110111")
+        self.assertEqual(Binary.invert("0001000", strict=False), "10111")
+        self.assertEqual(Binary.invert("1110110", strict=False), "01001")
+        self.assertEqual(Binary.invert("0.1101", strict=True), "1.0010")
+        self.assertEqual(Binary.invert("0.1101", strict=False), "1.001")
+        self.assertEqual(Binary.invert("11.1101", strict=False), "0.001")
+        self.assertEqual(Binary.invert("00.1101", strict=False), "1.001")
+        self.assertEqual(Binary.invert("01"), "10")
+        self.assertEqual(Binary.invert("0"), "1")
+        self.assertEqual(Binary.invert("1"), "0")
+        self.assertEqual(Binary.invert("10"), "01")
+        self.assertEqual(Binary.invert("101"), "010")
+        self.assertEqual(Binary.invert("101010"), "010101")
+        self.assertEqual(Binary.invert("0101010"), "1010101")
+        self.assertEqual(Binary.invert("0101010e-34"), "1010101e-34")
+        self.assertEqual(Binary.invert("101010e34"), "0101010e34")
+        self.assertEqual(Binary.invert("101.010"), "0101.01")
+        self.assertEqual(Binary.invert("010.1010"), "101.0101")
+        self.assertEqual(Binary.invert("010.1010e-34"), "101.0101e-34")
+        self.assertEqual(Binary.invert("101.010e34"), "0101.010e34")
+        self.assertEqual(Binary.invert(invert("0101010e-34")), "0101010e-34")
+        self.assertEqual(Binary.invert(invert("101010e34")), "101010e34")
+        with self.assertRaises(ValueError):
+            Binary.invert("1975")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.invert("1.1.")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.invert("1e")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.invert("1e2e3")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.invert(1975)  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary.invert("Inf")
+        with self.assertRaises(ArithmeticError):
+            Binary.invert("-inf")
+        with self.assertRaises(ArithmeticError):
+            Binary.invert("nan")
+
+    def test_to_twoscomplement(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary(1).to_twoscomplement(), str)
+        self.assertEqual(Binary("10").to_twoscomplement(), Binary("10"))
+        self.assertEqual(Binary("1010").to_twoscomplement(), Binary("1010"))
+        self.assertEqual(Binary("-1").to_twoscomplement(length=12), "1" * 12)
+        self.assertEqual(Binary(+1975).to_twoscomplement(length=13), "011110110111")
+        self.assertEqual(Binary(+1975).to_twoscomplement(length=16), "0000011110110111")
+        self.assertEqual(Binary(-1975).to_twoscomplement(length=12), "100001001001")
+        self.assertEqual(Binary(-1975).to_twoscomplement(length=16), "1111100001001001")
+        self.assertEqual(Binary("-1.0").to_twoscomplement(length=12), "1" * 12)
+        self.assertEqual(Binary("-1.0010").to_twoscomplement(), "10.111")
+        self.assertEqual(Binary("-0.0010").to_twoscomplement(), "1.111")
+        self.assertEqual(Binary("-0.111").to_twoscomplement(), "1.001")
+        self.assertEqual(Binary("-0.10").to_twoscomplement(), "1.1")
+        self.assertEqual(Binary(0.25).to_twoscomplement(), "0.01")
+        self.assertEqual(Binary(-0.125).to_twoscomplement(), "1.111")
+        self.assertEqual(Binary(-0.25).to_twoscomplement(), "1.11")
+        self.assertEqual(Binary(-0.5).to_twoscomplement(), "1.1")
+        self.assertEqual(Binary(-1.0).to_twoscomplement(), "1")
+        self.assertEqual(Binary(-2).to_twoscomplement(), "10")
+        self.assertEqual(Binary(-3).to_twoscomplement(), "101")
+        self.assertEqual(Binary(-1.5).to_twoscomplement(), "10.1")
+        self.assertEqual(Binary(-2.5).to_twoscomplement(), "101.1")
+        self.assertEqual(Binary(-2).to_twoscomplement(4), "1110")
+        self.assertEqual(Binary(-3).to_twoscomplement(3), "101")
+        self.assertEqual(Binary(-1.5).to_twoscomplement(4), "10.1")
+        self.assertEqual(Binary(-2.5).to_twoscomplement(6), "1101.1")
+        self.assertEqual(Binary(+2).to_twoscomplement(5), "00010")
+        self.assertEqual(Binary(3).to_twoscomplement(3), "011")
+        self.assertEqual(Binary(1.5).to_twoscomplement(4), "01.1")
+        self.assertEqual(Binary(2.5).to_twoscomplement(6), "0010.1")
+        self.assertEqual(Binary(2).to_twoscomplement(8), "00000010")
+        with self.assertRaises(OverflowError):
+            Binary(-3).to_twoscomplement(2)
+        with self.assertRaises(OverflowError):
+            Binary(3).to_twoscomplement(2)
+        with self.assertRaises(OverflowError):
+            Binary(-1.5).to_twoscomplement(3)
+        with self.assertRaises(OverflowError):
+            Binary(1.5).to_twoscomplement(2)
+        with self.assertRaises(OverflowError):
+            Binary(+3).to_twoscomplement(1)
+        with self.assertRaises(ValueError):
+            Binary(+3).to_twoscomplement(-2)
+        with self.assertRaises(TypeError):
+            Binary(+3).to_twoscomplement("1")
+        with self.assertRaises(TypeError):
+            Binary(+3).to_twoscomplement(1.0)
+        with self.assertRaises(ArithmeticError):
+            Binary("Inf").to_twoscomplement()
+        with self.assertRaises(ArithmeticError):
+            Binary("-inf").to_twoscomplement()
+        with self.assertRaises(ArithmeticError):
+            Binary("nan").to_twoscomplement()
+
+    def test_from_twoscomplement(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary.from_twoscomplement("1"), str)
+        for ii in [-12, -11.57, -8, -1, -0.87, 0, 0.76, 1.2, 2, 2.4, 8, 2322.2343]:
+            self.assertEqual(
+                Binary(Binary.from_twoscomplement(Binary(ii).to_twoscomplement())),
+                Binary(ii),
+            )
+        self.assertEqual(Binary.from_twoscomplement("10.1"), "-1.1")
+        self.assertEqual(Binary.from_twoscomplement("11"), "-1")
+        self.assertEqual(Binary.from_twoscomplement("11.111"), "-1.001")
+        self.assertEqual(Binary.from_twoscomplement("110.111"), "-10.001")
+        self.assertEqual(Binary.from_twoscomplement("110.001"), "-10.111")
+        self.assertEqual(Binary.from_twoscomplement("110"), "-10")
+        self.assertEqual(Binary.from_twoscomplement("00"), "0")
+        self.assertEqual(Binary.from_twoscomplement("01"), "1")
+        self.assertEqual(Binary.from_twoscomplement("00.11"), "0.11")
+        self.assertEqual(
+            Binary.from_twoscomplement("00.11111111111110"), "0.1111111111111"
+        )
+        self.assertEqual(Binary.from_twoscomplement("00.11e-5"), "0.11e-5")
+        self.assertEqual(
+            Binary.from_twoscomplement("00.11111111111110"), "0.1111111111111"
+        )
+        self.assertEqual(Binary.from_twoscomplement("00.00", strict=True), "00.00")
+        with self.assertRaises(ValueError):
+            Binary.from_twoscomplement("102")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.from_twoscomplement("0b10")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.from_twoscomplement(Binary(1))  # should fail
+        with self.assertRaises(ArithmeticError):
+            Binary.from_twoscomplement("inf")
+        with self.assertRaises(ArithmeticError):
+            Binary.from_twoscomplement("-Inf")
+        with self.assertRaises(ArithmeticError):
+            Binary.from_twoscomplement("Nan")
 
 
 ##########################################################################

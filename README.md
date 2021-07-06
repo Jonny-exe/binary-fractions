@@ -55,7 +55,7 @@ Let's have a look at an example binary float value to see how it is represented.
      ||   |
      ||   |    exponent separator
      ||   |    |
-     ||   |    | exponent in base 10 (not base 2!)
+     ||   |    | exponent in base 10 (ool(base 2!)
      ||   |    | ||
     -0b101.0101e-34  <-- example floating-point binary fraction
     |  ||| |||| |
