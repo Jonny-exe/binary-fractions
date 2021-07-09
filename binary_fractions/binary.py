@@ -2,6 +2,15 @@
 
 """# Floating-point Binary Fractions: Do math in base 2!
 
+<p align="center">
+  <a href="https://pypi.org/project/binary-fractions/">
+    <img alt="PyPI" src="https://img.shields.io/pypi/v/binary-fractions">
+  </a>
+  <a href="https://github.com/psf/black">
+    <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
+  </a>
+</p>
+
 ![logo](binary-fractions.svg)
 
 ```
@@ -242,6 +251,7 @@ import math
 import re
 import sys
 import unittest
+from typing import Union
 
 
 # TODO: go to stackoverflow.com, search for "binary math", "binary fractions"
@@ -257,7 +267,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210708-104529"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210709-191327"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1150  # number of asserts in .py file
 
