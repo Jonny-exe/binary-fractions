@@ -153,17 +153,11 @@
 
 # Floating-point Binary Fractions: Do math in base 2!
 
-<p align="center">
-<a href="https://pypi.org/project/binary-fractions/">
-<img alt="PyPI" src="https://img.shields.io/pypi/v/binary-fractions">
-</a>
-<a href="https://github.com/psf/black">
-<img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-</a>
-</p>
-
 ![logo](binary-fractions.svg)
 
+
+[![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 An implementation of a floating-point binary fractions class and module
 in Python. Work with binary fractions and binary floats with ease!
@@ -407,7 +401,7 @@ Floating point class for representing twos-complement.
 #### \_\_new\_\_
 
 ```python
- | __new__(cls, value: Union[int, float, str, Fraction] = 0, length: int = -1, rel_tol: float = _BINARY_RELATIVE_TOLERANCE, simplify: bool = True, warn_on_float: bool = False) -> TwosComplement
+ | __new__(cls, value: Union[int, float, Fraction, str] = 0, length: int = -1, rel_tol: float = _BINARY_RELATIVE_TOLERANCE, simplify: bool = True, warn_on_float: bool = False) -> TwosComplement
 ```
 
 Constructor.
@@ -576,7 +570,7 @@ Example: converts -2.5, '1.011e2' to '101.1'.
 
 - `value` _str_ - binary string representation of number
 - `length` _int_ - the length of the returned number.
-  -1 is the minimum amount of bits required.
+  -1 is the minimum amount of digits required.
   0 and negatives numbers, except -1, are not allowed.
   Length includes the possible decimal point.
   Example of length 3 is: '1.1'
@@ -666,7 +660,7 @@ Floating point class for binary fractions and arithmetic.
 #### \_\_new\_\_
 
 ```python
- | __new__(cls, value: Union[int, float, str, Fraction] = "0", simplify: bool = True, warn_on_float: bool = False) -> Binary
+ | __new__(cls, value: Union[int, float, str, Fraction, TwosComplement] = "0", simplify: bool = True, warn_on_float: bool = False) -> Binary
 ```
 
 Constructor.
@@ -743,7 +737,7 @@ float to Binary (float --> Binary).
 #### to\_not\_exponential
 
 ```python
- | to_not_exponential(self_value: Union[Binary, str], add_prefix: bool = False, strict: bool = False) -> str
+ | to_not_exponential(self_value: Union[Binary, str], length: int = -1, strict: bool = False, add_prefix: bool = False) -> str
 ```
 
 Normalize string representation. Remove exponent part.

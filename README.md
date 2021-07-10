@@ -1,14 +1,5 @@
 # Floating-point Binary Fractions: Do math in base 2!
 
-<p align="center">
-  <a href="https://pypi.org/project/binary-fractions/">
-    <img alt="PyPI" src="https://img.shields.io/pypi/v/binary-fractions">
-  </a>
-  <a href="https://github.com/psf/black">
-    <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-  </a>
-</p>
-
 ![logo](binary-fractions.svg)
 
 ```
@@ -33,6 +24,9 @@
   █████     █████    ░░████████░░██████   ░░█████  █████░░██████  ████ █████ ██████
  ░░░░░     ░░░░░      ░░░░░░░░  ░░░░░░     ░░░░░  ░░░░░  ░░░░░░  ░░░░ ░░░░░ ░░░░░░
 ```
+
+[![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 An implementation of a floating-point binary fractions class and module
 in Python. Work with binary fractions and binary floats with ease!
