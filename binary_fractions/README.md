@@ -16,6 +16,9 @@
     * [to\_float](#binary.Binary.to_float)
     * [from\_float](#binary.Binary.from_float)
     * [to\_not\_exponential](#binary.Binary.to_not_exponential)
+    * [to\_simple\_exponential](#binary.Binary.to_simple_exponential)
+    * [to\_sci\_exponential](#binary.Binary.to_sci_exponential)
+    * [to\_eng\_exponential](#binary.Binary.to_eng_exponential)
     * [to\_fraction](#binary.Binary.to_fraction)
     * [to\_fraction\_alternative\_implementation](#binary.Binary.to_fraction_alternative_implementation)
     * [to\_twoscomplement](#binary.Binary.to_twoscomplement)
@@ -34,9 +37,6 @@
     * [round\_to](#binary.Binary.round_to)
     * [fill](#binary.Binary.fill)
     * [fill\_to](#binary.Binary.fill_to)
-    * [to\_simple\_exponential](#binary.Binary.to_simple_exponential)
-    * [to\_sci\_exponential](#binary.Binary.to_sci_exponential)
-    * [to\_eng\_exponential](#binary.Binary.to_eng_exponential)
     * [get\_components](#binary.Binary.get_components)
     * [components](#binary.Binary.components)
     * [isinfinity](#binary.Binary.isinfinity)
@@ -767,6 +767,110 @@ Example: converts '11.01e-2' to '0.1101'
 
 - `str` - binary string representation of number
 
+<a name="binary.Binary.to_simple_exponential"></a>
+#### to\_simple\_exponential
+
+```python
+ | to_simple_exponential() -> Binary
+```
+
+Convert to exponential representation without fraction.
+
+A method that changes the string representation of a number
+so that the resulting string has no decimal point.
+Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
+
+**Arguments**:
+
+  none
+
+
+**Returns**:
+
+- `Binary` - binary string representation of number
+
+<a name="binary.Binary.to_sci_exponential"></a>
+#### to\_sci\_exponential
+
+```python
+ | to_sci_exponential() -> str
+```
+
+Convert to exp. representation in scientific notation.
+
+Scientific notation is an exponent representation with a single
+binary digit before decimal point.
+
+Method that changes string representation of number.
+Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
+The result has only 1 digit before decimal point.
+
+**Arguments**:
+
+  none
+
+
+**Returns**:
+
+- `Binary` - binary string representation of number
+
+<a name="binary.Binary.to_eng_exponential"></a>
+#### to\_eng\_exponential
+
+```python
+ | to_eng_exponential() -> str
+```
+
+Convert to exp. representation in engineering notation.
+
+See https://www.purplemath.com/modules/exponent4.htm.
+See https://en.wikipedia.org/wiki/Engineering_notation.
+
+Engineering notation is an exponent representation with the exponent
+modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
+The integer part must not be 0. Integer part is from 1 to 999.
+
+Method that changes string representation of number.
+Examples are:
+'1.1' ==> '1.1'
+'1.1111' ==> '1.1111'
+'100.1111' ==> '100.1111'
+'1000.1111' ==> '1.0001111e3'
+'1' ==> '1'
+'10' ==> '10'
+'100' ==> '100'
+'1000' ==> '1e3'
+'10000' ==> '10e3'
+'100000' ==> '100e3'
+'1000000' ==> '1e6'
+'1.1111' ==> '1.1111'
+'10.1111' ==> '10.1111'
+'100.1111' ==> '100.1111'
+'1000.1111' ==> '1e3.1111'
+'10000.1111' ==> '10e3.1111'
+'100000.1111' ==> '100e3.1111'
+'1000000.1111' ==> '1e6.1111'
+'1.1111e0' ==> '1.1111'
+'11.111e-1' ==> '1.1111'
+'111.11e-2' ==> '1.1111'
+'1111.1e-3' ==> '1.1111'
+'11111.e-4' ==> '1.1111'
+'.11111e1' ==> '1.1111'
+'.011111e2' ==> '1.1111'
+'.0011111e3' ==> '1.1111'
+'-0.01e-2' ==> '-1e-3',
+'-0.0001e-4' == -0.00000001 ==> '-10e-9',
+'-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
+
+**Arguments**:
+
+  none
+
+
+**Returns**:
+
+- `Binary` - binary string representation of number
+
 <a name="binary.Binary.to_fraction"></a>
 #### to\_fraction
 
@@ -1203,110 +1307,6 @@ If strict==True then if value is longer, then shorten to strictly ndigits.
 **Returns**:
 
 - `str` - binary string representation of number
-
-<a name="binary.Binary.to_simple_exponential"></a>
-#### to\_simple\_exponential
-
-```python
- | to_simple_exponential() -> Binary
-```
-
-Convert to exponential representation without fraction.
-
-A method that changes the string representation of a number
-so that the resulting string has no decimal point.
-Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
-
-**Arguments**:
-
-  none
-
-
-**Returns**:
-
-- `Binary` - binary string representation of number
-
-<a name="binary.Binary.to_sci_exponential"></a>
-#### to\_sci\_exponential
-
-```python
- | to_sci_exponential() -> str
-```
-
-Convert to exp. representation in scientific notation.
-
-Scientific notation is an exponent representation with a single
-binary digit before decimal point.
-
-Method that changes string representation of number.
-Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
-The result has only 1 digit before decimal point.
-
-**Arguments**:
-
-  none
-
-
-**Returns**:
-
-- `Binary` - binary string representation of number
-
-<a name="binary.Binary.to_eng_exponential"></a>
-#### to\_eng\_exponential
-
-```python
- | to_eng_exponential() -> str
-```
-
-Convert to exp. representation in engineering notation.
-
-See https://www.purplemath.com/modules/exponent4.htm.
-See https://en.wikipedia.org/wiki/Engineering_notation.
-
-Engineering notation is an exponent representation with the exponent
-modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
-The integer part must not be 0. Integer part is from 1 to 999.
-
-Method that changes string representation of number.
-Examples are:
-'1.1' ==> '1.1'
-'1.1111' ==> '1.1111'
-'100.1111' ==> '100.1111'
-'1000.1111' ==> '1.0001111e3'
-'1' ==> '1'
-'10' ==> '10'
-'100' ==> '100'
-'1000' ==> '1e3'
-'10000' ==> '10e3'
-'100000' ==> '100e3'
-'1000000' ==> '1e6'
-'1.1111' ==> '1.1111'
-'10.1111' ==> '10.1111'
-'100.1111' ==> '100.1111'
-'1000.1111' ==> '1e3.1111'
-'10000.1111' ==> '10e3.1111'
-'100000.1111' ==> '100e3.1111'
-'1000000.1111' ==> '1e6.1111'
-'1.1111e0' ==> '1.1111'
-'11.111e-1' ==> '1.1111'
-'111.11e-2' ==> '1.1111'
-'1111.1e-3' ==> '1.1111'
-'11111.e-4' ==> '1.1111'
-'.11111e1' ==> '1.1111'
-'.011111e2' ==> '1.1111'
-'.0011111e3' ==> '1.1111'
-'-0.01e-2' ==> '-1e-3',
-'-0.0001e-4' == -0.00000001 ==> '-10e-9',
-'-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
-
-**Arguments**:
-
-  none
-
-
-**Returns**:
-
-- `Binary` - binary string representation of number
 
 <a name="binary.Binary.get_components"></a>
 #### get\_components

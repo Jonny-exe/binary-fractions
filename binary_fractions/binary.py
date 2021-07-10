@@ -261,7 +261,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210710-135555"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210710-140501"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1360  # number of asserts in .py file
 
@@ -1404,6 +1404,176 @@ class Binary(object):
         # print(f"after normalize {value} {result}")
         return result
 
+    def to_simple_exponential(self: Binary) -> Binary:
+        """Convert to exponential representation without fraction.
+
+        A method that changes the string representation of a number
+        so that the resulting string has no decimal point.
+        Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
+
+        Parameters:
+        none
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if self._is_special:
+            raise OverflowError(
+                f"Argument 'self' ({self}): cannot convert NaN and infinities."
+            )
+        value = self._value
+        if _EXP not in value:
+            exp = 0
+            intfracpart = Binary.simplify(value)
+        else:
+            li = value.split(_EXP)
+            intfracpart = Binary.simplify(li[0])
+            exp = int(li[1])
+
+        li = intfracpart.split(".")
+        intpart = li[0]
+        if len(li) == 1:
+            fracpart = ""
+        else:
+            fracpart = li[1]
+        # lenintpart = len(intpart)
+        lenfracpart = len(fracpart)
+        exp -= lenfracpart
+        intpart += fracpart
+
+        if self._sign:
+            intpart = "-" + intpart[1:].lstrip("0") if len(intpart) > 1 else intpart
+        else:
+            intpart = intpart.lstrip("0") if len(intpart) > 1 else intpart
+
+        return Binary(intpart + _EXP + str(exp), False)
+
+    def to_sci_exponential(self: Binary) -> str:
+        """Convert to exp. representation in scientific notation.
+
+        Scientific notation is an exponent representation with a single
+        binary digit before decimal point.
+
+        Method that changes string representation of number.
+        Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
+        The result has only 1 digit before decimal point.
+
+        Parameters:
+        none
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if self._is_special:
+            raise OverflowError(
+                f"Argument 'self' ({self}): cannot convert NaN and infinities."
+            )
+        value = self._value
+        if _EXP not in value:
+            exp = 0
+            intfracpart = Binary.simplify(value)
+        else:
+            li = value.split(_EXP)
+            intfracpart = Binary.simplify(li[0])
+            exp = int(li[1])
+
+        li = intfracpart.split(".")
+        intpart = li[0]
+        if len(li) == 1:
+            fracpart = ""
+        else:
+            fracpart = li[1]
+        if self._sign:
+            intpart = intpart[1:]
+            sign = "-"
+        else:
+            sign = ""
+        lenintpart = len(intpart)
+
+        intfracpart = intfracpart.replace(".", "").replace("-", "")
+        middle = 1
+        start = 0
+        exp += lenintpart - 1
+        while True:
+            if middle > len(intfracpart):
+                break
+            if intfracpart[start : start + 1] != "0":
+                fracpart = intfracpart[middle:]
+                intpart = intfracpart[start:middle]
+                break
+            start += 1
+            middle += 1
+            exp -= 1
+
+        # TODO print("Parts: ", intpart, fracpart)
+        if fracpart == "" or fracpart == "0":
+            result = sign + intpart + _EXP + str(exp)
+        else:
+            result = sign + intpart + "." + fracpart + _EXP + str(exp)
+        return Binary(result, False)
+
+    def to_eng_exponential(self: Binary) -> str:
+        """Convert to exp. representation in engineering notation.
+
+        See https://www.purplemath.com/modules/exponent4.htm.
+        See https://en.wikipedia.org/wiki/Engineering_notation.
+
+        Engineering notation is an exponent representation with the exponent
+        modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
+        The integer part must not be 0. Integer part is from 1 to 999.
+
+        Method that changes string representation of number.
+        Examples are:
+            '1.1' ==> '1.1'
+            '1.1111' ==> '1.1111'
+            '100.1111' ==> '100.1111'
+            '1000.1111' ==> '1.0001111e3'
+            '1' ==> '1'
+            '10' ==> '10'
+            '100' ==> '100'
+            '1000' ==> '1e3'
+            '10000' ==> '10e3'
+            '100000' ==> '100e3'
+            '1000000' ==> '1e6'
+            '1.1111' ==> '1.1111'
+            '10.1111' ==> '10.1111'
+            '100.1111' ==> '100.1111'
+            '1000.1111' ==> '1e3.1111'
+            '10000.1111' ==> '10e3.1111'
+            '100000.1111' ==> '100e3.1111'
+            '1000000.1111' ==> '1e6.1111'
+            '1.1111e0' ==> '1.1111'
+            '11.111e-1' ==> '1.1111'
+            '111.11e-2' ==> '1.1111'
+            '1111.1e-3' ==> '1.1111'
+            '11111.e-4' ==> '1.1111'
+            '.11111e1' ==> '1.1111'
+            '.011111e2' ==> '1.1111'
+            '.0011111e3' ==> '1.1111'
+            '-0.01e-2' ==> '-1e-3',
+            '-0.0001e-4' == -0.00000001 ==> '-10e-9',
+            '-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
+
+        Parameters:
+        none
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if self._is_special:
+            raise OverflowError(
+                f"Argument 'self' ({self}): cannot convert NaN and infinities."
+            )
+        # TODO needs to be implemented
+        # ZZZ
+        return Binary(self)  # TODO to be implemented
+
     def to_fraction(self_value: Union[str, Binary]) -> Fraction:
         """Convert string representation of Binary to Fraction.
 
@@ -1998,176 +2168,6 @@ class Binary(object):
             result = Binary.round_to(value, ndigits)
             # rounding can shorten it drastically, 0.1111 => 1
             return Binary.fill_to(result, ndigits, strict)
-
-    def to_simple_exponential(self: Binary) -> Binary:
-        """Convert to exponential representation without fraction.
-
-        A method that changes the string representation of a number
-        so that the resulting string has no decimal point.
-        Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
-
-        Parameters:
-        none
-
-        Returns:
-        Binary: binary string representation of number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
-            raise OverflowError(
-                f"Argument 'self' ({self}): cannot convert NaN and infinities."
-            )
-        value = self._value
-        if _EXP not in value:
-            exp = 0
-            intfracpart = Binary.simplify(value)
-        else:
-            li = value.split(_EXP)
-            intfracpart = Binary.simplify(li[0])
-            exp = int(li[1])
-
-        li = intfracpart.split(".")
-        intpart = li[0]
-        if len(li) == 1:
-            fracpart = ""
-        else:
-            fracpart = li[1]
-        # lenintpart = len(intpart)
-        lenfracpart = len(fracpart)
-        exp -= lenfracpart
-        intpart += fracpart
-
-        if self._sign:
-            intpart = "-" + intpart[1:].lstrip("0") if len(intpart) > 1 else intpart
-        else:
-            intpart = intpart.lstrip("0") if len(intpart) > 1 else intpart
-
-        return Binary(intpart + _EXP + str(exp), False)
-
-    def to_sci_exponential(self: Binary) -> str:
-        """Convert to exp. representation in scientific notation.
-
-        Scientific notation is an exponent representation with a single
-        binary digit before decimal point.
-
-        Method that changes string representation of number.
-        Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
-        The result has only 1 digit before decimal point.
-
-        Parameters:
-        none
-
-        Returns:
-        Binary: binary string representation of number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
-            raise OverflowError(
-                f"Argument 'self' ({self}): cannot convert NaN and infinities."
-            )
-        value = self._value
-        if _EXP not in value:
-            exp = 0
-            intfracpart = Binary.simplify(value)
-        else:
-            li = value.split(_EXP)
-            intfracpart = Binary.simplify(li[0])
-            exp = int(li[1])
-
-        li = intfracpart.split(".")
-        intpart = li[0]
-        if len(li) == 1:
-            fracpart = ""
-        else:
-            fracpart = li[1]
-        if self._sign:
-            intpart = intpart[1:]
-            sign = "-"
-        else:
-            sign = ""
-        lenintpart = len(intpart)
-
-        intfracpart = intfracpart.replace(".", "").replace("-", "")
-        middle = 1
-        start = 0
-        exp += lenintpart - 1
-        while True:
-            if middle > len(intfracpart):
-                break
-            if intfracpart[start : start + 1] != "0":
-                fracpart = intfracpart[middle:]
-                intpart = intfracpart[start:middle]
-                break
-            start += 1
-            middle += 1
-            exp -= 1
-
-        # TODO print("Parts: ", intpart, fracpart)
-        if fracpart == "" or fracpart == "0":
-            result = sign + intpart + _EXP + str(exp)
-        else:
-            result = sign + intpart + "." + fracpart + _EXP + str(exp)
-        return Binary(result, False)
-
-    def to_eng_exponential(self: Binary) -> str:
-        """Convert to exp. representation in engineering notation.
-
-        See https://www.purplemath.com/modules/exponent4.htm.
-        See https://en.wikipedia.org/wiki/Engineering_notation.
-
-        Engineering notation is an exponent representation with the exponent
-        modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
-        The integer part must not be 0. Integer part is from 1 to 999.
-
-        Method that changes string representation of number.
-        Examples are:
-            '1.1' ==> '1.1'
-            '1.1111' ==> '1.1111'
-            '100.1111' ==> '100.1111'
-            '1000.1111' ==> '1.0001111e3'
-            '1' ==> '1'
-            '10' ==> '10'
-            '100' ==> '100'
-            '1000' ==> '1e3'
-            '10000' ==> '10e3'
-            '100000' ==> '100e3'
-            '1000000' ==> '1e6'
-            '1.1111' ==> '1.1111'
-            '10.1111' ==> '10.1111'
-            '100.1111' ==> '100.1111'
-            '1000.1111' ==> '1e3.1111'
-            '10000.1111' ==> '10e3.1111'
-            '100000.1111' ==> '100e3.1111'
-            '1000000.1111' ==> '1e6.1111'
-            '1.1111e0' ==> '1.1111'
-            '11.111e-1' ==> '1.1111'
-            '111.11e-2' ==> '1.1111'
-            '1111.1e-3' ==> '1.1111'
-            '11111.e-4' ==> '1.1111'
-            '.11111e1' ==> '1.1111'
-            '.011111e2' ==> '1.1111'
-            '.0011111e3' ==> '1.1111'
-            '-0.01e-2' ==> '-1e-3',
-            '-0.0001e-4' == -0.00000001 ==> '-10e-9',
-            '-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
-
-        Parameters:
-        none
-
-        Returns:
-        Binary: binary string representation of number
-        """
-        if not isinstance(self, Binary):
-            raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
-            raise OverflowError(
-                f"Argument 'self' ({self}): cannot convert NaN and infinities."
-            )
-        # TODO needs to be implemented
-        # ZZZ
-        return Binary(self)  # TODO to be implemented
 
     def get_components(value: str) -> tuple:
         """Return sign, intpart (without sign), fracpart, exp.
