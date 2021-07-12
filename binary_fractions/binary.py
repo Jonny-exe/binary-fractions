@@ -105,119 +105,121 @@ Please have a look at the short example program that uses the
 `Binary` class and module. See file
 [binary_sample.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_sample.py).
 
+The sample source code looks like this:
 ```
-$ python # sample usage, examples
->>> from binary import Binary
->>> Binary()
-Binary(0, 0, False)
->>> Binary(1)
-Binary(1, 0, False)
->>> Binary(2)
-Binary(10, 0, False)
->>> Binary('11')
-Binary(11, 0, False)
->>> Binary('11.11')
-Binary(11.11, 0, False)
->>> Binary('11.11e-2')
-Binary(1111e-4, 0, False)
->>> Binary('-11.11e-2')
-Binary(-1111e-4, 1, False)
->>> Binary('NaN')
-Binary(NaN, 0, True)
->>> Binary('-Infinity')
-Binary(-Infinity, 1, True)
->>> Binary(-8.5)
-Warning: mixing floats and Binary
-Binary(-1000.1, 1, False)
->>> Binary('-0b111001.0001001e-12')
-Binary(-1110010001001e-19, 1, False)
->>> Binary('-111001.0001001e-12')
-Binary(-1110010001001e-19, 1, False)
->>> Binary('111001.0001001e-12')
-Binary(1110010001001e-19, 0, False)
->>> Binary(3/4)
-Binary(0.11, 0, False)
->>> Binary(17/19)
-Binary(0.11100101000011010111100101000011, 0, False)
->>> Binary(128+32+8+2+17/19)
-Binary(10101010.11100101000011010111100101000011, 0, False)
-Binary(2**20+128+32+8+2+17/19)
-Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
->>> Binary((1, (1,0,0,1,1,0,0,0,1), -3))
-Binary(-100110001e-3, 1, False)
+#!/usr/bin/python3
 
->>> b=Binary(2**20+128+32+8+2+17/19)
->>> b.float()
-1048746.894736842
->>> b.to_not_exponential()
-Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
->>> b.round(2)
-Binary(100000000000010101011, 0, False)
->>> b.round(3)
-Binary(100000000000010101010.111, 0, False)
->>> b.round(4)
-Binary(100000000000010101010.111, 0, False)
->>> b.fill(10)
-'100000000000010101010.11100101000011010111100101000011'
->>> b.fill(10,True)
-'100000000000010101010.1110010100'
->>> b.fill(64)
-'100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
->>> b.fill(64,True)
-'100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
->>> b.to_simple_exponential() # no decimal point
-Binary(10000000000001010101011100101000011010111100101000011e-32, 0, False)
->>> b.to_sci_exponential() # 1 digit before decimal point
-Binary(1.0000000000001010101011100101000011010111100101000011e20, 0, False)
->>> b2=Binary(7)
->>> b2.to_sci_exponential()
-Binary(1.11e2, 0, False)
->>> b2=Binary('111')
->>> b2.to_sci_exponential()
-Binary(1.11e2, 0, False)
->>> b2.components()
-(0, '111', '', 0)
->>> b3=b2.to_sci_exponential()
->>> b3.components()
-(0, '1', '11', 2)
->>> b3.isinfinity()
-False
->>> b2.compare(b3) # same value, returns equal
-Binary(0, 0, False)
->>> b2 == b3  # same value, returns equal
-True
-0
->>> b2.compare_representation(b3) # different representation, returns unequal
-False
->>> b2
-Binary(111, 0, False)
->>> str(b2)
-'0b111'
->>> b4=Binary(7.125)
->>> str(b4)
-'0b111.001'
->>> b4.np() # no prefix, '0b' prefix removed
-'111.001'
->>> # simple math
->>> Binary('111') + Binary(3)
-Binary(1010, 0, False)
->>> Binary('111.1') - Binary(3)
-Binary(100.1, 0, False)
->>> Binary('111.1') * Binary(2.0)
-Binary(1111, 0, False)
->>> Binary('111.1') / Binary(4.0)
-Binary(1.111, 0, False)
->>> Binary('111.1') // Binary(4.0)
-Binary(1, 0, False)
->>> float(Binary('111.1'))
-7.5
->>> int(Binary('111.1'))
-7
->>> # works with large numbers
->>> Binary('11100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111.100000000000000000000000000000000000000010101010101010101010101010101010101010101010101010101') * Binary('11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000111111111111.0111111111111111111111111111111111111111111111111111111111100000000000000000000000000011111111111111111111e-12')
-Binary(1101111111111111111111111111111111111111111111111111111111111111100100000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000001101111111111111111111111111100111111111111111111111110010000000000001010101010101010101011001010101010011100101010101010011111111111101011001010101010101010101001110010101010101010101011000110011111111101111110010000000000000000001000000000000110101010101100101010101010101010101010101010101001.1101010001011001010101010101010101110101111111111111100101010101010101100101010101010101010100101000101010111110101011001010101, 0, False)
->>> # and so much more
+# Sample program using the Binary class and module.
 
+from binary import TwosComplement
+from binary import Binary
+from math import ceil, floor
+
+bf1str: str = "-1.01"  # -1.25
+bf2str: str = "10.1"  # 2.5
+bf3str: str = "10.1e-3"  # 2.5/8
+tcstr1: str = "10.1"  # -1.5 in two's complement, '-0b1.1' as binary fraction
+tcstr2: str = "100001001000.1"  # -1975.5 in two's complement, '-0b11110111000.1'
+fl1: float = 2.3
+fl2: float = -1975.5
+
+bf1: Binary = Binary(bf1str)
+bf2: Binary = Binary(bf2str)
+bf3: Binary = Binary(bf3str)
+tc1: TwosComplement = TwosComplement(tcstr1)
+tc2: TwosComplement = TwosComplement(tcstr2)
+tc3: TwosComplement = TwosComplement(fl2)
+
+print("Sample program demonstrating binary fractions class and module:")
+print(f"Binary({fl1}) = {Binary(fl1)}")
+print(f"Binary({fl2}) = {Binary(fl2)}")
+print(f"Binary({bf3str}) = {Binary(bf3str)}")
+print(f"{bf1} = {bf1}")
+print(f"{bf1} + {bf2} = {bf1+bf2}")
+print(f"{bf1} - {bf2} = {bf1-bf2}")
+print(f"{bf1} * {bf2} = {bf1*bf2}")
+print(f"{bf1} / {bf2} = {bf1/bf2}")
+print(f"{bf1} // {bf2} = {bf1//bf2}")
+print(f"{bf1} % {bf2} = {bf1%bf2}")
+print(f"{bf2} ** {bf1} = {bf2**bf1}")
+print(f"{bf1} >> {1} = {bf1>>1}")
+print(f"{bf1} << {1} = {bf1<<1}")
+print(f"abs({bf1}) = {abs(bf1)}")
+print(f"round({bf1}) = {round(bf1)}")
+print(f"ceil({bf1}) = {ceil(bf1)}, or Binary(ceil({bf1})) = {Binary(ceil(bf1))}")
+print(f"floor({bf1}) = {floor(bf1)}, or Binary(ceil({bf1})) = {Binary(floor(bf1))}")
+print(f"int({bf1}) = {int(bf1)}")
+print(f"float({bf1}) = {float(bf1)}")
+print(f"str({bf1}) = {str(bf1)}")
+print(f"str({bf3}) = {str(bf3)}")
+print(f"Fraction({bf1}) = {bf1.fraction()}")
+print(f"{bf1} & {bf2} = {bf1&bf2}")
+print(f"{bf1} | {bf2} = {bf1|bf2}")
+print(f"{bf1} ^ {bf2} = {bf1^bf2}")
+print(f"~(floor({bf2})) = {~(floor(bf2))}")
+print(f"type({bf1}) = {type(bf1)}")
+print(f"type({tc1}) = {type(tc1)}")
+print(f"Binary('{bf3}').to_not_exponential() = {bf3.to_not_exponential()}")
+print(f"Binary('{bf3}').to_simple_exponential() = {bf3.to_simple_exponential()}")
+# scientific notation
+print(f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}")
+# engineering notation
+print(f"Binary('{bf3}').to_eng_exponential() = {bf3.to_eng_exponential()}")
+print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twoscomplement()}")
+print(f"Binary(TwosComplement('{tcstr1}')) = {Binary.from_twoscomplement(tc1)}")
+print(f"Binary(TwosComplement('{tcstr2}')) = {Binary.from_twoscomplement(tc2)}")
+print(f"Binary(TwosComplement({fl2})) = {Binary.from_twoscomplement(tc3)}")
+print(f"TwosComplement({fl2}) = {TwosComplement(fl2)}")
+print("And there are more operands, more methods, more functions, ...")
+print("For more information read the documentation at:")
+print("https://raw.githubusercontent.com/Jonny-exe/binary-fractions")
+```
+
+When executed with the command `python3 binary_sample.py`, it returns these
+results:
+
+```
+Sample program demonstrating binary fractions class and module:
+Binary(2.3) = 0b10.01001100110011001100110011001100110011001100110011
+Binary(-1975.5) = -0b11110110111.1
+Binary(10.1e-3) = 0b10.1e-3
+-0b1.01 = -0b1.01
+-0b1.01 + 0b10.1 = 0b1.01
+-0b1.01 - 0b10.1 = -0b11.11
+-0b1.01 * 0b10.1 = -0b11.001
+-0b1.01 / 0b10.1 = -0b0.1
+-0b1.01 // 0b10.1 = -0b1
+-0b1.01 % 0b10.1 = 0b1.01
+0b10.1 ** -0b1.01 = 0b0.010100010110111110001011100001001001101110110100110011
+-0b1.01 >> 1 = -0b0.101
+-0b1.01 << 1 = -0b10.1
+abs(-0b1.01) = 0b1.01
+round(-0b1.01) = -0b1
+ceil(-0b1.01) = -1, or Binary(ceil(-0b1.01)) = -0b1
+floor(-0b1.01) = -2, or Binary(ceil(-0b1.01)) = -0b10
+int(-0b1.01) = -1
+float(-0b1.01) = -1.25
+str(-0b1.01) = -0b1.01
+str(0b10.1e-3) = 0b10.1e-3
+Fraction(-0b1.01) = -5/4
+-0b1.01 & 0b10.1 = 0b10.1
+-0b1.01 | 0b10.1 = -0b1.01
+-0b1.01 ^ 0b10.1 = -0b11.11
+~(floor(0b10.1)) = -3
+type(-0b1.01) = <class 'binary.Binary'>
+type(10.1) = <class 'binary.TwosComplement'>
+Binary('0b10.1e-3').to_not_exponential() = 0b0.0101
+Binary('0b10.1e-3').to_simple_exponential() = 0b101e-4
+Binary('0b10.1e-3').to_sci_exponential() = 0b1.01e-2
+Binary('0b10.1e-3').to_eng_exponential() = 0b101000000e-10
+Binary('-0b1.01').to_twos_complement() = 10.11
+Binary(TwosComplement('10.1')) = -1.1
+Binary(TwosComplement('100001001000.1')) = -11110110111.1
+Binary(TwosComplement(-1975.5)) = -11110110111.1
+TwosComplement(-1975.5) = 100001001000.1
+And there are more operands, more methods, more functions, ...
+For more information read the documentation at:
+https://raw.githubusercontent.com/Jonny-exe/binary-fractions
 ```
 
 ## Requirements:
@@ -251,6 +253,7 @@ from typing import Union
 # TODO: go to stackoverflow.com, search for "binary math", "binary fractions"
 # and where there are matches add comment/entry to reference this module
 # in PyPi
+# TODO: announce it on HN
 
 _BINARY_WARNED_ABOUT_FLOAT = False
 _BINARY_RELATIVE_TOLERANCE = 1e-10
@@ -261,9 +264,9 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210710-140501"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210712-184654"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
-_BINARY_TOTAL_TESTS = 1360  # number of asserts in .py file
+_BINARY_TOTAL_TESTS = 1417  # number of asserts in .py file
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -1049,7 +1052,6 @@ class Binary(object):
         # From a TwosComplement string
         # important that this isinstance check is BEFORE isinstance(str) check!
         if isinstance(value, TwosComplement):
-            print(f"constructor twoscomp: {value} {TwosComplement.to_fraction(value)} ")
             return Binary(TwosComplement.to_fraction(value))
 
         # From a string
@@ -1314,7 +1316,7 @@ class Binary(object):
         length: int = -1,
         strict: bool = False,
         add_prefix: bool = False,
-    ) -> str:
+    ) -> Union[Binary, str]:
         """Normalize string representation. Remove exponent part.
 
         This is both a method as well as a utility function.
@@ -1337,13 +1339,18 @@ class Binary(object):
                 always forces to True, will always show prefix 0b
 
         Returns:
-        str: binary string representation of number
+        Union[Binary, str]: binary string representation of number
+            If self_value was of class Binary, it returns a Binary instance.
+            If self_value was of class str, it returns a str instance.
+
         """
         if not (isinstance(self_value, str) or isinstance(self_value, Binary)):
             raise TypeError(f"Argument {self_value} must be of type Binary or str.")
         if isinstance(self_value, Binary):
-            return Binary.to_not_exponential(
-                self_value._value, length=length, strict=strict, add_prefix=True
+            return Binary(
+                Binary.to_not_exponential(
+                    self_value._value, length=length, strict=strict
+                )
             )
         if self_value == "":
             raise ValueError(f"Argument {self_value} must be empty string.")
@@ -1402,7 +1409,7 @@ class Binary(object):
                 raise OverflowError
             result = "0" * (length - le) + result
         # print(f"after normalize {value} {result}")
-        return result
+        return result  # str
 
     def to_simple_exponential(self: Binary) -> Binary:
         """Convert to exponential representation without fraction.
@@ -1447,10 +1454,11 @@ class Binary(object):
             intpart = "-" + intpart[1:].lstrip("0") if len(intpart) > 1 else intpart
         else:
             intpart = intpart.lstrip("0") if len(intpart) > 1 else intpart
+        result = intpart + _EXP + str(exp)
+        # do not remove possible e0 by simplifying it
+        return Binary(result, simplify=False)
 
-        return Binary(intpart + _EXP + str(exp), False)
-
-    def to_sci_exponential(self: Binary) -> str:
+    def to_sci_exponential(self: Binary) -> Binary:
         """Convert to exp. representation in scientific notation.
 
         Scientific notation is an exponent representation with a single
@@ -1514,49 +1522,51 @@ class Binary(object):
             result = sign + intpart + _EXP + str(exp)
         else:
             result = sign + intpart + "." + fracpart + _EXP + str(exp)
-        return Binary(result, False)
+        # do not remove possible e0 by simplifying it
+        return Binary(result, simplify=False)
 
-    def to_eng_exponential(self: Binary) -> str:
-        """Convert to exp. representation in engineering notation.
+    def to_eng_exponential(self: Binary) -> Binary:
+        """Convert to exponential representation in engineering notation.
 
         See https://www.purplemath.com/modules/exponent4.htm.
+        See https://www.thinkcalculator.com/numbers/decimal-to-engineering.php
         See https://en.wikipedia.org/wiki/Engineering_notation.
+        See https://en.wikipedia.org/wiki/Engineering_notation#Binary_engineering_notation
 
         Engineering notation is an exponent representation with the exponent
-        modulo 3 being 0 and 1, 2 or 3 digit before the decimal point.
-        The integer part must not be 0. Integer part is from 1 to 999.
+        modulo 10 being 0, and where there are 1 through 9 digit before the
+        decimal point.
+        The integer part must not be 0 unless the number is 0.
+        The integer part is from 1 to 1023, or written in binary fraction
+        from 0b1 to 0b111111111.
 
         Method that changes string representation of number.
+
         Examples are:
             '1.1' ==> '1.1'
             '1.1111' ==> '1.1111'
             '100.1111' ==> '100.1111'
-            '1000.1111' ==> '1.0001111e3'
-            '1' ==> '1'
-            '10' ==> '10'
-            '100' ==> '100'
-            '1000' ==> '1e3'
-            '10000' ==> '10e3'
-            '100000' ==> '100e3'
-            '1000000' ==> '1e6'
             '1.1111' ==> '1.1111'
             '10.1111' ==> '10.1111'
             '100.1111' ==> '100.1111'
-            '1000.1111' ==> '1e3.1111'
-            '10000.1111' ==> '10e3.1111'
-            '100000.1111' ==> '100e3.1111'
-            '1000000.1111' ==> '1e6.1111'
-            '1.1111e0' ==> '1.1111'
-            '11.111e-1' ==> '1.1111'
-            '111.11e-2' ==> '1.1111'
-            '1111.1e-3' ==> '1.1111'
-            '11111.e-4' ==> '1.1111'
+            '1000.1111' ==> '1000.1111'
+            1023 ==> '1111111111' => '1111111111'
+            1024 ==> '10000000000' => '1e10'
+            1025 ==> '10000000001' => '1.0000000001e10'
+            3072 ==> '110000000000' ==> 1.1e10
+            1024 ** 2 ==> '1000000000000000000000000000000' => '1e20'
+            '0.1' => '100000000e-10'
+            '0.11' => '110000000e-10'
+            '0.01' => '10000000e-10'
+            '0.0000000001' => '1e-10'
+            '0.000000001' => '10e-10'
+            '0.00000000111' => '11.1e-10'
             '.11111e1' ==> '1.1111'
             '.011111e2' ==> '1.1111'
             '.0011111e3' ==> '1.1111'
-            '-0.01e-2' ==> '-1e-3',
-            '-0.0001e-4' == -0.00000001 ==> '-10e-9',
-            '-0.0001111e-4' == -0.00000001111 ==> '-11.11e-9',
+            '-0.01e-2' ==> '-1e-3' => '-1000000e-10'
+            '-0.0001e-4' == -0.00000001 ==> '-100e-10',
+            '-0.0001111e-4' == -0.00000001111 ==> '-111.1e-10',
 
         Parameters:
         none
@@ -1570,9 +1580,37 @@ class Binary(object):
             raise OverflowError(
                 f"Argument 'self' ({self}): cannot convert NaN and infinities."
             )
-        # TODO needs to be implemented
-        # ZZZ
-        return Binary(self)  # TODO to be implemented
+
+        if self._value == Binary.simplify("0"):
+            return Binary("0")
+        if _EXP in self._value:
+            value = self.to_not_exponential()._value
+        else:
+            value = self._value
+
+        sign, intpart, fracpart, exp = Binary.get_components(value)
+
+        assert exp == 0
+
+        result = "-" if sign else ""
+        i = math.floor((len(intpart) - 1) / 10) * 10
+        new_intpart = intpart[: len(intpart) - i]
+        new_intpart = "0" if new_intpart == "" else new_intpart
+        while new_intpart == "0":
+            i -= 10
+            new_intpart = intpart[: len(intpart) + i]
+
+        if i > 0:
+            new_fracpart = intpart[len(intpart) - i :] + fracpart
+        else:
+            new_intpart += fracpart[: abs(i)] + "0" * (abs(i) - len(fracpart[: abs(i)]))
+            new_fracpart = fracpart[abs(i) :]
+
+        result += new_intpart + "." + new_fracpart
+        result = result.rstrip("0")
+        result = result.rstrip(".")
+        result += _EXP + str(i)
+        return Binary(Binary.simplify(result))
 
     def to_fraction(self_value: Union[str, Binary]) -> Fraction:
         """Convert string representation of Binary to Fraction.
@@ -2011,7 +2049,7 @@ class Binary(object):
             else:
                 return signstr + pre + intpart + "." + fracpart + _EXP + str(exp)
 
-    def __round__(self: Binary, ndigits: int = 0):
+    def __round__(self: Binary, ndigits: int = 0) -> Binary:
         """Normalize and round number to n digits after decimal point.
 
         A method. Same as function round(). See also utility function round_to().
@@ -2021,10 +2059,13 @@ class Binary(object):
 
         Returns:
         Binary: binary string representation of number
+        Other classes like Fractions have the simplicity of returning class int.
+        The return class here must be Binary and it cannot be int because round()
+        needs to be able to support ndigits (precision).
         """
         return self.round(ndigits)
 
-    def round(self: Binary, ndigits: int = 0):
+    def round(self: Binary, ndigits: int = 0) -> Binary:
         """Normalize and round number to n digits after decimal point.
 
         A method. Same as __round__() (round()). See also function round_to().
@@ -2939,6 +2980,9 @@ class Binary(object):
 
         Returns:
         int: ceiling of the number
+        Other classes like Fractions return class int.
+        Following their lead, we do the same and return class int
+        instead of class Binary. Use Binary(ceil(n)) to get result in Binary.
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2961,7 +3005,10 @@ class Binary(object):
         self (Binary): binary number
 
         Returns:
-        Binary: floor of the number
+        int: floor of the number
+        Other classes like Fractions return class int.
+        Following their lead, we do the same and return class int
+        instead of class Binary. Use Binary(floor(n)) to get result in Binary.
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -3140,6 +3187,7 @@ class Binary(object):
         Returns:
         Binary: bitwise 'and' of the two numbers in binary fraction format
         """
+
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(other, Binary):
@@ -3256,43 +3304,87 @@ class Binary(object):
         # convert any of the 2 negative args into twos-complement representation
         # TODO needs to be implemented
 
-        sign1, intpart1, fracpart1, exp1 = this.components()
-        sign2, intpart2, fracpart2, exp2 = other.components()
-        # print("Fracpart: ", fracpart1, fracpart2)
+        def __and(ab):
+            a, b = ab
+            return "1" if a == "1" and b == "1" else "." if a == "." else "0"
 
-        def operation(a, b, li):
-            number = ""
-            for i in range(li):
-                if which == "and":
-                    if a[i] == b[i]:
-                        number += a[i]
-                    else:
-                        number += "0"
-                elif which == "or":
-                    if int(a[i]) or int(b[i]):
-                        number += "1"
-                    else:
-                        number += "0"
-            return number
+        def __or(ab):
+            a, b = ab
+            return "1" if a == "1" or b == "1" else "." if a == "." else "0"
 
-        if sign1 == 0 and sign2 == 0:
-            intl = len(intpart1) if len(intpart1) > len(intpart2) else len(intpart2)
-            fracl = (
-                len(fracpart1) if len(fracpart1) > len(fracpart2) else len(fracpart2)
-            )
-            intpart1 = (intl - len(intpart1)) * "0" + intpart1
-            intpart2 = (intl - len(intpart2)) * "0" + intpart2
-            fracpart1 = fracpart1 + (fracl - len(fracpart1)) * "0"
-            fracpart2 = fracpart2 + (fracl - len(fracpart2)) * "0"
+        def __xor(ab):
+            a, b = ab
+            return "1" if a != b else "." if a == "." else "0"
 
-            result = operation(intpart1, intpart2, intl)
-            if len(result) > 1 and int(result) == 0:
-                result = "0"
-            result += "."
-            result += operation(fracpart1, fracpart2, fracl)
+        sign1, _, _, _ = this.components()
+        sign2, _, _, _ = other.components()
 
-        else:  # TODO: this looks buggy: nothing to do for negative numbers?
-            result = "0"
+        if sign1:
+            this = TwosComplement(this._fraction)
+        if sign2:
+            other = TwosComplement(other._fraction)
+        _, intpart1, fracpart1, _ = this.components()
+        _, intpart2, fracpart2, _ = other.components()
+
+        v1, v2 = intpart1, intpart2
+        l1, l2 = len(v1), len(v2)
+        if sign1 and not sign2:
+            if l1 <= l2:
+                v1 = (l2 - l1 + 1) * "1" + v1
+
+        if not sign1 and sign2:
+            if l2 <= l1:
+                v2 = (l1 - l2 + 1) * "1" + v2
+        l1, l2 = len(v1), len(v2)
+
+        if l1 > l2:
+            v2 = (l1 - l2) * str(sign2) + v2
+        else:
+            v1 = (l2 - l1) * str(sign1) + v1
+
+        value1 = v1
+        value2 = v2
+        v1, v2 = fracpart1, fracpart2
+        l1, l2 = len(v1), len(v2)
+        if l1 > l2:
+            v2 = v2 + (l1 - l2) * "0"
+        else:
+            v1 = v1 + (l2 - l1) * "0"
+        value1 += "." + v1
+        value2 += "." + v2
+        value1 = value1.rstrip(".")
+        value2 = value2.rstrip(".")
+
+        func = (
+            __and
+            if which == "and"
+            else __or
+            if which == "or"
+            else __xor
+            if which == "xor"
+            else __and
+        )
+
+        def negative(number):
+            return Binary(TwosComplement(number))._value
+            result = "-"
+            if number[0] == "1":
+                result += "1" + number.lstrip("1")
+            else:
+                result += number
+            return result
+
+        result = "".join(map(func, zip(value1, value2)))
+        if which == "and":
+            if sign1 and sign2:
+                result = negative(result)
+        elif which == "or":
+            if sign1 or sign2:
+                result = negative(result)
+        elif which == "xor":
+            if sign1 != sign2:
+                result = negative(result)
+
         return Binary(Binary.simplify(result))
 
     def __invert__(self: Binary) -> Binary:
@@ -3886,8 +3978,22 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary.version()[8], "-")
         self.assertEqual(Binary.version()[0:2], "20")  # YY
 
+    def test_to_float(self):
+        """Test to_float() function."""
+        self.assertIsInstance(Binary.to_float("1"), int)
+        self.assertIsInstance(Binary.to_float("1.1"), float)
+        self.assertEqual(Binary.to_float("inf"), float("inf"))
+        self.assertEqual(Binary.to_float("-inf"), float("-inf"))
+        self.assertEqual(math.isnan(Binary.to_float("-nan")), True)
+        self.assertEqual(Binary.to_float("-0b11.1"), -3.5)
+        self.assertEqual(Binary.to_float("0b0"), 0)
+        self.assertEqual(Binary.to_float("0b1000.01"), 8.25)
+        with self.assertRaises(ValueError):
+            Binary.to_float("2")  # should fail
+
     def test_from_float(self):
         """Testing from_float() function."""
+        self.assertIsInstance(Binary.from_float(1.0), str)
         self.assertEqual(Binary.from_float(float("inf")), "inf")
         self.assertEqual(Binary.from_float(float("-inf")), "-inf")
         self.assertEqual(Binary.from_float(float("-nan")), "nan")
@@ -3897,16 +4003,117 @@ class TestBinary(unittest.TestCase):
         with self.assertRaises(TypeError):
             Binary.from_float("1")  # should fail
 
-    def test_to_float(self):
-        """Test to_float() function."""
-        self.assertEqual(Binary.to_float("inf"), float("inf"))
-        self.assertEqual(Binary.to_float("-inf"), float("-inf"))
-        self.assertEqual(math.isnan(Binary.to_float("-nan")), True)
-        self.assertEqual(Binary.to_float("-0b11.1"), -3.5)
-        self.assertEqual(Binary.to_float("0b0"), 0)
-        self.assertEqual(Binary.to_float("0b1000.01"), 8.25)
+    def test_to_not_exponential(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary.to_not_exponential("1"), str)
+        self.assertIsInstance(Binary.to_not_exponential(Binary("1")), Binary)
+        self.assertIsInstance(Binary("1").to_not_exponential(), Binary)
+        self.assertEqual(Binary.to_not_exponential("0"), "0")
+        self.assertEqual(Binary.to_not_exponential("1"), "1")
+        self.assertEqual(Binary.to_not_exponential("11.01e4"), "110100")
+        self.assertEqual(Binary.to_not_exponential("11.01e3"), "11010")
+        self.assertEqual(Binary.to_not_exponential("11.01e2"), "1101")
+        self.assertEqual(Binary.to_not_exponential("11.01e1"), "110.1")
+        self.assertEqual(Binary.to_not_exponential("11.01e0"), "11.01")
+        self.assertEqual(Binary.to_not_exponential("11.01e4", strict=True), "110100")
+        self.assertEqual(Binary.to_not_exponential("11.01e3", strict=True), "11010")
+        self.assertEqual(Binary.to_not_exponential("11.01e2", strict=True), "1101")
+        self.assertEqual(Binary.to_not_exponential("11.01e1", strict=True), "110.1")
+        self.assertEqual(Binary.to_not_exponential("11.01e0", strict=True), "11.01")
+        self.assertEqual(Binary.to_not_exponential("11.01e-1"), "1.101")
+        self.assertEqual(Binary.to_not_exponential("11.01e-2"), "0.1101")
+        self.assertEqual(Binary.to_not_exponential("11.01e-3"), "0.01101")
+        self.assertEqual(Binary.to_not_exponential("11.01e-4"), "0.001101")
+        self.assertEqual(Binary.to_not_exponential("011.01e4"), "110100")
+        self.assertEqual(Binary.to_not_exponential("011.01e3"), "11010")
+        self.assertEqual(Binary.to_not_exponential("011.01e2"), "1101")
+        self.assertEqual(Binary.to_not_exponential("011.01e1"), "110.1")
+        self.assertEqual(Binary.to_not_exponential("011.01e0"), "11.01")
+        self.assertEqual(Binary.to_not_exponential("011.01e-1"), "1.101")
+        self.assertEqual(Binary.to_not_exponential("011.01e-2"), "0.1101")
+        self.assertEqual(Binary.to_not_exponential("011.01e-3"), "0.01101")
+        self.assertEqual(Binary.to_not_exponential("011.01e-4"), "0.001101")
+        self.assertEqual(Binary.to_not_exponential("011.01e2"), "1101")
+        self.assertEqual(Binary.to_not_exponential("011.01e+2"), "1101")
+        self.assertEqual(Binary.to_not_exponential("011.01e4"), "110100")
+        self.assertEqual(Binary.to_not_exponential("011.01e-4"), "0.001101")
+        self.assertEqual(Binary.to_not_exponential("011.01e-2"), "0.1101")
+        self.assertEqual(Binary.to_not_exponential("0.1e-1"), "0.01")
+        self.assertEqual(Binary.to_not_exponential("1.111e0"), "1.111")
+        self.assertEqual(Binary.to_not_exponential("1.11e0"), "1.11")
+        self.assertEqual(Binary.to_not_exponential("1.1e0"), "1.1")
+        self.assertEqual(Binary.to_not_exponential("1.e0"), "1")
+        self.assertEqual(Binary.to_not_exponential("1.e1"), "10")
+        self.assertEqual(Binary.to_not_exponential("1.01e2"), "101")
+        self.assertEqual(Binary.to_not_exponential("1.01e1"), "10.1")
+        self.assertEqual(Binary.to_not_exponential("1.011e2"), "101.1")
+        self.assertEqual(Binary.to_not_exponential("1111000e-0"), "1111000")
+        self.assertEqual(Binary.to_not_exponential("1111000e-3"), "1111")
+        self.assertEqual(Binary.to_not_exponential("1111000000.e-3"), "1111000")
+        self.assertEqual(Binary.to_not_exponential("1111000e+3"), "1111000000")
+        self.assertEqual(Binary.to_not_exponential("1111e+3"), "1111000")
+        self.assertEqual(Binary.to_not_exponential("1111.1e+3"), "1111100")
+        self.assertEqual(Binary.to_not_exponential("011.01e-02"), "0.1101")
+        self.assertEqual(
+            Binary.to_not_exponential("011.01e-02", add_prefix=True), "0b0.1101"
+        )
+        self.assertEqual(Binary.to_not_exponential("011.01e-02", length=-1), "0.1101")
+        self.assertEqual(Binary.to_not_exponential("011.01e-02", length=7), "00.1101")
+        self.assertEqual(Binary.to_not_exponential("011.01e-02", length=8), "000.1101")
+        self.assertEqual(Binary.to_not_exponential("0.01"), "0.01")
+        self.assertEqual(Binary.to_not_exponential("1.111"), "1.111")
+        self.assertEqual(Binary.to_not_exponential("1.11"), "1.11")
+        self.assertEqual(Binary.to_not_exponential("1.1"), "1.1")
+        self.assertEqual(Binary.to_not_exponential("111"), "111")
+        self.assertEqual(Binary.to_not_exponential("10.000"), "10")
+        self.assertEqual(Binary.to_not_exponential("101.000e0"), "101")
+        self.assertEqual(Binary.to_not_exponential("10.10"), "10.1")
+        self.assertEqual(Binary.to_not_exponential("101.1e-0"), "101.1")
+
+        self.assertEqual(Binary.to_not_exponential("-0"), "0")
+        self.assertEqual(Binary.to_not_exponential("11.01e-2"), "0.1101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e-2"), "-0.1101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e-3"), "-0.01101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e-4"), "-0.001101")
+        self.assertEqual(Binary.to_not_exponential("11.01e2"), "1101")
+        self.assertEqual(Binary.to_not_exponential("-11.01e+2"), "-1101")
+        self.assertEqual(Binary.to_not_exponential("11.01e4"), "110100")
+        self.assertEqual(Binary.to_not_exponential("-11.01e+4"), "-110100")
+        self.assertEqual(
+            Binary.to_not_exponential("11.01e4", add_prefix=True), "0b110100"
+        )
+        self.assertEqual(
+            Binary.to_not_exponential("-11.01e+4", add_prefix=True), "-0b110100"
+        )
+        self.assertEqual(Binary.to_not_exponential(Binary("Inf")), "Infinity")
+        self.assertEqual(Binary.to_not_exponential(Binary("-0")), "0b0")
+        self.assertEqual(
+            Binary.to_not_exponential(Binary("-0"), add_prefix=True), "0b0"
+        )
+        self.assertEqual(Binary.to_not_exponential(Binary("11.01e-2")), "0b0.1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-2")), "-0b0.1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-3")), "-0b0.01101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-4")), "-0b0.001101")
+        self.assertEqual(Binary.to_not_exponential(Binary("11.01e2")), "0b1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e+2")), "-0b1101")
+        self.assertEqual(Binary.to_not_exponential(Binary("11.01e4")), "0b110100")
+        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e+4")), "-0b110100")
         with self.assertRaises(ValueError):
-            Binary.to_float("2")  # should fail
+            Binary.to_not_exponential("")  # should fail
+        with self.assertRaises(TypeError):
+            Binary.to_not_exponential(1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.to_not_exponential("1", length=0)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.to_not_exponential("11100", length=4)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.to_not_exponential("0011", length=1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.to_not_exponential("0111", length=2)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.to_not_exponential("011.01e-02", length=4)
+        with self.assertRaises(TypeError):
+            Binary.to_not_exponential("1", "-1")  # should fail
 
     def test___float__(self):
         """Test __float__() method."""
@@ -4052,116 +4259,6 @@ class TestBinary(unittest.TestCase):
             Binary.simplify(1)  # should fail
         with self.assertRaises(TypeError):
             Binary.simplify(Binary("Inf"))  # should fail
-
-    def test_to_not_exponential(self):
-        """Test function/method."""
-
-        self.assertEqual(Binary.to_not_exponential("0"), "0")
-        self.assertEqual(Binary.to_not_exponential("1"), "1")
-        self.assertEqual(Binary.to_not_exponential("11.01e4"), "110100")
-        self.assertEqual(Binary.to_not_exponential("11.01e3"), "11010")
-        self.assertEqual(Binary.to_not_exponential("11.01e2"), "1101")
-        self.assertEqual(Binary.to_not_exponential("11.01e1"), "110.1")
-        self.assertEqual(Binary.to_not_exponential("11.01e0"), "11.01")
-        self.assertEqual(Binary.to_not_exponential("11.01e4", strict=True), "110100")
-        self.assertEqual(Binary.to_not_exponential("11.01e3", strict=True), "11010")
-        self.assertEqual(Binary.to_not_exponential("11.01e2", strict=True), "1101")
-        self.assertEqual(Binary.to_not_exponential("11.01e1", strict=True), "110.1")
-        self.assertEqual(Binary.to_not_exponential("11.01e0", strict=True), "11.01")
-        self.assertEqual(Binary.to_not_exponential("11.01e-1"), "1.101")
-        self.assertEqual(Binary.to_not_exponential("11.01e-2"), "0.1101")
-        self.assertEqual(Binary.to_not_exponential("11.01e-3"), "0.01101")
-        self.assertEqual(Binary.to_not_exponential("11.01e-4"), "0.001101")
-        self.assertEqual(Binary.to_not_exponential("011.01e4"), "110100")
-        self.assertEqual(Binary.to_not_exponential("011.01e3"), "11010")
-        self.assertEqual(Binary.to_not_exponential("011.01e2"), "1101")
-        self.assertEqual(Binary.to_not_exponential("011.01e1"), "110.1")
-        self.assertEqual(Binary.to_not_exponential("011.01e0"), "11.01")
-        self.assertEqual(Binary.to_not_exponential("011.01e-1"), "1.101")
-        self.assertEqual(Binary.to_not_exponential("011.01e-2"), "0.1101")
-        self.assertEqual(Binary.to_not_exponential("011.01e-3"), "0.01101")
-        self.assertEqual(Binary.to_not_exponential("011.01e-4"), "0.001101")
-        self.assertEqual(Binary.to_not_exponential("011.01e2"), "1101")
-        self.assertEqual(Binary.to_not_exponential("011.01e+2"), "1101")
-        self.assertEqual(Binary.to_not_exponential("011.01e4"), "110100")
-        self.assertEqual(Binary.to_not_exponential("011.01e-4"), "0.001101")
-        self.assertEqual(Binary.to_not_exponential("011.01e-2"), "0.1101")
-        self.assertEqual(Binary.to_not_exponential("0.1e-1"), "0.01")
-        self.assertEqual(Binary.to_not_exponential("1.111e0"), "1.111")
-        self.assertEqual(Binary.to_not_exponential("1.11e0"), "1.11")
-        self.assertEqual(Binary.to_not_exponential("1.1e0"), "1.1")
-        self.assertEqual(Binary.to_not_exponential("1.e0"), "1")
-        self.assertEqual(Binary.to_not_exponential("1.e1"), "10")
-        self.assertEqual(Binary.to_not_exponential("1.01e2"), "101")
-        self.assertEqual(Binary.to_not_exponential("1.01e1"), "10.1")
-        self.assertEqual(Binary.to_not_exponential("1.011e2"), "101.1")
-        self.assertEqual(Binary.to_not_exponential("1111000e-0"), "1111000")
-        self.assertEqual(Binary.to_not_exponential("1111000e-3"), "1111")
-        self.assertEqual(Binary.to_not_exponential("1111000000.e-3"), "1111000")
-        self.assertEqual(Binary.to_not_exponential("1111000e+3"), "1111000000")
-        self.assertEqual(Binary.to_not_exponential("1111e+3"), "1111000")
-        self.assertEqual(Binary.to_not_exponential("1111.1e+3"), "1111100")
-        self.assertEqual(Binary.to_not_exponential("011.01e-02"), "0.1101")
-        self.assertEqual(
-            Binary.to_not_exponential("011.01e-02", add_prefix=True), "0b0.1101"
-        )
-        self.assertEqual(Binary.to_not_exponential("011.01e-02", length=-1), "0.1101")
-        self.assertEqual(Binary.to_not_exponential("011.01e-02", length=7), "00.1101")
-        self.assertEqual(Binary.to_not_exponential("011.01e-02", length=8), "000.1101")
-        self.assertEqual(Binary.to_not_exponential("0.01"), "0.01")
-        self.assertEqual(Binary.to_not_exponential("1.111"), "1.111")
-        self.assertEqual(Binary.to_not_exponential("1.11"), "1.11")
-        self.assertEqual(Binary.to_not_exponential("1.1"), "1.1")
-        self.assertEqual(Binary.to_not_exponential("111"), "111")
-        self.assertEqual(Binary.to_not_exponential("10.000"), "10")
-        self.assertEqual(Binary.to_not_exponential("101.000e0"), "101")
-        self.assertEqual(Binary.to_not_exponential("10.10"), "10.1")
-        self.assertEqual(Binary.to_not_exponential("101.1e-0"), "101.1")
-
-        self.assertEqual(Binary.to_not_exponential("-0"), "0")
-        self.assertEqual(Binary.to_not_exponential("11.01e-2"), "0.1101")
-        self.assertEqual(Binary.to_not_exponential("-11.01e-2"), "-0.1101")
-        self.assertEqual(Binary.to_not_exponential("-11.01e-3"), "-0.01101")
-        self.assertEqual(Binary.to_not_exponential("-11.01e-4"), "-0.001101")
-        self.assertEqual(Binary.to_not_exponential("11.01e2"), "1101")
-        self.assertEqual(Binary.to_not_exponential("-11.01e+2"), "-1101")
-        self.assertEqual(Binary.to_not_exponential("11.01e4"), "110100")
-        self.assertEqual(Binary.to_not_exponential("-11.01e+4"), "-110100")
-        self.assertEqual(
-            Binary.to_not_exponential("11.01e4", add_prefix=True), "0b110100"
-        )
-        self.assertEqual(
-            Binary.to_not_exponential("-11.01e+4", add_prefix=True), "-0b110100"
-        )
-        self.assertEqual(Binary.to_not_exponential(Binary("Inf")), "Infinity")
-        self.assertEqual(Binary.to_not_exponential(Binary("-0")), "0b0")
-        self.assertEqual(
-            Binary.to_not_exponential(Binary("-0"), add_prefix=True), "0b0"
-        )
-        self.assertEqual(Binary.to_not_exponential(Binary("11.01e-2")), "0b0.1101")
-        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-2")), "-0b0.1101")
-        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-3")), "-0b0.01101")
-        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e-4")), "-0b0.001101")
-        self.assertEqual(Binary.to_not_exponential(Binary("11.01e2")), "0b1101")
-        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e+2")), "-0b1101")
-        self.assertEqual(Binary.to_not_exponential(Binary("11.01e4")), "0b110100")
-        self.assertEqual(Binary.to_not_exponential(Binary("-11.01e+4")), "-0b110100")
-        with self.assertRaises(ValueError):
-            Binary.to_not_exponential("")  # should fail
-        with self.assertRaises(TypeError):
-            Binary.to_not_exponential(1)  # should fail
-        with self.assertRaises(OverflowError):
-            Binary.to_not_exponential("1", length=0)  # should fail
-        with self.assertRaises(OverflowError):
-            Binary.to_not_exponential("11100", length=4)  # should fail
-        with self.assertRaises(OverflowError):
-            Binary.to_not_exponential("0011", length=1)  # should fail
-        with self.assertRaises(OverflowError):
-            Binary.to_not_exponential("0111", length=2)  # should fail
-        with self.assertRaises(OverflowError):
-            Binary.to_not_exponential("011.01e-02", length=4)
-        with self.assertRaises(TypeError):
-            Binary.to_not_exponential("1", "-1")  # should fail
 
     def test_to_fraction(self):
         """Test function/method."""
@@ -4351,13 +4448,12 @@ class TestBinary(unittest.TestCase):
 
     def test_to_sci_exponential(self):
         """Test function/method."""
+        self.assertIsInstance(Binary("1").to_sci_exponential(), Binary)
         self.assertEqual(
             Binary("101e2").to_sci_exponential().compare_representation("1.01e4"),
             True,
         )
-        self.assertEqual(
-            Binary("1.1").to_sci_exponential().compare_representation("1.1e0"), True
-        )
+        self.assertEqual(str(Binary("1.1").to_sci_exponential()), "0b1.1e0")
         self.assertEqual(
             Binary("-000101e002")
             .to_sci_exponential()
@@ -4399,17 +4495,162 @@ class TestBinary(unittest.TestCase):
 
     def test_to_eng_exponential(self):
         """Test function/method."""
+        self.assertIsInstance(Binary("1").to_eng_exponential(), Binary)
+        for ii in range(-1023, 1023, 1):
+            if ii < 0:
+                self.assertEqual(Binary(ii).to_eng_exponential(), "-" + bin(ii)[3:])
+            else:
+                self.assertEqual(Binary(ii).to_eng_exponential(), bin(ii)[2:])
         self.assertEqual(
-            Binary("101e2").to_eng_exponential().compare_representation("10.1e3"),
+            Binary(1023).to_eng_exponential().compare_representation("1111111111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(1024).to_eng_exponential().compare_representation("1e10"),
+            True,
+        )
+        self.assertEqual(
+            Binary(1025).to_eng_exponential().compare_representation("1.0000000001e10"),
+            True,
+        )
+        self.assertEqual(
+            Binary(3072).to_eng_exponential().compare_representation("11e10"),
+            True,
+        )
+        self.assertEqual(
+            Binary(1024 ** 2).to_eng_exponential().compare_representation("1e20"),
+            True,
+        )
+        self.assertEqual(str(Binary(".11111e1").to_eng_exponential()), "0b1.1111")
+        self.assertEqual(
+            Binary(".01111e2").to_eng_exponential().compare_representation("1.111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".0011111e3").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("0.1").to_eng_exponential().compare_representation("1000000000e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("0.11")
+            .to_eng_exponential()
+            .compare_representation("1100000000e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("0.01").to_eng_exponential().compare_representation("100000000e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("0.0000000001").to_eng_exponential().compare_representation("1e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("0.000000001").to_eng_exponential().compare_representation("10e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("0.00000000111")
+            .to_eng_exponential()
+            .compare_representation("11.1e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".11111e1").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".011111e2").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary(".0011111e3").to_eng_exponential().compare_representation("1.1111"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.01e-2")
+            .to_eng_exponential()
+            .compare_representation("-1000000e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001e-4")
+            .to_eng_exponential()
+            .compare_representation(
+                "-100e-10",
+            ),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001111e-4")
+            .to_eng_exponential()
+            .compare_representation(
+                "-111.1e-10",
+            ),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.01e-2")
+            .to_eng_exponential()
+            .compare_representation("-1000000e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001e-4")
+            .to_eng_exponential()
+            .compare_representation("-100e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001111e-4")
+            .to_eng_exponential()
+            .compare_representation("-111.1e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("101e2").to_eng_exponential().compare_representation("10100"),
             True,
         )
         self.assertEqual(
             Binary("1.1").to_eng_exponential().compare_representation("1.1"), True
         )
         self.assertEqual(
-            Binary("-000101e002")
+            Binary("100_000_000")
             .to_eng_exponential()
-            .compare_representation("-10.1e3"),
+            .compare_representation("100000000"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1_000_000_000")
+            .to_eng_exponential()
+            .compare_representation("1000000000"),
+            True,
+        )
+        self.assertEqual(
+            Binary("10_000_000_000")
+            .to_eng_exponential()
+            .compare_representation("1e10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-100_000_000")
+            .to_eng_exponential()
+            .compare_representation("-100000000"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-1_000_000_000")
+            .to_eng_exponential()
+            .compare_representation("-1000000000"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-10_000_000_000")
+            .to_eng_exponential()
+            .compare_representation("-1e10"),
             True,
         )
         self.assertEqual(
@@ -4417,29 +4658,33 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("-0.01e-2").to_eng_exponential().compare_representation("-100e-6"),
+            Binary("-0.01e-2")
+            .to_eng_exponential()
+            .compare_representation("-1000000e-10"),
             True,
         )
         self.assertEqual(
             Binary("-0.00001e-2")
             .to_eng_exponential()
-            .compare_representation("-100e-9"),
+            .compare_representation("-1000e-10"),
             True,
         )
         self.assertEqual(
-            Binary("+0.00001e+2").to_eng_exponential().compare_representation("1e-3"),
+            Binary("+0.00001e+2")
+            .to_eng_exponential()
+            .compare_representation("10000000e-10"),
             True,
         )
         self.assertEqual(
             Binary("-0.00001010e-2")
             .to_eng_exponential()
-            .compare_representation("-101e-9"),
+            .compare_representation("-1010e-10"),
             True,
         )
         self.assertEqual(
             Binary("-0.00001010e+2")
             .to_eng_exponential()
-            .compare_representation("-1.01e-3"),
+            .compare_representation("-10100000e-10"),
             True,
         )
         self.assertEqual(
@@ -4457,7 +4702,7 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(
             Binary("1000.1111")
             .to_eng_exponential()
-            .compare_representation("1.0001111e3"),
+            .compare_representation("1000.1111"),
             True,
         )
         self.assertEqual(
@@ -4473,53 +4718,91 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("1000").to_eng_exponential().compare_representation("1e3"),
+            Binary("1000").to_eng_exponential().compare_representation("1000"),
             True,
         )
         self.assertEqual(
-            Binary("10000").to_eng_exponential().compare_representation("10e3"),
+            Binary("10000").to_eng_exponential().compare_representation("10000"),
             True,
         )
         self.assertEqual(
-            Binary("100000").to_eng_exponential().compare_representation("100e3"),
+            Binary("100000").to_eng_exponential().compare_representation("100000"),
             True,
         )
         self.assertEqual(
-            Binary("1000000").to_eng_exponential().compare_representation("1e6"),
+            Binary("1000000").to_eng_exponential().compare_representation("1000000"),
             True,
         )
         self.assertEqual(
-            Binary("1.1111").to_eng_exponential().compare_representation("1.1111"),
-            True,
-        )
-        self.assertEqual(
-            Binary("10.1111").to_eng_exponential().compare_representation("10.1111"),
-            True,
-        )
-        self.assertEqual(
-            Binary("100.1111").to_eng_exponential().compare_representation("100.1111"),
-            True,
-        )
-        self.assertEqual(
-            Binary("1000.1111").to_eng_exponential().compare_representation("1e3.1111"),
-            True,
-        )
-        self.assertEqual(
-            Binary("10000.1111")
+            Binary("1_000_000_000")
             .to_eng_exponential()
-            .compare_representation("10e3.1111"),
+            .compare_representation("1000000000"),
             True,
+        )
+        self.assertEqual(
+            Binary("10_000_000_000")
+            .to_eng_exponential()
+            .compare_representation("1e10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("10_000_000_001.101")
+            .to_eng_exponential()
+            .compare_representation("1.0000000001101e10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("1010_000_000_001.101")
+            .to_eng_exponential()
+            .compare_representation("101.0000000001101e10"),
+            True,
+        )
+        self.assertEqual(
+            str(Binary("1010_000_000_001.10101010101010101").to_eng_exponential()),
+            "0b101.000000000110101010101010101e10",
+        )
+        self.assertEqual(
+            str(
+                Binary(
+                    "1010_000_000_001.1010101010101010110101010101010101"
+                ).to_eng_exponential()
+            ),
+            "0b101.00000000011010101010101010110101010101010101e10",
+        )
+        self.assertEqual(
+            str(
+                Binary(
+                    "1_010_001_010_000_000_001.1010101010101010110101010101010101"
+                ).to_eng_exponential()
+            ),
+            "0b101000101.00000000011010101010101010110101010101010101e10",
+        )
+        self.assertEqual(
+            str(
+                Binary(
+                    "11_010_001_010_000_000_001.1010101010101010110101010101010101"
+                ).to_eng_exponential()
+            ),
+            "0b1101000101.00000000011010101010101010110101010101010101e10",
+        )
+        self.assertEqual(
+            str(
+                Binary(
+                    "111_010_001_010_000_000_001.1010101010101010110101010101010101"
+                ).to_eng_exponential()
+            ),
+            "0b1.110100010100000000011010101010101010110101010101010101e20",
         )
         self.assertEqual(
             Binary("100000.1111")
             .to_eng_exponential()
-            .compare_representation("100e3.1111"),
+            .compare_representation("100000.1111"),
             True,
         )
         self.assertEqual(
             Binary("1000000.1111")
             .to_eng_exponential()
-            .compare_representation("1e6.1111"),
+            .compare_representation("1000000.1111"),
             True,
         )
         self.assertEqual(
@@ -4555,19 +4838,21 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("-0.01e-2").to_eng_exponential().compare_representation("-1e-3"),
+            Binary("-0.01e-2")
+            .to_eng_exponential()
+            .compare_representation("-1000000e-10"),
             True,
         )
         self.assertEqual(
-            Binary("-0.0001e-4" == -0.00000001)
+            Binary("-0.0001e-4")
             .to_eng_exponential()
-            .compare_representation("-10e-9"),
+            .compare_representation("-100e-10"),
             True,
         )
         self.assertEqual(
-            Binary("-0.0001111e-4" == -0.00000001111)
+            Binary("-0.0001111e-4")
             .to_eng_exponential()
-            .compare_representation("-11.11e-9"),
+            .compare_representation("-111.1e-10"),
             True,
         )
         with self.assertRaises(TypeError):
@@ -5380,6 +5665,9 @@ class TestBinary(unittest.TestCase):
         self.assertIsInstance(Binary(1) & Binary(1), Binary)
         self.assertEqual(Binary(1) & Binary(1), Binary(1))
         self.assertEqual(Binary(0) & Binary(1), Binary(0))
+        for ii in range(-30, 30, 1):
+            for jj in range(-30, 30, 1):
+                self.assertEqual(Binary(ii) & Binary(jj), ii & jj)
         self.assertEqual(Binary("1000") & Binary("0"), Binary(0))
         self.assertEqual(Binary("1010") & Binary("10"), Binary("10"))
         self.assertEqual(Binary("1010") & Binary("11"), Binary("10"))
@@ -5388,7 +5676,7 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary("1.1010") & Binary("0.10"), Binary("0.1"))
         self.assertEqual(Binary("1.1010") & Binary("0.11"), Binary("0.1"))
         self.assertEqual(Binary("1.1111") & Binary("0.10"), Binary("0.1"))
-        self.assertEqual(Binary("-0.1") & Binary("+1"), -1)
+        self.assertEqual(Binary("-0.1") & Binary("+1"), 1)
         self.assertEqual(Binary(-5) & Binary(-6), -6)
         self.assertEqual(Binary(-5) & Binary(-7), -7)
         self.assertEqual(Binary(-5) & Binary(-8), -8)
@@ -5420,6 +5708,9 @@ class TestBinary(unittest.TestCase):
         self.assertIsInstance(Binary(1) | Binary(1), Binary)
         self.assertEqual(Binary(1) | Binary(1), Binary(1))
         self.assertEqual(Binary(0) | Binary(1), Binary(1))
+        for ii in range(-30, 30, 1):
+            for jj in range(-30, 30, 1):
+                self.assertEqual(Binary(ii) | Binary(jj), ii | jj)
         self.assertEqual(Binary("1000") | Binary("0"), Binary("1000"))
         self.assertEqual(Binary("1010") | Binary("10"), Binary("1010"))
         self.assertEqual(Binary("1010") | Binary("11"), Binary("1011"))
@@ -5460,6 +5751,9 @@ class TestBinary(unittest.TestCase):
         self.assertIsInstance(Binary(1) ^ Binary(1), Binary)
         self.assertEqual(Binary(1) ^ Binary(1), Binary(0))
         self.assertEqual(Binary(0) ^ Binary(1), Binary(1))
+        for ii in range(-30, 30, 1):
+            for jj in range(-30, 30, 1):
+                self.assertEqual(Binary(ii) ^ Binary(jj), ii ^ jj)
         self.assertEqual(Binary("1000") ^ Binary("0"), Binary("1000"))
         self.assertEqual(Binary("1010") ^ Binary("10"), Binary("1000"))
         self.assertEqual(Binary("1010") ^ Binary("11"), Binary("1001"))

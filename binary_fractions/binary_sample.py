@@ -4,7 +4,7 @@
 
 from binary import TwosComplement
 from binary import Binary
-import math
+from math import ceil, floor
 
 bf1str: str = "-1.01"  # -1.25
 bf2str: str = "10.1"  # 2.5
@@ -19,8 +19,12 @@ bf2: Binary = Binary(bf2str)
 bf3: Binary = Binary(bf3str)
 tc1: TwosComplement = TwosComplement(tcstr1)
 tc2: TwosComplement = TwosComplement(tcstr2)
+tc3: TwosComplement = TwosComplement(fl2)
 
 print("Sample program demonstrating binary fractions class and module:")
+print(f"Binary({fl1}) = {Binary(fl1)}")
+print(f"Binary({fl2}) = {Binary(fl2)}")
+print(f"Binary({bf3str}) = {Binary(bf3str)}")
 print(f"{bf1} = {bf1}")
 print(f"{bf1} + {bf2} = {bf1+bf2}")
 print(f"{bf1} - {bf2} = {bf1-bf2}")
@@ -33,33 +37,32 @@ print(f"{bf1} >> {1} = {bf1>>1}")
 print(f"{bf1} << {1} = {bf1<<1}")
 print(f"abs({bf1}) = {abs(bf1)}")
 print(f"round({bf1}) = {round(bf1)}")
-print(f"ceil({bf1}) = {math.ceil(bf1)}")
-print(f"floor({bf1}) = {math.floor(bf1)}")
+print(f"ceil({bf1}) = {ceil(bf1)}, or Binary(ceil({bf1})) = {Binary(ceil(bf1))}")
+print(f"floor({bf1}) = {floor(bf1)}, or Binary(ceil({bf1})) = {Binary(floor(bf1))}")
 print(f"int({bf1}) = {int(bf1)}")
 print(f"float({bf1}) = {float(bf1)}")
 print(f"str({bf1}) = {str(bf1)}")
-print(f"Fraction({bf1}) = {bf1._fraction} = {bf1.fraction()}")
+print(f"str({bf3}) = {str(bf3)}")
+print(f"Fraction({bf1}) = {bf1.fraction()}")
 print(f"{bf1} & {bf2} = {bf1&bf2}")
 print(f"{bf1} | {bf2} = {bf1|bf2}")
 print(f"{bf1} ^ {bf2} = {bf1^bf2}")
-print(f"~(floor({bf2})) = {~(math.floor(bf2))}")
+print(f"~(floor({bf2})) = {~(floor(bf2))}")
 print(f"type({bf1}) = {type(bf1)}")
 print(f"type({tc1}) = {type(tc1)}")
 print(f"Binary('{bf3}').to_not_exponential() = {bf3.to_not_exponential()}")
 print(f"Binary('{bf3}').to_simple_exponential() = {bf3.to_simple_exponential()}")
-print(
-    f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}"
-)  # scientific
+# scientific notation
+print(f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}")
+# engineering notation
+print(f"Binary('{bf3}').to_eng_exponential() = {bf3.to_eng_exponential()}")
 print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twoscomplement()}")
-print(f"Binary.from_twos_complement('{tc1}') = {Binary.from_twoscomplement(tc1)}")
-print(f"Binary.from_twos_complement('{tc2}') = {Binary.from_twoscomplement(tc2)}")
-print(f"Binary({fl1}) = {Binary(fl1)}")
+print(f"Binary(TwosComplement('{tcstr1}')) = {Binary.from_twoscomplement(tc1)}")
+print(f"Binary(TwosComplement('{tcstr2}')) = {Binary.from_twoscomplement(tc2)}")
+print(f"Binary(TwosComplement({fl2})) = {Binary.from_twoscomplement(tc3)}")
 print(f"TwosComplement({fl2}) = {TwosComplement(fl2)}")
 print("And there are more operands, more methods, more functions, ...")
-print(
-    "Read the documentation at "
-    "https://raw.githubusercontent.com/Jonny-exe/binary-fractions"
-    " for more information."
-)
+print("For more information read the documentation at:")
+print("https://raw.githubusercontent.com/Jonny-exe/binary-fractions")
 
 # End of file

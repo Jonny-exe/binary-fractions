@@ -103,119 +103,121 @@ Please have a look at the short example program that uses the
 `Binary` class and module. See file
 [binary_sample.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_sample.py).
 
+The sample source code looks like this:
 ```
-$ python # sample usage, examples
->>> from binary import Binary
->>> Binary()
-Binary(0, 0, False)
->>> Binary(1)
-Binary(1, 0, False)
->>> Binary(2)
-Binary(10, 0, False)
->>> Binary('11')
-Binary(11, 0, False)
->>> Binary('11.11')
-Binary(11.11, 0, False)
->>> Binary('11.11e-2')
-Binary(1111e-4, 0, False)
->>> Binary('-11.11e-2')
-Binary(-1111e-4, 1, False)
->>> Binary('NaN')
-Binary(NaN, 0, True)
->>> Binary('-Infinity')
-Binary(-Infinity, 1, True)
->>> Binary(-8.5)
-Warning: mixing floats and Binary
-Binary(-1000.1, 1, False)
->>> Binary('-0b111001.0001001e-12')
-Binary(-1110010001001e-19, 1, False)
->>> Binary('-111001.0001001e-12')
-Binary(-1110010001001e-19, 1, False)
->>> Binary('111001.0001001e-12')
-Binary(1110010001001e-19, 0, False)
->>> Binary(3/4)
-Binary(0.11, 0, False)
->>> Binary(17/19)
-Binary(0.11100101000011010111100101000011, 0, False)
->>> Binary(128+32+8+2+17/19)
-Binary(10101010.11100101000011010111100101000011, 0, False)
-Binary(2**20+128+32+8+2+17/19)
-Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
->>> Binary((1, (1,0,0,1,1,0,0,0,1), -3))
-Binary(-100110001e-3, 1, False)
+#!/usr/bin/python3
 
->>> b=Binary(2**20+128+32+8+2+17/19)
->>> b.float()
-1048746.894736842
->>> b.to_not_exponential()
-Binary(100000000000010101010.11100101000011010111100101000011, 0, False)
->>> b.round(2)
-Binary(100000000000010101011, 0, False)
->>> b.round(3)
-Binary(100000000000010101010.111, 0, False)
->>> b.round(4)
-Binary(100000000000010101010.111, 0, False)
->>> b.fill(10)
-'100000000000010101010.11100101000011010111100101000011'
->>> b.fill(10,True)
-'100000000000010101010.1110010100'
->>> b.fill(64)
-'100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
->>> b.fill(64,True)
-'100000000000010101010.1110010100001101011110010100001100000000000000000000000000000000'
->>> b.to_simple_exponential() # no decimal point
-Binary(10000000000001010101011100101000011010111100101000011e-32, 0, False)
->>> b.to_sci_exponential() # 1 digit before decimal point
-Binary(1.0000000000001010101011100101000011010111100101000011e20, 0, False)
->>> b2=Binary(7)
->>> b2.to_sci_exponential()
-Binary(1.11e2, 0, False)
->>> b2=Binary('111')
->>> b2.to_sci_exponential()
-Binary(1.11e2, 0, False)
->>> b2.components()
-(0, '111', '', 0)
->>> b3=b2.to_sci_exponential()
->>> b3.components()
-(0, '1', '11', 2)
->>> b3.isinfinity()
-False
->>> b2.compare(b3) # same value, returns equal
-Binary(0, 0, False)
->>> b2 == b3  # same value, returns equal
-True
-0
->>> b2.compare_representation(b3) # different representation, returns unequal
-False
->>> b2
-Binary(111, 0, False)
->>> str(b2)
-'0b111'
->>> b4=Binary(7.125)
->>> str(b4)
-'0b111.001'
->>> b4.np() # no prefix, '0b' prefix removed
-'111.001'
->>> # simple math
->>> Binary('111') + Binary(3)
-Binary(1010, 0, False)
->>> Binary('111.1') - Binary(3)
-Binary(100.1, 0, False)
->>> Binary('111.1') * Binary(2.0)
-Binary(1111, 0, False)
->>> Binary('111.1') / Binary(4.0)
-Binary(1.111, 0, False)
->>> Binary('111.1') // Binary(4.0)
-Binary(1, 0, False)
->>> float(Binary('111.1'))
-7.5
->>> int(Binary('111.1'))
-7
->>> # works with large numbers
->>> Binary('11100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111.100000000000000000000000000000000000000010101010101010101010101010101010101010101010101010101') * Binary('11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000111111111111.0111111111111111111111111111111111111111111111111111111111100000000000000000000000000011111111111111111111e-12')
-Binary(1101111111111111111111111111111111111111111111111111111111111111100100000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000001101111111111111111111111111100111111111111111111111110010000000000001010101010101010101011001010101010011100101010101010011111111111101011001010101010101010101001110010101010101010101011000110011111111101111110010000000000000000001000000000000110101010101100101010101010101010101010101010101001.1101010001011001010101010101010101110101111111111111100101010101010101100101010101010101010100101000101010111110101011001010101, 0, False)
->>> # and so much more
+# Sample program using the Binary class and module.
 
+from binary import TwosComplement
+from binary import Binary
+from math import ceil, floor
+
+bf1str: str = "-1.01"  # -1.25
+bf2str: str = "10.1"  # 2.5
+bf3str: str = "10.1e-3"  # 2.5/8
+tcstr1: str = "10.1"  # -1.5 in two's complement, '-0b1.1' as binary fraction
+tcstr2: str = "100001001000.1"  # -1975.5 in two's complement, '-0b11110111000.1'
+fl1: float = 2.3
+fl2: float = -1975.5
+
+bf1: Binary = Binary(bf1str)
+bf2: Binary = Binary(bf2str)
+bf3: Binary = Binary(bf3str)
+tc1: TwosComplement = TwosComplement(tcstr1)
+tc2: TwosComplement = TwosComplement(tcstr2)
+tc3: TwosComplement = TwosComplement(fl2)
+
+print("Sample program demonstrating binary fractions class and module:")
+print(f"Binary({fl1}) = {Binary(fl1)}")
+print(f"Binary({fl2}) = {Binary(fl2)}")
+print(f"Binary({bf3str}) = {Binary(bf3str)}")
+print(f"{bf1} = {bf1}")
+print(f"{bf1} + {bf2} = {bf1+bf2}")
+print(f"{bf1} - {bf2} = {bf1-bf2}")
+print(f"{bf1} * {bf2} = {bf1*bf2}")
+print(f"{bf1} / {bf2} = {bf1/bf2}")
+print(f"{bf1} // {bf2} = {bf1//bf2}")
+print(f"{bf1} % {bf2} = {bf1%bf2}")
+print(f"{bf2} ** {bf1} = {bf2**bf1}")
+print(f"{bf1} >> {1} = {bf1>>1}")
+print(f"{bf1} << {1} = {bf1<<1}")
+print(f"abs({bf1}) = {abs(bf1)}")
+print(f"round({bf1}) = {round(bf1)}")
+print(f"ceil({bf1}) = {ceil(bf1)}, or Binary(ceil({bf1})) = {Binary(ceil(bf1))}")
+print(f"floor({bf1}) = {floor(bf1)}, or Binary(ceil({bf1})) = {Binary(floor(bf1))}")
+print(f"int({bf1}) = {int(bf1)}")
+print(f"float({bf1}) = {float(bf1)}")
+print(f"str({bf1}) = {str(bf1)}")
+print(f"str({bf3}) = {str(bf3)}")
+print(f"Fraction({bf1}) = {bf1.fraction()}")
+print(f"{bf1} & {bf2} = {bf1&bf2}")
+print(f"{bf1} | {bf2} = {bf1|bf2}")
+print(f"{bf1} ^ {bf2} = {bf1^bf2}")
+print(f"~(floor({bf2})) = {~(floor(bf2))}")
+print(f"type({bf1}) = {type(bf1)}")
+print(f"type({tc1}) = {type(tc1)}")
+print(f"Binary('{bf3}').to_not_exponential() = {bf3.to_not_exponential()}")
+print(f"Binary('{bf3}').to_simple_exponential() = {bf3.to_simple_exponential()}")
+# scientific notation
+print(f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}")
+# engineering notation
+print(f"Binary('{bf3}').to_eng_exponential() = {bf3.to_eng_exponential()}")
+print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twoscomplement()}")
+print(f"Binary(TwosComplement('{tcstr1}')) = {Binary.from_twoscomplement(tc1)}")
+print(f"Binary(TwosComplement('{tcstr2}')) = {Binary.from_twoscomplement(tc2)}")
+print(f"Binary(TwosComplement({fl2})) = {Binary.from_twoscomplement(tc3)}")
+print(f"TwosComplement({fl2}) = {TwosComplement(fl2)}")
+print("And there are more operands, more methods, more functions, ...")
+print("For more information read the documentation at:")
+print("https://raw.githubusercontent.com/Jonny-exe/binary-fractions")
+```
+
+When executed with the command `python3 binary_sample.py`, it returns these
+results:
+
+```
+Sample program demonstrating binary fractions class and module:
+Binary(2.3) = 0b10.01001100110011001100110011001100110011001100110011
+Binary(-1975.5) = -0b11110110111.1
+Binary(10.1e-3) = 0b10.1e-3
+-0b1.01 = -0b1.01
+-0b1.01 + 0b10.1 = 0b1.01
+-0b1.01 - 0b10.1 = -0b11.11
+-0b1.01 * 0b10.1 = -0b11.001
+-0b1.01 / 0b10.1 = -0b0.1
+-0b1.01 // 0b10.1 = -0b1
+-0b1.01 % 0b10.1 = 0b1.01
+0b10.1 ** -0b1.01 = 0b0.010100010110111110001011100001001001101110110100110011
+-0b1.01 >> 1 = -0b0.101
+-0b1.01 << 1 = -0b10.1
+abs(-0b1.01) = 0b1.01
+round(-0b1.01) = -0b1
+ceil(-0b1.01) = -1, or Binary(ceil(-0b1.01)) = -0b1
+floor(-0b1.01) = -2, or Binary(ceil(-0b1.01)) = -0b10
+int(-0b1.01) = -1
+float(-0b1.01) = -1.25
+str(-0b1.01) = -0b1.01
+str(0b10.1e-3) = 0b10.1e-3
+Fraction(-0b1.01) = -5/4
+-0b1.01 & 0b10.1 = 0b10.1
+-0b1.01 | 0b10.1 = -0b1.01
+-0b1.01 ^ 0b10.1 = -0b11.11
+~(floor(0b10.1)) = -3
+type(-0b1.01) = <class 'binary.Binary'>
+type(10.1) = <class 'binary.TwosComplement'>
+Binary('0b10.1e-3').to_not_exponential() = 0b0.0101
+Binary('0b10.1e-3').to_simple_exponential() = 0b101e-4
+Binary('0b10.1e-3').to_sci_exponential() = 0b1.01e-2
+Binary('0b10.1e-3').to_eng_exponential() = 0b101000000e-10
+Binary('-0b1.01').to_twos_complement() = 10.11
+Binary(TwosComplement('10.1')) = -1.1
+Binary(TwosComplement('100001001000.1')) = -11110110111.1
+Binary(TwosComplement(-1975.5)) = -11110110111.1
+TwosComplement(-1975.5) = 100001001000.1
+And there are more operands, more methods, more functions, ...
+For more information read the documentation at:
+https://raw.githubusercontent.com/Jonny-exe/binary-fractions
 ```
 
 ## Requirements:
