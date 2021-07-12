@@ -2,7 +2,7 @@
 
 """# Floating-point Binary Fractions: Do math in base 2!
 
-![logo](binary-fractions.svg)
+![logo](https://raw.githubusercontent.com/Jonny-exe/binary-fractions/master/binary-fractions.svg)
 
 ```
  ████       ███
@@ -170,9 +170,6 @@ print(f"Binary(TwosComplement('{tcstr1}')) = {Binary.from_twoscomplement(tc1)}")
 print(f"Binary(TwosComplement('{tcstr2}')) = {Binary.from_twoscomplement(tc2)}")
 print(f"Binary(TwosComplement({fl2})) = {Binary.from_twoscomplement(tc3)}")
 print(f"TwosComplement({fl2}) = {TwosComplement(fl2)}")
-print("And there are more operands, more methods, more functions, ...")
-print("For more information read the documentation at:")
-print("https://raw.githubusercontent.com/Jonny-exe/binary-fractions")
 ```
 
 When executed with the command `python3 binary_sample.py`, it returns these
@@ -217,25 +214,31 @@ Binary(TwosComplement('10.1')) = -1.1
 Binary(TwosComplement('100001001000.1')) = -11110110111.1
 Binary(TwosComplement(-1975.5)) = -11110110111.1
 TwosComplement(-1975.5) = 100001001000.1
-And there are more operands, more methods, more functions, ...
-For more information read the documentation at:
-https://raw.githubusercontent.com/Jonny-exe/binary-fractions
 ```
 
 ## Requirements:
 - Python 3
-- requires no `pip` packages (uses built-in `math` and `fractions` modules)
+- requires no `pip` packages (uses built-in `math` and `fractions` modules for
+    math operations, uses `unittest` for unit testing)
 
 ## Installation:
 - see [https://pypi.org/project/binary-fractions/](https://pypi.org/project/binary-fractions/)
 - `pip install binary-fractions`
 
+## Testing, Maturity
+- run `python3 binary_sample.py` to execute a simple sample program
+- run `python3 binary_test.py` to execute all unit tests
+- `Binary` is relatively mature, more than 1400 test cases have been written and all
+    passed.
+
 ## Contributions:
-- PRs are welcome and very much appreciated!
-  Please run
-  [selftest()](https://github.com/Jonny-exe/binary-fractions/blob/a44ec44cb58e97dac661bae6b6baffdf9d94425e/binary_fractions/binary.py#L1237)
-  before issuing a PR to be sure all test cases pass.
-- File Format: linted/beautified with black
+- PRs are welcome and very much appreciated! :+1:
+- Please run and pass all existing 1400+ test cases in
+    [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
+    before issuing a PR.
+- File Format: linted/beautified with [black](https://github.com/psf/black)
+- Test case format: [unittest](https://docs.python.org/3/library/unittest.html)
+- Documentation format: [pydoc](https://docs.python.org/3/library/pydoc.html)
 
 Enjoy :heart: !
 
@@ -264,7 +267,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210712-184654"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210712-190324"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1417  # number of asserts in .py file
 
