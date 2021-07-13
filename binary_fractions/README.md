@@ -560,6 +560,13 @@ Invalid input strings can lead to undefined results.
 See to_twoscomplement() function description for more details
 on twos-complement format.
 
+Test:
+Model:
+self.assertEqual(V1, V2)
+
+Tests:
+int("1011", 2) ==> 11
+
 It removes the exponent, and returns a fully "decimal" twos-complement string.
 Example: converts '011.01e-2' to '0.1101'.
 Example: converts 0.25, '0.1e-1' to '0.01'.

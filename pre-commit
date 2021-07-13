@@ -23,12 +23,16 @@ exec 1>&2
 
 # autogenerate README.md
 pydoc-markdown -I ./binary_fractions -m binary --render-toc  > ./binary_fractions/README.md
+perl -pi -e 's/ +$//' binary_fractions/README.md
 echo "===Generated new document README.md==="
 python3 update_readme.py
+echo "===Updated VERSION==="
+./update_version.sh
 echo "===Updated README.md==="
+black binary_fractions/*.py
 git add README.md
 git add binary_fractions/binary.py
-black binary_fractions
+git add binary_fractions/README.md
 echo "===Format==="
 
 # Cross platform projects tend to avoid non-ASCII filenames; prevent

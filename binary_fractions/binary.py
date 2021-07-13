@@ -254,9 +254,14 @@ from typing import Union
 
 
 # TODO: go to stackoverflow.com, search for "binary math", "binary fractions"
-# and where there are matches add comment/entry to reference this module
-# in PyPi
+# and where there are matches add comment/entry to reference this module in PyPi
 # TODO: announce it on HN
+
+# TODO: code clean up, remove unused code, remove old code that is commented out
+# TODO: improve pydoc, eliminate # which causes headers in pydoc!
+# TODO: remove repetetive explanations of twos-complement
+# TODO: go thru TODO list in source
+# TODO: run mypy to find bugs or problems
 
 _BINARY_WARNED_ABOUT_FLOAT = False
 _BINARY_RELATIVE_TOLERANCE = 1e-10
@@ -267,7 +272,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210712-190324"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210713-151706"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1417  # number of asserts in .py file
 
@@ -785,6 +790,13 @@ class TwosComplement(str):
 
         See to_twoscomplement() function description for more details
         on twos-complement format.
+
+        Test:
+            Model:
+                self.assertEqual(V1, V2)
+
+            Tests:
+                int("1011", 2) ==> 11
 
         It removes the exponent, and returns a fully "decimal" twos-complement string.
         Example: converts '011.01e-2' to '0.1101'.
@@ -1838,7 +1850,7 @@ class Binary(object):
 
         # #
         # # TODO: old implementation, has bugs
-        # # TODO zzz should we prefix return value with 0b ???
+        # # TODO should we prefix return value with 0b ???
         # sign, intpart, fracpart, exp = TwosComplement.components(value, strict=strict)
         # if sign == 0:
         #     if strict:
