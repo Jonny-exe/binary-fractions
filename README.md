@@ -144,8 +144,10 @@ print(f"{bf1} >> {1} = {bf1>>1}")
 print(f"{bf1} << {1} = {bf1<<1}")
 print(f"abs({bf1}) = {abs(bf1)}")
 print(f"round({bf1}) = {round(bf1)}")
-print(f"ceil({bf1}) = {ceil(bf1)}, or Binary(ceil({bf1})) = {Binary(ceil(bf1))}")
-print(f"floor({bf1}) = {floor(bf1)}, or Binary(ceil({bf1})) = {Binary(floor(bf1))}")
+ceil(-0b1.01) = -1 (int)
+Binary('-0b1.01').ceil() = -0b1 (Binary)
+floor(-0b1.01) = -2 (int)
+Binary('-0b1.01').floor() = -0b10 (Binary)
 print(f"int({bf1}) = {int(bf1)}")
 print(f"float({bf1}) = {float(bf1)}")
 print(f"str({bf1}) = {str(bf1)}")
@@ -190,8 +192,10 @@ Binary(10.1e-3) = 0b10.1e-3
 -0b1.01 << 1 = -0b10.1
 abs(-0b1.01) = 0b1.01
 round(-0b1.01) = -0b1
-ceil(-0b1.01) = -1, or Binary(ceil(-0b1.01)) = -0b1
-floor(-0b1.01) = -2, or Binary(ceil(-0b1.01)) = -0b10
+ceil(-0b1.01) = -1 (int)
+Binary('-0b1.01').ceil() = -0b1 (Binary)
+floor(-0b1.01) = -2 (int)
+Binary('-0b1.01').floor() = -0b10 (Binary)
 int(-0b1.01) = -1
 float(-0b1.01) = -1.25
 str(-0b1.01) = -0b1.01
