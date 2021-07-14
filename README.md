@@ -83,18 +83,20 @@ If you are curious about Two's complement:
 
 ## Features:
 - Python 3
-- constructors for various types: int, float, Fraction, Binary, str
+- constructors for various types: int, float, Fraction, str, TwosComplement, Binary
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
 - supports many methods: not, abs, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented.
+- well documented
     - Please read the documentation inside the source code
   ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
     - Or look at the pydoc-generated documentation in
   [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
+- well tested
+    - over 1500 test cases
 
 
 ## Sample usage, Example calls:

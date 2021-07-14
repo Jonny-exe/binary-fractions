@@ -85,18 +85,20 @@ If you are curious about Two's complement:
 
 ## Features:
 - Python 3
-- constructors for various types: int, float, Fraction, Binary, str
+- constructors for various types: int, float, Fraction, str, TwosComplement, Binary
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
 - supports many methods: not, abs, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented.
+- well documented
     - Please read the documentation inside the source code
   ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
     - Or look at the pydoc-generated documentation in
   [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
+- well tested
+    - over 1500 test cases
 
 
 ## Sample usage, Example calls:
@@ -276,7 +278,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210713-205446"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210714-160648"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1450  # number of asserts in .py file
 
@@ -295,7 +297,7 @@ _BINARY_TOTAL_TESTS = 1450  # number of asserts in .py file
 
 
 class TwosComplement(str):
-    """Floating point class for representing twos-complement.
+    """Floating point class for representing twos-complement (2's complement).
 
     If you are curious about Two's complement, read the following:
     - https://en.wikipedia.org/wiki/Two%27s_complement
@@ -316,41 +318,51 @@ class TwosComplement(str):
 
     ```
     Syntax:
-    The syntax is as follows:
+    In 'regex' the syntax is
+    r"\s*((?=[01])(?P<int>[01]+)(\.(?P<frac>[01]*))?(E(?P<exp>[-+]?\d+))?)\s*\Z".
+
+    In simpler terms, the syntax is as follows:
         [0,1]+[.][0,1]*[e[-,+][0-9]+]
-        integer bits (at least 1 bit required, leading bit indicates pos or neg)
+        integer bits (at least 1 bit required, leading bit indicates if pos. or neg.)
             decimal point (optional, one or none)
                 fractional bits (optional, zero or more)
                     exponent (optional, possible with sign - or +, in decimal)
 
         decimal |   binary fraction | twos-complement
         ---------------------------------------------
+        -2.5e89 |       -10.1e89    | 101.1e89
         -6      |       -110        | 1010
         -5      |       -101        | 1011
+        -0.5e3  |       -0.1e3      | 1.1e3
         -4      |       -100        | 100
         -3      |       -11         | 101
+        -2.5    |       -10.1       | 101.1
+        -0.25e3 |       -0.01e3     | 1.11e3
         -2      |       -10         | 10
+        -1.5    |       -1.1        | 10.1
         -1      |       -1          | 1
-        0       |       0           | 0
-        1       |       1           | 01
-        2       |       10          | 010
-        3       |       11          | 011
-        4       |       100         | 0100
-        5       |       101         | 0101
-        1.5     |       1.1         | 01.1
-        0.5     |       0.1         | 0.1
-        0.25    |       0.01        | 0.01
         -0.5    |       -0.1        | 1.1
         -0.25   |       -0.01       | 1.11
         -0.125  |       -0.001      | 1.111
-        -1.5    |       -1.1        | 10.1
-        -2.5    |       -10.1       | 101.1
-        -2.5e89 |       -10.1e89    | 101.1e89
+        0       |       0           | 0
+        1.5e-4  |       1.1e-4      | 01.1e-4
+        2.75e-4 |       10.11e-4    | 010.11e-4
+        0.25    |       0.01        | 0.01
+        0.5     |       0.1         | 0.1
+        1       |       1           | 01
+        1.5     |       1.1         | 01.1
+        2       |       10          | 010
+        2.75    |       10.11       | 010.11
+        3       |       11          | 011
+        4       |       100         | 0100
+        5       |       101         | 0101
+        6       |       110         | 0110
 
     ```
 
     Valid TwosComplement string are: 0, 1, 01, 10, 0.0, 1.1, 1., 0.1e+34,
-    11101.e-56, 0101.01e78.
+    11101.e-56, 0101.01e78. 000011.1000e0 is valid and is the same as 011.1.
+    Along the same line, 111101.0100000e-0 is valid and is the same as 101.01.
 
     Invalid TwosComplement string are: -1 (minus), +1 (plus),
     .0 (no leading decimal digit),
@@ -358,21 +370,6 @@ class TwosComplement(str):
     1.2.3 (2 decimal points),
     1e (missing exponent number),
     1e-1.1 (decimal point in exponent).
-
-    Examples:
-    If leading digit is 0, then positive.
-    Example: twos-complement string '0100' is float 4, '000100' and '000100.000' are also float 4
-    Example: twos-complement string '010.11' is float 2.75
-    Example: twos-complement string '01.1e-4' is float 1.5e-4
-    Example: twos-complement string '010.11e-4' is float 2.75e-4.
-
-    If leading digit is 1, then positive.
-    Example: twos-complement string '10' is float -2, '110' and '1110' are also float -2
-    Example: twos-complement string '1101' is float -3, also '111101' is float -3
-    Example: twos-complement string '111.1' is float -0.5
-    Example: twos-complement string '111.11' is float -0.25
-    Example: twos-complement string '111.1e3' is float -0.5e3
-    Example: twos-complement string '111.11e3' is float -0.25e3
 
     """
 
@@ -390,7 +387,7 @@ class TwosComplement(str):
         Use __new__ and not __init__ because TwosComplement is immutable.
         Allows string, float, integer, and Fraction as input for constructor.
         If instance is contructed from a string, by default the string will
-        be simplified. With 'simpligy' being False, attention is paid to
+        be simplified. With 'simplify' being False, attention is paid to
         *not* modify the string or to modify it as little as possible.
         With simplify being False, if given '1e1' it will remain as '1e1',
         it will not change it to '1'. Same with '1000', which will not change
@@ -412,6 +409,7 @@ class TwosComplement(str):
             larger, string will be prefixed with leading bits to achieve
             desired length. If length is too short to fit number, an
             exception will be raised.
+            Example of length 4 is '01.1'.
 
         ndigits (int): desired digits after decimal point. 'ndigits' is only
             relevant for Fractions.
@@ -433,7 +431,7 @@ class TwosComplement(str):
 
         Returns:
         TwosComplement: created immutable instance representing twos-complement
-            number as a string of class TwosComplement.
+        number as a string of class TwosComplement.
 
 
         Testcases:
@@ -460,7 +458,7 @@ class TwosComplement(str):
 
 
             model: with self.assertRaises(ValueError):
-                TwosComplement(X1)  # should fail
+                TwosComplement(X1)
             cases: some test cases for raising ValueError
                 - "102"
                 - "nan"
@@ -479,7 +477,9 @@ class TwosComplement(str):
                 cls, TwosComplement._str2twoscomp(value, length, simplify=simplify)
             )
         # any other types
-        raise TypeError(f"Cannot convert {value} to TwosComplement")
+        raise TypeError(
+            f"Cannot convert {value} of type {type(value)} to TwosComplement"
+        )
 
     def _int2twoscomp(value: int, length: int = -1) -> str:
         """Computes the two's complement of int value.
@@ -494,6 +494,7 @@ class TwosComplement(str):
             larger, string will be prefixed with leading bits to achieve
             desired length. If length is too short to fit number, an
             exception will be raised.
+            Example of length 4 is '01.1'.
 
         Returns:
         str: string containing twos-complement of value
@@ -562,6 +563,7 @@ class TwosComplement(str):
             losing precision. A larger length will prefix the decimal digits
             with additional sign bits to produce a resulting string of specified
             lenght.
+            Example of length 4 is '01.1'.
         rel_tol (float): relative tolerance that influences precision further.
             A bigger tolerance leads to a possibly less precise result.
             A smaller tolerance leads to a possibly more precise result.
@@ -617,7 +619,7 @@ class TwosComplement(str):
         rel_tol: float = _BINARY_RELATIVE_TOLERANCE,
         warn_on_float: bool = False,
     ) -> str:
-        """Converts float to twos-complement.
+        """Converts float to two's-complement.
 
         This is a utility function.
         Users should use the constructor TwosComplement(value) instead.
@@ -631,6 +633,7 @@ class TwosComplement(str):
             exception is raised. A larger length will prefix the decimal digits
             with additional sign bits to produce a resulting string of specified
             lenght.
+            Example of length 4 is '01.1'.
         rel_tol (float): relative tolerance that influences precision further.
             A bigger tolerance leads to a possibly less precise result.
             A smaller tolerance leads to a possibly more precise result.
@@ -658,7 +661,7 @@ class TwosComplement(str):
     def _float2twoscomp_implementation_with_less_precision(
         value: float, length: int = -1, rel_tol: float = _BINARY_RELATIVE_TOLERANCE
     ) -> str:
-        """Converts float to twos-complement.
+        """Converts float to two's-complement.
 
         This is a utility function.
         Users should use the constructor TwosComplement(value) instead.
@@ -692,7 +695,7 @@ class TwosComplement(str):
         length: int = -1,
         ndigits: int = _BINARY_PRECISION,
     ) -> str:
-        """Converts fraction to twos-complement.
+        """Converts fraction to two's-complement.
 
         This is a utility function.
         Users should use the constructor TwosComplement(value) instead.
@@ -708,6 +711,7 @@ class TwosComplement(str):
             exception is raised. A larger length will prefix the decimal digits
             with additional sign bits to produce a resulting string of specified
             lenght.
+            Example of length 4 is '01.1'.
         ndigits (int): desired digits after decimal point.
 
         Returns:
@@ -775,7 +779,7 @@ class TwosComplement(str):
         return result
 
     def _str2twoscomp(value: str, length: int = -1, simplify: bool = True) -> str:
-        """Converts twos-complement string to possibly refined twos-complement
+        """Converts two's-complement string to possibly refined two's-complement
         string.
 
         This is a utility function.
@@ -790,7 +794,8 @@ class TwosComplement(str):
             not prefixed. If length is too short to fit value, an
             exception is raised. A larger length will prefix the decimal digits
             with additional sign bits to produce a resulting string of specified
-            lenght.
+            length.
+            Example of length 4 is '01.1'.
         simplify (bool): If True, result will be simplified. If False, result
             will be left unchanged as much as possible.
 
@@ -812,13 +817,13 @@ class TwosComplement(str):
             raise ValueError(f"Argument {value} not a valid twos-complement.")
 
     def istwoscomplement(value: str) -> bool:
-        """Determine if string content has a valid twos-complement syntax.
+        """Determine if string content has a valid two's-complement syntax.
 
         Parameters:
         value (str): string to check
 
         Returns:
-        bool: is or is not valid twos-complement
+        bool: True if value is a valid twos-complement. False otherwise.
         """
         try:
             TwosComplement.components(value)
@@ -843,18 +848,18 @@ class TwosComplement(str):
         Example: For 1, input '01' returns (0, '01', '', 0).
         Example: For -0.5, input 1.1 returns (1, '1', '1', 0).
         Example: For neg. number, input 101.010e-4 returns (1, '101', '010', -4).
-        Example: For pos. number, input 0101.010e-2 returns (0, '0101', '010', -4).
+        Example: For pos. number, input 0101.010e-4 returns (0, '0101', '010', -4).
 
 
         Here are some examples for strict being False.
         Example: For -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
-        Example: For -3.25*4, input '11111111.0111e4' returns (1, '1', '0111', 4).
+        Example: For input '11111111.0111e4' returns (1, '1', '0111', 4).
         Example: For 0, input '0' returns (0, '0', '', 0).
         Example: For -1, input '1' returns (1, '1', '', 0).
         Example: For 1, input '01' returns (0, '01', '', 0).
         Example: For -0.5, input 1.1 returns (1, '1', '1', 0).
         Example: For neg. number, input 111101.0100e-4 returns (1, '101', '01', -4).
-        Example: For pos. number, input 0000101.0100e-2 returns (0, '0101', '01', -4).
+        Example: For pos. number, input 0000101.0100e-4 returns (0, '0101', '01', -4).
 
         Parameters:
         self_value (str, TwosComplement): twos-complement from which to
@@ -866,7 +871,8 @@ class TwosComplement(str):
 
         Returns:
         tuple: tuple of sign (int), integer part (str) including a sign bit,
-            fractional part (str), exponent (int).
+            fractional part (str), exponent (int). Sign is int 1 for negative (-).
+            Sign is int 0 for positive (+).
         """
         if not isinstance(self_value, str) and not isinstance(
             self_value, TwosComplement
@@ -927,17 +933,19 @@ class TwosComplement(str):
         return (sign, intpart, fracpart, exp)
 
     def simplify(self_value: Union[str, TwosComplement]) -> Union[str, TwosComplement]:
-        """Simplifies twos-complement.
+        """Simplifies two's-complement strings.
 
-        Removes duplicate 0s or 1s to the left of decimal point.
-        Removes duplicate 0s after decimal point.
-        Removes unnecessary exponent.
+        This is a utility function as well as a method.
+
+        Removes leading duplicate 0s or 1s to the left of decimal point.
+        Removes trailing duplicate 0s after decimal point.
+        Removes unnecessary exponent 0.
 
         Parameters:
         self_value (str, TwosComplement): twos-complement string to be simplified
 
         Returns:
-        str, TwosComplement: returns simplied twos-complement, return type is
+        str, TwosComplement: returns simplied twos-complement. Return type is
             str if input was of class str, return type is
             TwosComplement if input was of class TwosComplement.
         """
@@ -966,7 +974,7 @@ class TwosComplement(str):
         return result
 
     def to_fraction(self_value: Union[str, TwosComplement]) -> Fraction:
-        """Converts twos-complement to Fraction.
+        """Converts two's-complement to Fraction.
 
         This is a utility function as well as a method.
 
@@ -1003,7 +1011,7 @@ class TwosComplement(str):
         return result
 
     def to_float(self_value: Union[str, TwosComplement]) -> float:
-        """Converts twos-complement to float.
+        """Converts two's-complement to float.
 
         This is a utility function as well as a method.
 
@@ -1021,7 +1029,7 @@ class TwosComplement(str):
     def to_no_mantissa(
         self_value: Union[str, TwosComplement], length: int = -1
     ) -> Union[str, TwosComplement]:
-        """Adjust exponent such that there is no fractional part, no mantissa.
+        """Adjusts exponent such that there is no fractional part, i.e. no mantissa.
 
         This is a utility function as well as a method.
 
@@ -1032,16 +1040,22 @@ class TwosComplement(str):
         same value is represented but without mantissa.
 
         Examples:
-        Example: 1.1 ==> 11e-1
-        Example: 01.11 ==> 0111e-2
+        Example: converts 1.1 to 11e-1
+        Example: converts 01.11 to 0111e-2
 
         Parameters:
         self_value (str, TwosComplement): twos-complement string to be
             converted to representation without mantissa
+        length (int): desired length of resulting string. If -1, result is
+            not prefixed. If length is too short to fit value, an
+            exception is raised. A larger length will prefix the decimal digits
+            with additional sign bits to produce a resulting string of specified
+            length.
+            Example of length 4 is '01.1'.
 
         Returns:
-        str, TwosComplement: returns twos-complement without mantissa,
-            return type is
+        str, TwosComplement: returns twos-complement without mantissa.
+            Return type is
             str if input was of class str, return type is
             TwosComplement if input was of class TwosComplement.
         """
@@ -1061,11 +1075,11 @@ class TwosComplement(str):
             result = TwosComplement(result)
         if length != -1:
             le = len(result)
+            # NOTE: this function does not implement shortening or truncating
             if le > length:
                 raise OverflowError
             result = result[0] * (length - le) + result
         return result
-        # TODO: how about shortening? truncating?
 
     def to_not_exponential(
         self_value: Union[str, TwosComplement], length: int = -1, strict: bool = False
@@ -1096,15 +1110,16 @@ class TwosComplement(str):
         Parameters:
         self_value (str, TwosComplement): twos-complement string to be
             converted to representation without exponent
-        length (int): the length of the returned number.
-             -1 is the minimum amount of digits required.
-             0 and negatives numbers, except -1, are not allowed.
-             Length includes the possible decimal point.
-             Example of length 3 is: '1.1'
+        length (int): desired length of resulting string. If -1, result is
+            not prefixed. If length is too short to fit value, an
+            exception is raised. A larger length will prefix the decimal digits
+            with additional sign bits to produce a resulting string of specified
+            length.
+            Example of length 4 is '01.1'.
 
         Returns:
-        str, TwosComplement: returns twos-complement without mantissa,
-            return type is
+        str, TwosComplement: returns twos-complement without exponent.
+            Return type is
             str if input was of class str, return type is
             TwosComplement if input was of class TwosComplement.
         """
@@ -1172,7 +1187,7 @@ class TwosComplement(str):
     def invert(
         self_value: Union[str, TwosComplement], strict: bool = False
     ) -> Union[str, TwosComplement]:
-        """Inverts (bitwise negates) string that is in twos-complement format.
+        """Inverts (bitwise negates) string that is in two's-complement format.
 
         This is a utility function as well as a method.
 
@@ -1181,24 +1196,23 @@ class TwosComplement(str):
         It negates (flips) every bit in the given twos-complement string.
 
         Examples:
-        Example:
-
-            invert('01') returns '10' (like decimal: ~1==-2)
-            invert('0') returns 1  (like decimal: ~0==-1)
-            invert('1') returns 0  (like decimal: ~-1==0)
-            invert('1..1') raises exception, 2 decimal points
-            invert('34') raises exception, not binary
-            invert('1ee2') raises exception, two exponential signs
-            invert('1e') raises exception, missing exponent digit
-            invert('10') returns '01'  (like decimal: ~-2==1)
-            invert('101010') returns '010101'
-            invert('0101010') returns '1010101'
-            invert('0101010e-34') returns '1010101e-34'
-            invert('101010e34') returns '0101011111111111111111111111111111111111'
-            invert(invert('0101010e-34')) returns '0101010e-34'
-            invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
-
-            invert(invert(n)) == for all valid n
+        Example: invert('01') returns '10' (like decimal: ~1==-2)
+        Example: invert('0') returns 1  (like decimal: ~0==-1)
+        Example: invert('1') returns 0  (like decimal: ~-1==0)
+        Example: invert('10') returns '01'  (like decimal: ~-2==1)
+        Example: invert('101010') returns '010101'
+        Example: invert('0101010') returns '1010101'
+        Example: invert('0101010e-34') returns '1010101e-34'
+        Example: invert('1010101e-34') returns '0101010e-34'
+        Example: invert(invert('0101010e-34')) returns '0101010e-34'
+        Example: invert('010101e34') returns '1010101111111111111111111111111111111111'
+        Example: invert('101010e34') returns '0101011111111111111111111111111111111111'
+        Example: invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
+        Example: invert(invert(n)) == n for all valid n
+        Example: invert('1..1') raises exception, 2 decimal points
+        Example: invert('34') raises exception, not binary
+        Example: invert('1ee2') raises exception, two exponential signs
+        Example: invert('1e') raises exception, missing exponent digit
 
         Parameters:
         self_value (str, TwosComplement): twos-complement string to be
@@ -1329,7 +1343,7 @@ class Binary(object):
 
         global _BINARY_WARNED_ABOUT_FLOAT
         self = super(Binary, cls).__new__(cls)
-        self._is_special = False  # TODO
+        self._is_special = False  # TODO, I think it is done, need to doublecheck
         self._warn_on_float = warn_on_float
         self._fraction = Fraction()
         # TODO: not yet implemented, indicate if operations were lossless
@@ -4141,6 +4155,10 @@ class TestTwosComplement(unittest.TestCase):
     def test_invert(self):
         """Test function/method."""
         self.assertIsInstance(TwosComplement.invert("1"), str)
+        self.assertIsInstance(
+            TwosComplement.invert(TwosComplement("1")), TwosComplement
+        )
+        self.assertIsInstance(TwosComplement("1").invert(), TwosComplement)
         self.assertEqual(TwosComplement.invert("0001000", True), "1110111")
         self.assertEqual(TwosComplement.invert("0001000", strict=False), "10111")
         self.assertEqual(TwosComplement.invert("1110110", strict=False), "01001")

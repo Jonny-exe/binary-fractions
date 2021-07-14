@@ -241,18 +241,20 @@ If you are curious about Two's complement:
 
 ## Features:
 - Python 3
-- constructors for various types: int, float, Fraction, Binary, str
+- constructors for various types: int, float, Fraction, str, TwosComplement, Binary
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
 - supports many methods: not, abs, round, floor, ceil, ...
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
 - supports exponential representations
-- well documented.
+- well documented
     - Please read the documentation inside the source code
   ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
     - Or look at the pydoc-generated documentation in
   [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
+- well tested
+    - over 1500 test cases
 
 
 ## Sample usage, Example calls:
@@ -409,7 +411,7 @@ Enjoy :heart: !
 class TwosComplement(str)
 ```
 
-Floating point class for representing twos-complement.
+Floating point class for representing twos-complement (2's complement).
 
 If you are curious about Two's complement, read the following:
 - https://en.wikipedia.org/wiki/Two%27s_complement
@@ -428,9 +430,53 @@ The twos-complement format is as follows.
 - there are 0 or more fractional bits
 - there is an optional exponent in decimal (e.g. e-34), the exponent is not binary
 
+```
+Syntax:
+In 'regex' the syntax is
+r"\s*((?=[01])(?P<int>[01]+)(\.(?P<frac>[01]*))?(E(?P<exp>[-+]?\d+))?)\s*\Z".
+
+In simpler terms, the syntax is as follows:
+    [0,1]+[.][0,1]*[e[-,+][0-9]+]
+    integer bits (at least 1 bit required, leading bit indicates if pos. or neg.)
+        decimal point (optional, one or none)
+            fractional bits (optional, zero or more)
+                exponent (optional, possible with sign - or +, in decimal)
+
+    decimal |   binary fraction | twos-complement
+    ---------------------------------------------
+    -2.5e89 |       -10.1e89    | 101.1e89
+    -6      |       -110        | 1010
+    -5      |       -101        | 1011
+    -0.5e3  |       -0.1e3      | 1.1e3
+    -4      |       -100        | 100
+    -3      |       -11         | 101
+    -2.5    |       -10.1       | 101.1
+    -0.25e3 |       -0.01e3     | 1.11e3
+    -2      |       -10         | 10
+    -1.5    |       -1.1        | 10.1
+    -1      |       -1          | 1
+    -0.5    |       -0.1        | 1.1
+    -0.25   |       -0.01       | 1.11
+    -0.125  |       -0.001      | 1.111
+    0       |       0           | 0
+    1.5e-4  |       1.1e-4      | 01.1e-4
+    2.75e-4 |       10.11e-4    | 010.11e-4
+    0.25    |       0.01        | 0.01
+    0.5     |       0.1         | 0.1
+    1       |       1           | 01
+    1.5     |       1.1         | 01.1
+    2       |       10          | 010
+    2.75    |       10.11       | 010.11
+    3       |       11          | 011
+    4       |       100         | 0100
+    5       |       101         | 0101
+    6       |       110         | 0110
+
+```
 
 Valid TwosComplement string are: 0, 1, 01, 10, 0.0, 1.1, 1., 0.1e+34,
-11101.e-56, 0101.01e78.
+11101.e-56, 0101.01e78. 000011.1000e0 is valid and is the same as 011.1.
+Along the same line, 111101.0100000e-0 is valid and is the same as 101.01.
 
 Invalid TwosComplement string are: -1 (minus), +1 (plus),
 .0 (no leading decimal digit),
@@ -438,57 +484,6 @@ Invalid TwosComplement string are: -1 (minus), +1 (plus),
 1.2.3 (2 decimal points),
 1e (missing exponent number),
 1e-1.1 (decimal point in exponent).
-
-```
-Syntax:
-The syntax is as follows:
-    [0,1]+[.][0,1]*[e[-,+][0-9]+]
-    integer bits (at least 1 bit required, leading bit indicates pos or neg)
-        decimal point (optional, one or none)
-            fractional bits (optional, zero or more)
-                exponent (optional, possible with sign - or +, in decimal)
-
-    decimal |   binary fraction | twos-complement
-    ---------------------------------------------
-    -6      |       -110        | 1010
-    -5      |       -101        | 1011
-    -4      |       -100        | 100
-    -3      |       -11         | 101
-    -2      |       -10         | 10
-    -1      |       -1          | 1
-    0       |       0           | 0
-    1       |       1           | 01
-    2       |       10          | 010
-    3       |       11          | 011
-    4       |       100         | 0100
-    5       |       101         | 0101
-    1.5     |       1.1         | 01.1
-    0.5     |       0.1         | 0.1
-    0.25    |       0.01        | 0.01
-    -0.5    |       -0.1        | 1.1
-    -0.25   |       -0.01       | 1.11
-    -0.125  |       -0.001      | 1.111
-    -1.5    |       -1.1        | 10.1
-    -2.5    |       -10.1       | 101.1
-    -2.5e89 |       -10.1e89    | 101.1e89
-
-```
-
-**Examples**:
-
-  If leading digit is 0, then positive.
-- `Example` - twos-complement string '0100' is float 4, '000100' and '000100.000' are also float 4
-- `Example` - twos-complement string '010.11' is float 2.75
-- `Example` - twos-complement string '01.1e-4' is float 1.5e-4
-- `Example` - twos-complement string '010.11e-4' is float 2.75e-4.
-
-  If leading digit is 1, then positive.
-- `Example` - twos-complement string '10' is float -2, '110' and '1110' are also float -2
-- `Example` - twos-complement string '1101' is float -3, also '111101' is float -3
-- `Example` - twos-complement string '111.1' is float -0.5
-- `Example` - twos-complement string '111.11' is float -0.25
-- `Example` - twos-complement string '111.1e3' is float -0.5e3
-- `Example` - twos-complement string '111.11e3' is float -0.25e3
 
 <a name="binary.TwosComplement.__new__"></a>
 #### \_\_new\_\_
@@ -502,7 +497,7 @@ Constructor.
 Use __new__ and not __init__ because TwosComplement is immutable.
 Allows string, float, integer, and Fraction as input for constructor.
 If instance is contructed from a string, by default the string will
-be simplified. With 'simpligy' being False, attention is paid to
+be simplified. With 'simplify' being False, attention is paid to
 *not* modify the string or to modify it as little as possible.
 With simplify being False, if given '1e1' it will remain as '1e1',
 it will not change it to '1'. Same with '1000', which will not change
@@ -527,6 +522,7 @@ the string representation as close to the original as possible.
   larger, string will be prefixed with leading bits to achieve
   desired length. If length is too short to fit number, an
   exception will be raised.
+  Example of length 4 is '01.1'.
 
 - `ndigits` _int_ - desired digits after decimal point. 'ndigits' is only
   relevant for Fractions.
@@ -577,7 +573,7 @@ the string representation as close to the original as possible.
 
 
 - `model` - with self.assertRaises(ValueError):
-  TwosComplement(X1)  # should fail
+  TwosComplement(X1)
 - `cases` - some test cases for raising ValueError
   - "102"
   - "nan"
@@ -589,7 +585,7 @@ the string representation as close to the original as possible.
  | istwoscomplement(value: str) -> bool
 ```
 
-Determine if string content has a valid twos-complement syntax.
+Determine if string content has a valid two's-complement syntax.
 
 **Arguments**:
 
@@ -598,7 +594,7 @@ Determine if string content has a valid twos-complement syntax.
 
 **Returns**:
 
-- `bool` - is or is not valid twos-complement
+- `bool` - True if value is a valid twos-complement. False otherwise.
 
 <a name="binary.TwosComplement.components"></a>
 #### components
@@ -621,18 +617,18 @@ This is both a function and a method.
 - `Example` - For 1, input '01' returns (0, '01', '', 0).
 - `Example` - For -0.5, input 1.1 returns (1, '1', '1', 0).
 - `Example` - For neg. number, input 101.010e-4 returns (1, '101', '010', -4).
-- `Example` - For pos. number, input 0101.010e-2 returns (0, '0101', '010', -4).
+- `Example` - For pos. number, input 0101.010e-4 returns (0, '0101', '010', -4).
 
 
   Here are some examples for strict being False.
 - `Example` - For -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
-- `Example` - For -3.25*4, input '11111111.0111e4' returns (1, '1', '0111', 4).
+- `Example` - For input '11111111.0111e4' returns (1, '1', '0111', 4).
 - `Example` - For 0, input '0' returns (0, '0', '', 0).
 - `Example` - For -1, input '1' returns (1, '1', '', 0).
 - `Example` - For 1, input '01' returns (0, '01', '', 0).
 - `Example` - For -0.5, input 1.1 returns (1, '1', '1', 0).
 - `Example` - For neg. number, input 111101.0100e-4 returns (1, '101', '01', -4).
-- `Example` - For pos. number, input 0000101.0100e-2 returns (0, '0101', '01', -4).
+- `Example` - For pos. number, input 0000101.0100e-4 returns (0, '0101', '01', -4).
 
 
 **Arguments**:
@@ -648,7 +644,8 @@ This is both a function and a method.
 **Returns**:
 
 - `tuple` - tuple of sign (int), integer part (str) including a sign bit,
-  fractional part (str), exponent (int).
+  fractional part (str), exponent (int). Sign is int 1 for negative (-).
+  Sign is int 0 for positive (+).
 
 <a name="binary.TwosComplement.simplify"></a>
 #### simplify
@@ -657,11 +654,13 @@ This is both a function and a method.
  | simplify(self_value: Union[str, TwosComplement]) -> Union[str, TwosComplement]
 ```
 
-Simplifies twos-complement.
+Simplifies two's-complement strings.
 
-Removes duplicate 0s or 1s to the left of decimal point.
-Removes duplicate 0s after decimal point.
-Removes unnecessary exponent.
+This is a utility function as well as a method.
+
+Removes leading duplicate 0s or 1s to the left of decimal point.
+Removes trailing duplicate 0s after decimal point.
+Removes unnecessary exponent 0.
 
 **Arguments**:
 
@@ -670,7 +669,7 @@ Removes unnecessary exponent.
 
 **Returns**:
 
-  str, TwosComplement: returns simplied twos-complement, return type is
+  str, TwosComplement: returns simplied twos-complement. Return type is
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
 
@@ -681,7 +680,7 @@ Removes unnecessary exponent.
  | to_fraction(self_value: Union[str, TwosComplement]) -> Fraction
 ```
 
-Converts twos-complement to Fraction.
+Converts two's-complement to Fraction.
 
 This is a utility function as well as a method.
 
@@ -704,7 +703,7 @@ Do *NOT* use it on binary fractions strings!
  | to_float(self_value: Union[str, TwosComplement]) -> float
 ```
 
-Converts twos-complement to float.
+Converts two's-complement to float.
 
 This is a utility function as well as a method.
 
@@ -727,7 +726,7 @@ Do *NOT* use it on binary fractions strings!
  | to_no_mantissa(self_value: Union[str, TwosComplement], length: int = -1) -> Union[str, TwosComplement]
 ```
 
-Adjust exponent such that there is no fractional part, no mantissa.
+Adjusts exponent such that there is no fractional part, i.e. no mantissa.
 
 This is a utility function as well as a method.
 
@@ -739,20 +738,26 @@ same value is represented but without mantissa.
 
 **Examples**:
 
-- `Example` - 1.1 ==> 11e-1
-- `Example` - 01.11 ==> 0111e-2
+- `Example` - converts 1.1 to 11e-1
+- `Example` - converts 01.11 to 0111e-2
 
 
 **Arguments**:
 
 - `self_value` _str, TwosComplement_ - twos-complement string to be
   converted to representation without mantissa
+- `length` _int_ - desired length of resulting string. If -1, result is
+  not prefixed. If length is too short to fit value, an
+  exception is raised. A larger length will prefix the decimal digits
+  with additional sign bits to produce a resulting string of specified
+  length.
+  Example of length 4 is '01.1'.
 
 
 **Returns**:
 
-  str, TwosComplement: returns twos-complement without mantissa,
-  return type is
+  str, TwosComplement: returns twos-complement without mantissa.
+  Return type is
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
 
@@ -792,17 +797,18 @@ same value is represented but without exponent.
 
 - `self_value` _str, TwosComplement_ - twos-complement string to be
   converted to representation without exponent
-- `length` _int_ - the length of the returned number.
-  -1 is the minimum amount of digits required.
-  0 and negatives numbers, except -1, are not allowed.
-  Length includes the possible decimal point.
-  Example of length 3 is: '1.1'
+- `length` _int_ - desired length of resulting string. If -1, result is
+  not prefixed. If length is too short to fit value, an
+  exception is raised. A larger length will prefix the decimal digits
+  with additional sign bits to produce a resulting string of specified
+  length.
+  Example of length 4 is '01.1'.
 
 
 **Returns**:
 
-  str, TwosComplement: returns twos-complement without mantissa,
-  return type is
+  str, TwosComplement: returns twos-complement without exponent.
+  Return type is
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
 
@@ -813,7 +819,7 @@ same value is represented but without exponent.
  | invert(self_value: Union[str, TwosComplement], strict: bool = False) -> Union[str, TwosComplement]
 ```
 
-Inverts (bitwise negates) string that is in twos-complement format.
+Inverts (bitwise negates) string that is in two's-complement format.
 
 This is a utility function as well as a method.
 
@@ -823,25 +829,23 @@ It negates (flips) every bit in the given twos-complement string.
 
 **Examples**:
 
-**Example**:
-
-
-  invert('01') returns '10' (like decimal: ~1==-2)
-  invert('0') returns 1  (like decimal: ~0==-1)
-  invert('1') returns 0  (like decimal: ~-1==0)
-  invert('1..1') raises exception, 2 decimal points
-  invert('34') raises exception, not binary
-  invert('1ee2') raises exception, two exponential signs
-  invert('1e') raises exception, missing exponent digit
-  invert('10') returns '01'  (like decimal: ~-2==1)
-  invert('101010') returns '010101'
-  invert('0101010') returns '1010101'
-  invert('0101010e-34') returns '1010101e-34'
-  invert('101010e34') returns '0101011111111111111111111111111111111111'
-  invert(invert('0101010e-34')) returns '0101010e-34'
-  invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
-
-  invert(invert(n)) == for all valid n
+- `Example` - invert('01') returns '10' (like decimal: ~1==-2)
+- `Example` - invert('0') returns 1  (like decimal: ~0==-1)
+- `Example` - invert('1') returns 0  (like decimal: ~-1==0)
+- `Example` - invert('10') returns '01'  (like decimal: ~-2==1)
+- `Example` - invert('101010') returns '010101'
+- `Example` - invert('0101010') returns '1010101'
+- `Example` - invert('0101010e-34') returns '1010101e-34'
+- `Example` - invert('1010101e-34') returns '0101010e-34'
+- `Example` - invert(invert('0101010e-34')) returns '0101010e-34'
+- `Example` - invert('010101e34') returns '1010101111111111111111111111111111111111'
+- `Example` - invert('101010e34') returns '0101011111111111111111111111111111111111'
+- `Example` - invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
+- `Example` - invert(invert(n)) == n for all valid n
+- `Example` - invert('1..1') raises exception, 2 decimal points
+- `Example` - invert('34') raises exception, not binary
+- `Example` - invert('1ee2') raises exception, two exponential signs
+- `Example` - invert('1e') raises exception, missing exponent digit
 
 
 **Arguments**:
