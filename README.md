@@ -38,8 +38,8 @@ binary strings.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
 - Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-- two's complement representation possible too:
-'11.11' for -1.25, or '-0b1.01'.
+- two's complement representation is possible too:
+'11.11' for -1.25 in decimal, or '-0b1.01' in binary fraction.
 
 Many operations and transformations are offered.
 You can sum, subtract, multiply, and divide long floating-point binary

@@ -40,8 +40,8 @@ binary strings.
 - e.g. the fraction 1/2 will be represented as string '0b0.1'
 - Exponential representation is also possible:
 '-0b0.01111e3', '-0b11.1e1' or '-0b1110e-2' all represent float -3.75.
-- two's complement representation possible too:
-'11.11' for -1.25, or '-0b1.01'.
+- two's complement representation is possible too:
+'11.11' for -1.25 in decimal, or '-0b1.01' in binary fraction.
 
 Many operations and transformations are offered.
 You can sum, subtract, multiply, and divide long floating-point binary
@@ -276,9 +276,9 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210714-201557"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210714-212330"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
-_BINARY_TOTAL_TESTS = 1450  # number of asserts in .py file
+_BINARY_TOTAL_TESTS = 1492  # number of asserts in .py file
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -839,7 +839,7 @@ class TwosComplement(str):
         This is both a function and a method.
 
         Examples:
-        Here are some examples for simplify being False.
+        Here are some examples for `simplify` being False.
         Example: For 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
         Example: For 0, input '0' returns (0, '0', '', 0).
         Example: For -1, input '1' returns (1, '1', '', 0).
@@ -849,7 +849,7 @@ class TwosComplement(str):
         Example: For pos. number, input 0101.010e-4 returns (0, '0101', '010', -4).
         Example: For input 111101.010000e-4 returns (1, '111101', '010000', -4).
 
-        Here are some examples for simplify being True.
+        Here are some examples for `simplify` being True.
         Example: For -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
         Example: For input '11111111.0111e4' returns (1, '1', '0111', 4).
         Example: For 0, input '0' returns (0, '0', '', 0).
@@ -1094,8 +1094,9 @@ class TwosComplement(str):
 
         Any possible simplification will be done before any possible length adjustment.
 
-        Examples:
         It removes the exponent, and returns a fully "decimal" twos-complement string.
+
+        Examples:
         Example: converts '011.01e-2' to '0.1101'.
         Example: converts 0.25, '0.1e-1' to '0.01'.
         Example: converts -0.125, '1.111e0' to '1.111'.
@@ -1602,8 +1603,10 @@ class Binary(object):
         """Convert from Binary string to float or integer.
 
         This is a utility function that converts
-        a Binary string to a float or integer
-        (Binary string --> float or integer).
+        a Binary string to a float or integer.
+
+        This might lead to loss of precision due to possible float conversion.
+        If you need maximum precision consider working with `Fractions.`
 
         Parameters:
         value (str): binary string representation of number
@@ -1644,12 +1647,15 @@ class Binary(object):
         """Convert from float to Binary string of type string.
 
         This is a utility function. It converts from
-        float to Binary (float --> Binary).
+        float to Binary.
+
+        This might lead to loss of precision due to possible float conversion.
+        If you need maximum precision consider working with `Fractions.`
 
         Parameters:
         value (float): value of number
-        rel_tol (float): relative tolerance to know when to stop converting
-            relates to precision
+        rel_tol (float): relative tolerance to know when to stop converting.
+            A smaller rel_tol leads to more precision.
 
         Returns:
         str: string representation of Binary string
@@ -1692,7 +1698,7 @@ class Binary(object):
         simplify: bool = True,
         add_prefix: bool = False,
     ) -> Union[Binary, str]:
-        """Normalize string representation. Remove exponent part.
+        """Normalizes string representation. Removes exponent part.
 
         This is both a method as well as a utility function.
 
@@ -1849,7 +1855,7 @@ class Binary(object):
         return Binary(result, simplify=False)
 
     def to_exponent(self: Binary, exp: int = 0) -> Binary:
-        """Convert to exponential representation of given exponent.
+        """Convert to exponential representation with specified exponent.
 
         This is a method that changes string representation of number.
         It does not change the value. It does not change the precision.
@@ -1858,6 +1864,7 @@ class Binary(object):
         without an exponent, same as `to_no_exponent()`.
 
         Examples:
+        Example: converts '1.1' with exp=0 ==> '1.1'
         Example: converts '1.1' with exp=3 ==> '0.0011e3'
         Example: converts '-0.01e-2' with exp=2 ==> '-0.000001e2'
 
@@ -1887,6 +1894,8 @@ class Binary(object):
 
         Scientific notation is an exponent representation with a single
         binary digit before decimal point.
+
+        The decimal part is always 1 or -1 except for the number 0.
 
         Examples:
         Example: converts '1.1' ==> '1.1e0'
@@ -1951,10 +1960,12 @@ class Binary(object):
     def to_eng_exponent(self: Binary) -> Binary:
         """Convert to exponential representation in engineering notation.
 
-        See https://www.purplemath.com/modules/exponent4.htm.
-        See https://www.thinkcalculator.com/numbers/decimal-to-engineering.php
-        See https://en.wikipedia.org/wiki/Engineering_notation.
-        See https://en.wikipedia.org/wiki/Engineering_notation#Binary_engineering_notation
+        TODO zzz continue review here zzz TODO
+
+        - See https://www.purplemath.com/modules/exponent4.htm.
+        - See https://www.thinkcalculator.com/numbers/decimal-to-engineering.php
+        - See https://en.wikipedia.org/wiki/Engineering_notation.
+        - See https://en.wikipedia.org/wiki/Engineering_notation#Binary_engineering_notation
 
         Engineering notation is an exponent representation with the exponent
         modulo 10 being 0, and where there are 1 through 9 digit before the
@@ -1963,7 +1974,8 @@ class Binary(object):
         The integer part is from 1 to 1023, or written in binary fraction
         from 0b1 to 0b111111111.
 
-        Method that changes string representation of number.
+        Method that changes string representation of number. It does not change
+        value. It does not change precision.
 
         Examples:
         Example: convert '1.1' ==> '1.1'
