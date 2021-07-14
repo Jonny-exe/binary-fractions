@@ -58,7 +58,7 @@ Let's have a look at an example binary float value to see how it is represented.
      ||   |
      ||   |    exponent separator
      ||   |    |
-     ||   |    | exponent in base 10 (ool(base 2!)
+     ||   |    | exponent in base 10 (not in base 2!)
      ||   |    | ||
     -0b101.0101e-34  <-- example floating-point binary fraction
     |  ||| |||| |
@@ -161,12 +161,12 @@ print(f"{bf1} ^ {bf2} = {bf1^bf2}")
 print(f"~(floor({bf2})) = {~(floor(bf2))}")
 print(f"type({bf1}) = {type(bf1)}")
 print(f"type({tc1}) = {type(tc1)}")
-print(f"Binary('{bf3}').to_not_exponential() = {bf3.to_not_exponential()}")
-print(f"Binary('{bf3}').to_simple_exponential() = {bf3.to_simple_exponential()}")
+print(f"Binary('{bf3}').to_no_exponent() = {bf3.to_no_exponent()}")
+print(f"Binary('{bf3}').to_no_mantissa() = {bf3.to_no_mantissa()}")
 # scientific notation
-print(f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}")
+print(f"Binary('{bf3}').to_sci_exponent() = {bf3.to_sci_exponent()}")
 # engineering notation
-print(f"Binary('{bf3}').to_eng_exponential() = {bf3.to_eng_exponential()}")
+print(f"Binary('{bf3}').to_eng_exponent() = {bf3.to_eng_exponent()}")
 print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twoscomplement()}")
 print(f"Binary(TwosComplement('{tcstr1}')) = {Binary.from_twoscomplement(tc1)}")
 print(f"Binary(TwosComplement('{tcstr2}')) = {Binary.from_twoscomplement(tc2)}")
@@ -209,10 +209,10 @@ Fraction(-0b1.01) = -5/4
 ~(floor(0b10.1)) = -3
 type(-0b1.01) = <class 'binary.Binary'>
 type(10.1) = <class 'binary.TwosComplement'>
-Binary('0b10.1e-3').to_not_exponential() = 0b0.0101
-Binary('0b10.1e-3').to_simple_exponential() = 0b101e-4
-Binary('0b10.1e-3').to_sci_exponential() = 0b1.01e-2
-Binary('0b10.1e-3').to_eng_exponential() = 0b101000000e-10
+Binary('0b10.1e-3').to_no_exponent() = 0b0.0101
+Binary('0b10.1e-3').to_no_mantissa() = 0b101e-4
+Binary('0b10.1e-3').to_sci_exponent() = 0b1.01e-2
+Binary('0b10.1e-3').to_eng_exponent() = 0b101000000e-10
 Binary('-0b1.01').to_twos_complement() = 10.11
 Binary(TwosComplement('10.1')) = -1.1
 Binary(TwosComplement('100001001000.1')) = -11110110111.1

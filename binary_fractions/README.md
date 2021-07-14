@@ -9,16 +9,17 @@
     * [to\_fraction](#binary.TwosComplement.to_fraction)
     * [to\_float](#binary.TwosComplement.to_float)
     * [to\_no\_mantissa](#binary.TwosComplement.to_no_mantissa)
-    * [to\_not\_exponential](#binary.TwosComplement.to_not_exponential)
+    * [to\_no\_exponent](#binary.TwosComplement.to_no_exponent)
     * [invert](#binary.TwosComplement.invert)
   * [Binary](#binary.Binary)
     * [\_\_new\_\_](#binary.Binary.__new__)
     * [to\_float](#binary.Binary.to_float)
     * [from\_float](#binary.Binary.from_float)
-    * [to\_not\_exponential](#binary.Binary.to_not_exponential)
-    * [to\_simple\_exponential](#binary.Binary.to_simple_exponential)
-    * [to\_sci\_exponential](#binary.Binary.to_sci_exponential)
-    * [to\_eng\_exponential](#binary.Binary.to_eng_exponential)
+    * [to\_no\_exponent](#binary.Binary.to_no_exponent)
+    * [to\_no\_mantissa](#binary.Binary.to_no_mantissa)
+    * [to\_exponent](#binary.Binary.to_exponent)
+    * [to\_sci\_exponent](#binary.Binary.to_sci_exponent)
+    * [to\_eng\_exponent](#binary.Binary.to_eng_exponent)
     * [to\_fraction](#binary.Binary.to_fraction)
     * [to\_fraction\_alternative\_implementation](#binary.Binary.to_fraction_alternative_implementation)
     * [to\_twoscomplement](#binary.Binary.to_twoscomplement)
@@ -88,7 +89,7 @@
     * [test\_to\_fraction](#binary.TestTwosComplement.test_to_fraction)
     * [test\_to\_float](#binary.TestTwosComplement.test_to_float)
     * [test\_to\_no\_mantissa](#binary.TestTwosComplement.test_to_no_mantissa)
-    * [test\_to\_not\_exponential](#binary.TestTwosComplement.test_to_not_exponential)
+    * [test\_to\_no\_exponent](#binary.TestTwosComplement.test_to_no_exponent)
     * [test\_invert](#binary.TestTwosComplement.test_invert)
   * [TestBinary](#binary.TestBinary)
     * [selftest](#binary.TestBinary.selftest)
@@ -96,7 +97,7 @@
     * [test\_version](#binary.TestBinary.test_version)
     * [test\_to\_float](#binary.TestBinary.test_to_float)
     * [test\_from\_float](#binary.TestBinary.test_from_float)
-    * [test\_to\_not\_exponential](#binary.TestBinary.test_to_not_exponential)
+    * [test\_to\_no\_exponent](#binary.TestBinary.test_to_no_exponent)
     * [test\_\_\_float\_\_](#binary.TestBinary.test___float__)
     * [test\_\_\_int\_\_](#binary.TestBinary.test___int__)
     * [test\_\_\_str\_\_](#binary.TestBinary.test___str__)
@@ -110,9 +111,10 @@
     * [test\_round\_to](#binary.TestBinary.test_round_to)
     * [test\_fill](#binary.TestBinary.test_fill)
     * [test\_fill\_to](#binary.TestBinary.test_fill_to)
-    * [test\_to\_simple\_exponential](#binary.TestBinary.test_to_simple_exponential)
-    * [test\_to\_sci\_exponential](#binary.TestBinary.test_to_sci_exponential)
-    * [test\_to\_eng\_exponential](#binary.TestBinary.test_to_eng_exponential)
+    * [test\_to\_no\_mantissa](#binary.TestBinary.test_to_no_mantissa)
+    * [test\_to\_exponent](#binary.TestBinary.test_to_exponent)
+    * [test\_to\_sci\_exponent](#binary.TestBinary.test_to_sci_exponent)
+    * [test\_to\_eng\_exponent](#binary.TestBinary.test_to_eng_exponent)
     * [test\_get\_components](#binary.TestBinary.test_get_components)
     * [test\_components](#binary.TestBinary.test_components)
     * [test\_isinfinity](#binary.TestBinary.test_isinfinity)
@@ -216,7 +218,7 @@ Let's have a look at an example binary float value to see how it is represented.
      ||   |
      ||   |    exponent separator
      ||   |    |
-     ||   |    | exponent in base 10 (ool(base 2!)
+     ||   |    | exponent in base 10 (not in base 2!)
      ||   |    | ||
     -0b101.0101e-34  <-- example floating-point binary fraction
     |  ||| |||| |
@@ -319,12 +321,12 @@ print(f"{bf1} ^ {bf2} = {bf1^bf2}")
 print(f"~(floor({bf2})) = {~(floor(bf2))}")
 print(f"type({bf1}) = {type(bf1)}")
 print(f"type({tc1}) = {type(tc1)}")
-print(f"Binary('{bf3}').to_not_exponential() = {bf3.to_not_exponential()}")
-print(f"Binary('{bf3}').to_simple_exponential() = {bf3.to_simple_exponential()}")
+print(f"Binary('{bf3}').to_no_exponent() = {bf3.to_no_exponent()}")
+print(f"Binary('{bf3}').to_no_mantissa() = {bf3.to_no_mantissa()}")
 # scientific notation
-print(f"Binary('{bf3}').to_sci_exponential() = {bf3.to_sci_exponential()}")
+print(f"Binary('{bf3}').to_sci_exponent() = {bf3.to_sci_exponent()}")
 # engineering notation
-print(f"Binary('{bf3}').to_eng_exponential() = {bf3.to_eng_exponential()}")
+print(f"Binary('{bf3}').to_eng_exponent() = {bf3.to_eng_exponent()}")
 print(f"Binary('{bf1}').to_twos_complement() = {bf1.to_twoscomplement()}")
 print(f"Binary(TwosComplement('{tcstr1}')) = {Binary.from_twoscomplement(tc1)}")
 print(f"Binary(TwosComplement('{tcstr2}')) = {Binary.from_twoscomplement(tc2)}")
@@ -367,10 +369,10 @@ Fraction(-0b1.01) = -5/4
 ~(floor(0b10.1)) = -3
 type(-0b1.01) = <class 'binary.Binary'>
 type(10.1) = <class 'binary.TwosComplement'>
-Binary('0b10.1e-3').to_not_exponential() = 0b0.0101
-Binary('0b10.1e-3').to_simple_exponential() = 0b101e-4
-Binary('0b10.1e-3').to_sci_exponential() = 0b1.01e-2
-Binary('0b10.1e-3').to_eng_exponential() = 0b101000000e-10
+Binary('0b10.1e-3').to_no_exponent() = 0b0.0101
+Binary('0b10.1e-3').to_no_mantissa() = 0b101e-4
+Binary('0b10.1e-3').to_sci_exponent() = 0b1.01e-2
+Binary('0b10.1e-3').to_eng_exponent() = 0b101000000e-10
 Binary('-0b1.01').to_twos_complement() = 10.11
 Binary(TwosComplement('10.1')) = -1.1
 Binary(TwosComplement('100001001000.1')) = -11110110111.1
@@ -474,11 +476,11 @@ In simpler terms, the syntax is as follows:
 
 ```
 
-Valid TwosComplement string are: 0, 1, 01, 10, 0.0, 1.1, 1., 0.1e+34,
+Valid TwosComplement strings are: 0, 1, 01, 10, 0.0, 1.1, 1., 0.1e+34,
 11101.e-56, 0101.01e78. 000011.1000e0 is valid and is the same as 011.1.
 Along the same line, 111101.0100000e-0 is valid and is the same as 101.01.
 
-Invalid TwosComplement string are: -1 (minus), +1 (plus),
+Invalid TwosComplement strings are: -1 (minus), +1 (plus),
 .0 (no leading decimal digit),
 12 (2 is not a binary digit),
 1.2.3 (2 decimal points),
@@ -600,7 +602,7 @@ Determine if string content has a valid two's-complement syntax.
 #### components
 
 ```python
- | components(self_value: Union[str, TwosComplement], strict: bool = False) -> tuple
+ | components(self_value: Union[str, TwosComplement], simplify: bool = True) -> tuple
 ```
 
 Returns sign, integer part (indicates sign in first bit), fractional
@@ -610,7 +612,7 @@ This is both a function and a method.
 
 **Examples**:
 
-  Here are some examples for strict being True.
+  Here are some examples for simplify being False.
 - `Example` - For 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
 - `Example` - For 0, input '0' returns (0, '0', '', 0).
 - `Example` - For -1, input '1' returns (1, '1', '', 0).
@@ -618,9 +620,9 @@ This is both a function and a method.
 - `Example` - For -0.5, input 1.1 returns (1, '1', '1', 0).
 - `Example` - For neg. number, input 101.010e-4 returns (1, '101', '010', -4).
 - `Example` - For pos. number, input 0101.010e-4 returns (0, '0101', '010', -4).
+- `Example` - For input 111101.010000e-4 returns (1, '111101', '010000', -4).
 
-
-  Here are some examples for strict being False.
+  Here are some examples for simplify being True.
 - `Example` - For -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
 - `Example` - For input '11111111.0111e4' returns (1, '1', '0111', 4).
 - `Example` - For 0, input '0' returns (0, '0', '', 0).
@@ -635,9 +637,9 @@ This is both a function and a method.
 
 - `self_value` _str, TwosComplement_ - twos-complement from which to
   derive the components.
-- `strict` _bool_ - If False simplify output by performing cleanup and
+- `simplify` _bool_ - If True simplify output by performing cleanup and
   removing unnecessary digits.
-  If True, then produce exact as-is twos-complement components
+  If False, then produce exact as-is twos-complement components
   without any cleanup or simplifications.
 
 
@@ -761,11 +763,11 @@ same value is represented but without mantissa.
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
 
-<a name="binary.TwosComplement.to_not_exponential"></a>
-#### to\_not\_exponential
+<a name="binary.TwosComplement.to_no_exponent"></a>
+#### to\_no\_exponent
 
 ```python
- | to_not_exponential(self_value: Union[str, TwosComplement], length: int = -1, strict: bool = False) -> Union[str, TwosComplement]
+ | to_no_exponent(self_value: Union[str, TwosComplement], length: int = -1, simplify: bool = True) -> Union[str, TwosComplement]
 ```
 
 Remove exponent part from twos-complement string.
@@ -777,6 +779,8 @@ Do *NOT* use it on binary fractions strings!
 The value does not change. The precision does not change.
 Only the integer part and the mantissa change such that the
 same value is represented but without exponent.
+
+Any possible simplification will be done before any possible length adjustment.
 
 **Examples**:
 
@@ -803,6 +807,10 @@ same value is represented but without exponent.
   with additional sign bits to produce a resulting string of specified
   length.
   Example of length 4 is '01.1'.
+- `simplify` _bool_ - If True simplify output by performing cleanup and
+  removing unnecessary digits.
+  If False, then produce exact as-is twos-complement components
+  without any cleanup or simplifications.
 
 
 **Returns**:
@@ -816,7 +824,7 @@ same value is represented but without exponent.
 #### invert
 
 ```python
- | invert(self_value: Union[str, TwosComplement], strict: bool = False) -> Union[str, TwosComplement]
+ | invert(self_value: Union[str, TwosComplement], simplify: bool = True) -> Union[str, TwosComplement]
 ```
 
 Inverts (bitwise negates) string that is in two's-complement format.
@@ -852,7 +860,7 @@ It negates (flips) every bit in the given twos-complement string.
 
 - `self_value` _str, TwosComplement_ - twos-complement string to be
   inverted
-- `strict` _bool_ - If True, try to change the string as little as
+- `simplify` _bool_ - If True, try to change the string as little as
   possible in format.
   If False, returned string will also be simplified
   by removing unnecessary digits.
@@ -875,6 +883,48 @@ class Binary(object)
 
 Floating point class for binary fractions and arithmetic.
 
+The class Binary implements a basic representation and basic operations
+of binary fractions and binary floats:
+A binary fraction is a subset of binary floats. Basically, a binary fraction
+is a binary float without an exponent (e.g. '-0b101.0101').
+Let's have a look at an example binary float value to see how it is represented.
+
+```
+     prefix '0b' to indicate "binary" or "base 2"
+     ||
+     ||   decimal point
+     ||   |
+     ||   |    exponent separator
+     ||   |    |
+     ||   |    | exponent in base 10 (not in base 2!)
+     ||   |    | ||
+    -0b101.0101e-34  <-- example floating-point binary fraction
+    |  ||| |||| |
+ sign  ||| |||| exponent sign
+       ||| ||||
+       ||| fraction bits in base 2
+       |||
+       integer bits in base 2
+```
+
+Valid binary fraction of class 'Binary' are:
+0, 1, 10, 0.0, 1.1, 1., 0.1e+34, -1, -10, -0.0, -1.1, -1., -0.1e+34,
+11101.e-56, 101.01e78. 000011.1000e0 is valid and is the same as 11.1.
+Along the same line, 111101.0100000e-000 is valid and is the same as 111101.01.
+
+Invalid binary fraction of class 'Binary' are: --1 (multiple minus),
+*1 (asterisk),
+12 (2 is not a binary digit),
+1.2.3 (2 decimal points),
+1e (missing exponent number),
+1e-1.1 (decimal point in exponent).
+
+If you are curious about floating point binary fractions, have a look at:
+- https://en.wikipedia.org/wiki/Computer_number_format#Representing_fractions_in_binary
+- https://www.electronics-tutorials.ws/binary/binary-fractions.html
+- https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
+- https://planetcalc.com/862/
+
 <a name="binary.Binary.__new__"></a>
 #### \_\_new\_\_
 
@@ -884,19 +934,32 @@ Floating point class for binary fractions and arithmetic.
 
 Constructor.
 
-Use __new__ and not __init__ because it is immutable.
-Allows string, float, integer, and Fraction as input for constructor.
-If instance is contructed from a string, attention is paid to *not*
+Use __new__ and not __init__ because Binary objects are immutable.
+Allows string, float, integer, Fraction and TwosComplement
+as input for constructor.
+With 'simplify' being False, if an instance is contructed from a
+string, attention is paid to *not*
 modify the string or to modify it as little as possible.
 For example, if given '1e1' it will remain as '1e1', it will not change it
 to '1'. Same with '1000', it will not change it to '1e4'. We try to keep then
 string representation as close to the original as possible.
+With 'simplify' set to True, simplifications will be performed, e.g.
+'+01e0' will be turned into '1'.
+
+**Examples**:
+
+- `Example` - Binary(123)
+- `Example` - Binary(123.456)
+- `Example` - Binary(Fraction(179, 1024))
+- `Example` - Binary('-101.0101e-45')
+- `Example` - Binary(TwosComplement(Fraction(179, 1024)))
+
 
 **Arguments**:
 
 - `value` _int, float, str_ - value of number
-- `simplify` _bool_ - if True try to simplify string representation
-  if False, try to leave the string representation as much as is
+- `simplify` _bool_ - If True try to simplify string representation.
+  If False, try to leave the string representation as much as is.
 - `warn_on_float` _bool_ - if True print a warning statement to stdout to
   warn about possible loss in precision in case of conversion from
   float to Binary.
@@ -952,28 +1015,40 @@ float to Binary (float --> Binary).
 
 - `str` - string representation of Binary string
 
-<a name="binary.Binary.to_not_exponential"></a>
-#### to\_not\_exponential
+<a name="binary.Binary.to_no_exponent"></a>
+#### to\_no\_exponent
 
 ```python
- | to_not_exponential(self_value: Union[Binary, str], length: int = -1, strict: bool = False, add_prefix: bool = False) -> Union[Binary, str]
+ | to_no_exponent(self_value: Union[Binary, str], length: int = -1, simplify: bool = True, add_prefix: bool = False) -> Union[Binary, str]
 ```
 
 Normalize string representation. Remove exponent part.
 
 This is both a method as well as a utility function.
-Do NOT use it on Twos-complement strings!
-This function does not validate the input string.
-Input string is assumed to be a syntactically valid binary fraction string.
-Invalid strings can lead to undefined results.
+
+Do *NOT* use it on Twos-complement strings!
 
 It removes the exponent, and returns a fully "decimal" binary string.
-Example: converts '11.01e-2' to '0.1101'
+
+Any possible simplification will be done before any possible length adjustment.
+
+**Examples**:
+
+- `Example` - converts '11.01e-2' to '0.1101'
+
 
 **Arguments**:
 
 - `self_value` _Binary, str_ - a Binary instance or
   a binary string representation of number
+- `length` _int_ - desired length of resulting string. If -1, result is
+  not prefixed. If length is too short to fit value, an
+  exception is raised. A larger length will prefix the decimal digits
+  with additional sign bits to produce a resulting string of specified
+  length.
+  Example of length 4 is '01.1'.
+- `simplify` _bool_ - If True try to simplify string representation.
+  If False, try to leave the string representation as much as is.
   add_prefix (bool):
   if self_value is a string:
   if True add 0b prefix to returned output,
@@ -988,18 +1063,25 @@ Example: converts '11.01e-2' to '0.1101'
   If self_value was of class Binary, it returns a Binary instance.
   If self_value was of class str, it returns a str instance.
 
-<a name="binary.Binary.to_simple_exponential"></a>
-#### to\_simple\_exponential
+<a name="binary.Binary.to_no_mantissa"></a>
+#### to\_no\_mantissa
 
 ```python
- | to_simple_exponential() -> Binary
+ | to_no_mantissa() -> Binary
 ```
 
-Convert to exponential representation without fraction.
+Convert to exponential representation without fraction,
+i.e. without mantissa.
 
 A method that changes the string representation of a number
 so that the resulting string has no decimal point.
-Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
+The value does not change. The precision does not change.
+
+**Examples**:
+
+- `Example` - converts '1.1' to '11e-1'
+- `Example` - converts '-0.01e-2' to'-1e-4'
+
 
 **Arguments**:
 
@@ -1010,21 +1092,56 @@ Examples: '1.1' ==> '11e-1',  '-0.01e-2' ==> '-1e-4'
 
 - `Binary` - binary string representation of number
 
-<a name="binary.Binary.to_sci_exponential"></a>
-#### to\_sci\_exponential
+<a name="binary.Binary.to_exponent"></a>
+#### to\_exponent
 
 ```python
- | to_sci_exponential() -> Binary
+ | to_exponent(exp: int = 0) -> Binary
 ```
 
-Convert to exp. representation in scientific notation.
+Convert to exponential representation of given exponent.
+
+This is a method that changes string representation of number.
+It does not change the value. It does not change the precision.
+
+If `exp` is not set, it defaults to 0, producing a respresentation
+without an exponent, same as `to_no_exponent()`.
+
+**Examples**:
+
+- `Example` - converts '1.1' with exp=3 ==> '0.0011e3'
+- `Example` - converts '-0.01e-2' with exp=2 ==> '-0.000001e2'
+
+
+**Arguments**:
+
+- `exp` _int_ - the desired exponent, 0 is the default
+
+
+**Returns**:
+
+- `Binary` - binary string representation of number
+
+<a name="binary.Binary.to_sci_exponent"></a>
+#### to\_sci\_exponent
+
+```python
+ | to_sci_exponent() -> Binary
+```
+
+Convert to exponential representation in scientific notation.
+
+This is a method that changes string representation of number.
+It does not change the value. It does not change the precision.
 
 Scientific notation is an exponent representation with a single
 binary digit before decimal point.
 
-Method that changes string representation of number.
-Examples are: '1.1' ==> '1.1e0',  '-0.01e-2' ==> '-1e-4', '1'
-The result has only 1 digit before decimal point.
+**Examples**:
+
+- `Example` - converts '1.1' ==> '1.1e0'
+- `Example` - converts '-0.01e-2' ==> '-1e-4'
+
 
 **Arguments**:
 
@@ -1035,11 +1152,11 @@ The result has only 1 digit before decimal point.
 
 - `Binary` - binary string representation of number
 
-<a name="binary.Binary.to_eng_exponential"></a>
-#### to\_eng\_exponential
+<a name="binary.Binary.to_eng_exponent"></a>
+#### to\_eng\_exponent
 
 ```python
- | to_eng_exponential() -> Binary
+ | to_eng_exponent() -> Binary
 ```
 
 Convert to exponential representation in engineering notation.
@@ -1058,31 +1175,33 @@ from 0b1 to 0b111111111.
 
 Method that changes string representation of number.
 
-Examples are:
-'1.1' ==> '1.1'
-'1.1111' ==> '1.1111'
-'100.1111' ==> '100.1111'
-'1.1111' ==> '1.1111'
-'10.1111' ==> '10.1111'
-'100.1111' ==> '100.1111'
-'1000.1111' ==> '1000.1111'
-1023 ==> '1111111111' => '1111111111'
-1024 ==> '10000000000' => '1e10'
-1025 ==> '10000000001' => '1.0000000001e10'
-3072 ==> '110000000000' ==> 1.1e10
-1024 ** 2 ==> '1000000000000000000000000000000' => '1e20'
-'0.1' => '100000000e-10'
-'0.11' => '110000000e-10'
-'0.01' => '10000000e-10'
-'0.0000000001' => '1e-10'
-'0.000000001' => '10e-10'
-'0.00000000111' => '11.1e-10'
-'.11111e1' ==> '1.1111'
-'.011111e2' ==> '1.1111'
-'.0011111e3' ==> '1.1111'
-'-0.01e-2' ==> '-1e-3' => '-1000000e-10'
-'-0.0001e-4' == -0.00000001 ==> '-100e-10',
-'-0.0001111e-4' == -0.00000001111 ==> '-111.1e-10',
+**Examples**:
+
+- `Example` - convert '1.1' ==> '1.1'
+- `Example` - convert '1.1111' ==> '1.1111'
+- `Example` - convert '100.1111' ==> '100.1111'
+- `Example` - convert '1.1111' ==> '1.1111'
+- `Example` - convert '10.1111' ==> '10.1111'
+- `Example` - convert '100.1111' ==> '100.1111'
+- `Example` - convert '1000.1111' ==> '1000.1111'
+- `Example` - convert 1023 ==> '1111111111' => '1111111111'
+- `Example` - convert 1024 ==> '10000000000' => '1e10'
+- `Example` - convert 1025 ==> '10000000001' => '1.0000000001e10'
+- `Example` - convert 3072 ==> '110000000000' ==> 1.1e10
+- `Example` - convert 1024 ** 2 ==> '1000000000000000000000000000000' => '1e20'
+- `Example` - convert '0.1' => '100000000e-10'
+- `Example` - convert '0.11' => '110000000e-10'
+- `Example` - convert '0.01' => '10000000e-10'
+- `Example` - convert '0.0000000001' => '1e-10'
+- `Example` - convert '0.000000001' => '10e-10'
+- `Example` - convert '0.00000000111' => '11.1e-10'
+- `Example` - convert '.11111e1' ==> '1.1111'
+- `Example` - convert '.011111e2' ==> '1.1111'
+- `Example` - convert '.0011111e3' ==> '1.1111'
+- `Example` - convert '-0.01e-2' ==> '-1e-3' => '-1000000e-10'
+- `Example` - convert '-0.0001e-4' == -0.00000001 ==> '-100e-10',
+- `Example` - convert '-0.0001111e-4' == -0.00000001111 ==> '-111.1e-10',
+
 
 **Arguments**:
 
@@ -1183,7 +1302,7 @@ See 'TwosComplement' class for more details on twos-complement format.
 #### from\_twoscomplement
 
 ```python
- | from_twoscomplement(value: TwosComplement, strict: bool = False) -> str
+ | from_twoscomplement(value: TwosComplement, simplify: bool = True) -> str
 ```
 
 The opposite of to_twoscomplement() function.
@@ -1191,7 +1310,11 @@ The opposite of to_twoscomplement() function.
 This is a utility function that converts from twos-complement format
 to binary fraction format.
 
-See 'TwosComplement' class for more details on twos-complement format.
+The user, programmer should use the constructor instead, e.g.
+`Binary(TwosComplement(-123))`, to directly convert an instance of
+class `TwosComplement` into an instance of class `Binary`.
+
+See `TwosComplement` class for more details on twos-complement format.
 
 **Examples**:
 
@@ -1202,8 +1325,10 @@ See 'TwosComplement' class for more details on twos-complement format.
 **Arguments**:
 
 - `value` _TwosComplement_ - string in twos-complement format
-- `strict` _bool_ - If strict is True, leaves it as much as unchanged as possible.
-  If strict is False simplifies returned binary string representation.
+- `simplify` _bool_ - If simplify is False, it leaves fractional binary strings
+  as much unchanged as possible.
+  If simplify is True it simplifies returned fractional
+  binary string representation.
 
 
 **Returns**:
@@ -1365,7 +1490,12 @@ Do NOT use it on Twos-complement strings!
 This function does not validate the input string.
 Input string is assumed to be a syntactically valid binary fraction string.
 Invalid strings can lead to undefined results.
-Example: converts '11.0' to '11' or '0011.0e-0' to '11'.
+
+**Examples**:
+
+- `Example` - converts '11.0' to '11'
+- `Example` - converts '0011.0e-0' to '11'
+
 
 **Arguments**:
 
@@ -1463,8 +1593,9 @@ This is a method. See also function fill_to().
 **Arguments**:
 
 - `ndigits` _int_ - number of digits after decimal point, precision
-- `strict` _bool_ - cut off by rounding if input is too long,
-  remove precision if True and necessary
+- `strict` _bool_ - If True, cut off by rounding if input is too long.
+  If True remove precision if necessary to fit it into ndigits
+  digits after decimal point.
 
 
 **Returns**:
@@ -1481,8 +1612,8 @@ This is a method. See also function fill_to().
 Normalize and fill number to n digits after decimal point.
 
 This is a utility function.
-If strict==False then if value is longer, don't touch, don't shorten it.
-If strict==True then if value is longer, then shorten to strictly ndigits.
+If strict is False then if value is longer, don't touch, don't shorten it.
+If strict is True then if value is longer, then shorten to strictly ndigits.
 
 **Arguments**:
 
@@ -1504,7 +1635,10 @@ If strict==True then if value is longer, then shorten to strictly ndigits.
 
 Return sign, intpart (without sign), fracpart, exp.
 
-Example: -11.01e2 ==> (1, '11', '01', 2)
+**Examples**:
+
+- `Example` - input -11.01e2 ==> (1, '11', '01', 2)
+
 
 **Arguments**:
 
@@ -1524,8 +1658,13 @@ Example: -11.01e2 ==> (1, '11', '01', 2)
 
 Return sign, intpart (without sign), fracpart, exp.
 
-Example: -11.01e2 ==> (1, '11', '01', 2)
-intpart does not have a sign
+The intpart does not have a sign bit or a sign (-,+).
+
+
+**Examples**:
+
+- `Example` - -11.01e2 ==> (1, '11', '01', 2)
+
 
 **Arguments**:
 
@@ -1652,7 +1791,8 @@ A method to get the Binary as a Fraction.
 
 Extract string representation from Binary instance.
 
-A method to get the Binary as a Fraction.
+A method to get the Binary as a string.
+It does not have a '0b' prefix.
 
 **Arguments**:
 
@@ -1667,7 +1807,7 @@ A method to get the Binary as a Fraction.
 #### fraction\_to\_string
 
 ```python
- | fraction_to_string(number: Union[int, float, Fraction], ndigits: int = _BINARY_PRECISION, strict: bool = False) -> str
+ | fraction_to_string(number: Union[int, float, Fraction], ndigits: int = _BINARY_PRECISION, simplify: bool = True) -> str
 ```
 
 Convert number representation (int, float, or Fraction) to string.
@@ -1677,8 +1817,11 @@ This is a utility function.
 **Arguments**:
 
 - `number` _int,float,Fraction_ - binary number in number representation
-- `strict` _bool_ - cut off by rounding if input is too long,
-  remove precision if True and necessary
+- `ndigits` _int_ - desired digits after decimal point.
+- `simplify` _bool_ - If True simplify output by performing cleanup and
+  removing unnecessary digits.
+  If False, then produce exact as-is twos-complement components
+  without any cleanup or simplifications.
 
 
 **Returns**:
@@ -2022,8 +2165,7 @@ a Binary).
 
 **Examples**:
 
-  '1.11' will return 1.
-
+- `Example` - input '1.11' will return 1.
 
 
 **Arguments**:
@@ -2033,7 +2175,7 @@ a Binary).
 
 **Returns**:
 
-- `int` - ceil of the number as int.
+- `int` - ceiling of the number expressed as an int.
 
   Other classes like Fractions return class int to be consistent
   with math.ceil().
@@ -2055,8 +2197,7 @@ See method '__ceil__()' for getting an int return.
 
 **Examples**:
 
-  '1.11' will return '0b1' as Binary.
-
+- `Example` - input '1.11' will return '0b1' as Binary.
 
 
 **Arguments**:
@@ -2066,7 +2207,7 @@ See method '__ceil__()' for getting an int return.
 
 **Returns**:
 
-- `Binary` - ceil of the number as Binary.
+- `Binary` - ceiling of the number as Binary.
 
 <a name="binary.Binary.__floor__"></a>
 #### \_\_floor\_\_
@@ -2083,7 +2224,7 @@ a Binary).
 
 **Examples**:
 
-  '1.11' will return 1.
+- `Example` - input '1.11' will return 1.
 
 
 
@@ -2094,7 +2235,7 @@ a Binary).
 
 **Returns**:
 
-- `int` - floor of the number as int.
+- `int` - floor of the number expressed as an int.
 
   Other classes like Fractions return class int to be consistent
   with math.floor().
@@ -2116,7 +2257,7 @@ See method '__floor__()' for getting an int return.
 
 **Examples**:
 
-  '1.11' will return '0b1' as Binary.
+- `Example` - input '1.11' will return '0b1' as Binary.
 
 
 
@@ -2221,8 +2362,11 @@ Do not confuse it with the 'bitwise not' operand ~.
 If self is 0, then method returns True.
 For all other values it returns False.
 
-For example: not Binary(0) returns True.
-For example: not Binary(3.5) returns False.
+**Examples**:
+
+- `Example` - operation not Binary(0) returns True.
+- `Example` - operation not Binary(3.5) returns False.
+
 
 **Arguments**:
 
@@ -2244,14 +2388,19 @@ Return the bitwise 'and' of self and other.
 
 Method that implements the & operand.
 
-For example, '11.1' & '10.1' will return '10.1'
-'-0.1' & '+1' will return '-1' because twos-complement of
-'-0.1' is 1.1; and 1.1 & 01.0 results in twos-complement 1.0;
-and 1.0 in twos-complement is '-1' in binary fraction.
-In short, any negative number will be converted into twos-complement
+Any negative number will be converted into twos-complement
 representation, than bitwise-and will be done, then the resulting
 number will be converted back from twos-complement to
 binary string format.
+
+**Examples**:
+
+- `Example` - operation '11.1' & '10.1' will return '10.1'
+- `Example` - operation '-0.1' & '+1' will return '-1'
+  because twos-complement of '-0.1' is 1.1.
+  Further, 1.1 & 01.0 results in twos-complement 1.0,
+  and 1.0 in twos-complement is '-1' in binary fraction.
+
 
 **Arguments**:
 
@@ -2274,14 +2423,19 @@ Return the bitwise 'or' of self and other.
 
 Method that implements the | operand.
 
-For example, '11.1' | '10.1' will return '11.1'
-'-0.1' | '+1' will return '-0.1' because twos-complement of
-'-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
-and 1.1 in twos-complement is '-0.1' in binary fraction.
-In short, any negative number will be converted into twos-complement
+Any negative number will be converted into twos-complement
 representation, than bitwise-or will be done, then the resulting
 number will be converted back from twos-complement to
 binary string format.
+
+**Examples**:
+
+- `Example` - operation '11.1' | '10.1' will return '11.1'
+- `Example` - operation '-0.1' | '+1' will return '-0.1'
+  because twos-complement of
+  '-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
+  and 1.1 in twos-complement is '-0.1' in binary fraction.
+
 
 **Arguments**:
 
@@ -2304,14 +2458,18 @@ Return the bitwise 'xor' of self and other.
 
 Method that implements the ^ operand.
 
-For example, '11.1' ^ '10.1' will return '1'.
-'-0.1' ^ '+1' will return '-1.1' because twos-complement of
-'-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
-and 10.1 in twos-complement is '-1.1' in binary fraction.
-In short, any negative number will be converted into twos-complement
+Any negative number will be converted into twos-complement
 representation, than bitwise-or will be done, then the resulting
 number will be converted back from twos-complement to
 binary string format.
+
+**Examples**:
+
+- `Example` - operation '11.1' ^ '10.1' will return '1'.
+- `Example` - operation '-0.1' ^ '+1' will return '-1.1' because twos-complement of
+  '-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
+  and 10.1 in twos-complement is '-1.1' in binary fraction.
+
 
 **Arguments**:
 
@@ -2340,8 +2498,15 @@ via the 'not' operand and the __not__() method.
 
 It is only defined for integers. If self is not an integer it
 will raise an exception. For integers ~ is defined as
-~n = -(n+1). For example, ~9 will return -10. ~-10 will return 9.
+~n = -(n+1).
+
 For more information, see also the invert() function.
+
+**Examples**:
+
+- `Example` - operation ~9 will return -10.
+- `Example` - operation ~-10 will return 9.
+
 
 **Arguments**:
 
@@ -2490,11 +2655,11 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestTwosComplement.test_to_not_exponential"></a>
-#### test\_to\_not\_exponential
+<a name="binary.TestTwosComplement.test_to_no_exponent"></a>
+#### test\_to\_no\_exponent
 
 ```python
- | test_to_not_exponential()
+ | test_to_no_exponent()
 ```
 
 Test function/method.
@@ -2574,11 +2739,11 @@ Test to_float() function.
 
 Testing from_float() function.
 
-<a name="binary.TestBinary.test_to_not_exponential"></a>
-#### test\_to\_not\_exponential
+<a name="binary.TestBinary.test_to_no_exponent"></a>
+#### test\_to\_no\_exponent
 
 ```python
- | test_to_not_exponential()
+ | test_to_no_exponent()
 ```
 
 Test function/method.
@@ -2700,29 +2865,38 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestBinary.test_to_simple_exponential"></a>
-#### test\_to\_simple\_exponential
+<a name="binary.TestBinary.test_to_no_mantissa"></a>
+#### test\_to\_no\_mantissa
 
 ```python
- | test_to_simple_exponential()
+ | test_to_no_mantissa()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_to_sci_exponential"></a>
-#### test\_to\_sci\_exponential
+<a name="binary.TestBinary.test_to_exponent"></a>
+#### test\_to\_exponent
 
 ```python
- | test_to_sci_exponential()
+ | test_to_exponent()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_to_eng_exponential"></a>
-#### test\_to\_eng\_exponential
+<a name="binary.TestBinary.test_to_sci_exponent"></a>
+#### test\_to\_sci\_exponent
 
 ```python
- | test_to_eng_exponential()
+ | test_to_sci_exponent()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_to_eng_exponent"></a>
+#### test\_to\_eng\_exponent
+
+```python
+ | test_to_eng_exponent()
 ```
 
 Test function/method.
