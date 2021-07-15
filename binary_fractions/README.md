@@ -46,7 +46,7 @@
     * [isnan](#binary.Binary.isnan)
     * [isint](#binary.Binary.isint)
     * [fraction](#binary.Binary.fraction)
-    * [value](#binary.Binary.value)
+    * [string](#binary.Binary.string)
     * [fraction\_to\_string](#binary.Binary.fraction_to_string)
     * [isclose](#binary.Binary.isclose)
     * [compare](#binary.Binary.compare)
@@ -123,7 +123,7 @@
     * [test\_isnan](#binary.TestBinary.test_isnan)
     * [test\_isint](#binary.TestBinary.test_isint)
     * [test\_fraction](#binary.TestBinary.test_fraction)
-    * [test\_value](#binary.TestBinary.test_value)
+    * [test\_string](#binary.TestBinary.test_string)
     * [test\_fraction\_to\_string](#binary.TestBinary.test_fraction_to_string)
     * [test\_isclose](#binary.TestBinary.test_isclose)
     * [test\_\_\_eq\_\_](#binary.TestBinary.test___eq__)
@@ -392,12 +392,12 @@ TwosComplement(-1975.5) = 100001001000.1
 ## Testing, Maturity
 - run `python3 binary_sample.py` to execute a simple sample program
 - run `python3 binary_test.py` to execute all unit tests
-- `Binary` is relatively mature, more than 1400 test cases have been written and all
+- `Binary` is relatively mature, more than 1500 test cases have been written and all
     passed.
 
 ## Contributions:
 - PRs are welcome and very much appreciated! :+1:
-- Please run and pass all existing 1400+ test cases in
+- Please run and pass all existing 1500+ test cases in
     [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
     before issuing a PR.
 - File Format: linted/beautified with [black](https://github.com/psf/black)
@@ -513,6 +513,7 @@ the string representation as close to the original as possible.
   * TwosComplement(-1.5) returns '10.1'
   * TwosComplement(Fraction(-1.5)) returns '10.1'
   * TwosComplement('110.101') returns '110.101'
+  * TwosComplement('110.101e-34') returns '110.101e-34'
 
 
 **Arguments**:
@@ -671,7 +672,7 @@ Removes unnecessary exponent 0.
 
 **Returns**:
 
-  str, TwosComplement: returns simplied twos-complement. Return type is
+  Union[str, TwosComplement]: returns simplied twos-complement. Return type is
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
 
@@ -758,7 +759,7 @@ same value is represented but without mantissa.
 
 **Returns**:
 
-  str, TwosComplement: returns twos-complement without mantissa.
+  Union[str, TwosComplement]: returns twos-complement without mantissa.
   Return type is
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
@@ -816,7 +817,7 @@ It removes the exponent, and returns a fully "decimal" twos-complement string.
 
 **Returns**:
 
-  str, TwosComplement: returns twos-complement without exponent.
+  Union[str, TwosComplement]: returns twos-complement without exponent.
   Return type is
   str if input was of class str, return type is
   TwosComplement if input was of class TwosComplement.
@@ -836,6 +837,15 @@ Do *NOT* use this function on binary fractions strings.
 
 It negates (flips) every bit in the given twos-complement string.
 
+Using 'simplify' can lead to a representation that drops
+leading and/or trailing bits for simplification. If no bits
+should be dropped by `invert`, set `simplify` to False.
+
+`invert` will try to maintain the representation of the input.
+If the input has an exponent, the output will have an exponent.
+If the input has no exponent, the output will have no exponent.
+
+
 **Examples**:
 
   * invert('01') returns '10' (like decimal: ~1==-2)
@@ -847,9 +857,9 @@ It negates (flips) every bit in the given twos-complement string.
   * invert('0101010e-34') returns '1010101e-34'
   * invert('1010101e-34') returns '0101010e-34'
   * invert(invert('0101010e-34')) returns '0101010e-34'
-  * invert('010101e34') returns '1010101111111111111111111111111111111111'
-  * invert('101010e34') returns '0101011111111111111111111111111111111111'
-  * invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
+  * invert('010101e34') returns '101010.1111111111111111111111111111111111e34'
+  * invert('101010e34') returns '010101.1111111111111111111111111111111111e34'
+  * invert(invert('101010e34')) returns '101010e34'
   * invert(invert(n)) == n for all valid n
   * invert('1..1') raises exception, 2 decimal points
   * invert('34') raises exception, not binary
@@ -861,15 +871,15 @@ It negates (flips) every bit in the given twos-complement string.
 
 - `self_value` _str, TwosComplement_ - twos-complement string to be
   inverted
-- `simplify` _bool_ - If True, try to change the string as little as
+- `simplify` _bool_ - If False, try to change the string as little as
   possible in format.
-  If False, returned string will also be simplified
+  If True, returned string will also be simplified
   by removing unnecessary digits.
 
 
 **Returns**:
 
-  str, TwosComplement: returns the bitwise negated string,
+  Union[str, TwosComplement]: returns the bitwise negated string,
   a twos-complement formated string. The
   return type is
   str if input was of class str, return type is
@@ -1086,7 +1096,7 @@ The value does not change. The precision does not change.
 **Examples**:
 
   * converts '1.1' to '11e-1'
-  * converts '-0.01e-2' to'-1e-4'
+  * converts '-0.01e-2' to '-1e-4'
 
 
 **Arguments**:
@@ -1117,6 +1127,7 @@ without an exponent, same as `to_no_exponent()`.
 
   * converts '1.1' with exp=0 ==> '1.1'
   * converts '1.1' with exp=3 ==> '0.0011e3'
+  * converts '1.1' with exp=-3 ==> '1100e-3'
   * converts '-0.01e-2' with exp=2 ==> '-0.000001e2'
 
 
@@ -1169,8 +1180,6 @@ The decimal part is always 1 or -1 except for the number 0.
 ```
 
 Convert to exponential representation in engineering notation.
-
-TODO zzz continue review here zzz TODO
 
 - See https://www.purplemath.com/modules/exponent4.htm.
 - See https://www.thinkcalculator.com/numbers/decimal-to-engineering.php
@@ -1255,6 +1264,9 @@ Convert string representation of Binary to Fraction.
 
 This is a utility function.
 
+This is an alternative implementation with possibly less precision.
+Use `to_fraction()` instead.
+
 **Arguments**:
 
 - `value` _str_ - binary number as string
@@ -1273,9 +1285,9 @@ This is a utility function.
 
 Computes the representation as a string in twos-complement.
 
-This is a method returning a string of class TwosComplement.
+This is a method returning a string of class `TwosComplement`.
 
-See 'TwosComplement' class for more details on twos-complement format.
+See `TwosComplement` class for more details on twos-complement format.
 
 **Examples**:
 
@@ -1317,7 +1329,7 @@ See 'TwosComplement' class for more details on twos-complement format.
  | from_twoscomplement(value: TwosComplement, simplify: bool = True) -> str
 ```
 
-The opposite of to_twoscomplement() function.
+The opposite of `to_twoscomplement()` function.
 
 This is a utility function that converts from twos-complement format
 to binary fraction format.
@@ -1351,33 +1363,32 @@ See `TwosComplement` class for more details on twos-complement format.
 #### \_\_float\_\_
 
 ```python
- | __float__() -> [float, int]
+ | __float__() -> Union[float, int]
 ```
 
 Convert from Binary to float.
 
 This is a method that convert Binary to float (or if possible to
-integer). (Binary --> float or integer)
+integer).
 
 **Returns**:
 
-- `float` - number as float or integer
+  float or integer: number as float or integer
 
 <a name="binary.Binary.__int__"></a>
 #### \_\_int\_\_
 
 ```python
- | __int__()
+ | __int__() -> int
 ```
 
 Convert from Binary to int.
 
-method
-Binary --> float or integer
+This method converts a Binary to an integer.
 
 **Returns**:
 
-- `float` - number as integer
+- `int` - number as integer
 
 <a name="binary.Binary.__str__"></a>
 #### \_\_str\_\_
@@ -1389,8 +1400,15 @@ Binary --> float or integer
 Stringify self.
 
 Method that implements the string conversion.
-Return format is e.g. -0b101.101e-23.
-Note the prefix of '0b'.
+Return format includes the prefix of '0b'.
+
+**Examples**:
+
+  * 0b1
+  * 0b0
+  * 0b101.101e23
+  * -0b101.101e-23
+
 
 **Arguments**:
 
@@ -1410,8 +1428,10 @@ Note the prefix of '0b'.
 
 Compare representation of self to representation of other string.
 
-Does NOT compare values! '1.1' does NOT equal to '11e-1' !
-Only '11e-1' equals to '11e-1' !
+Does *NOT* compare values! '1.1' does *NOT* equal to '11e-1' in
+`compare_representation()` even though the values are equal.
+
+Only string '11e-1' equals '11e-1' !
 Returns integer.
 
 **Arguments**:
@@ -1421,7 +1441,7 @@ Returns integer.
 
 **Returns**:
 
-- `int` - -1 s<o, 0 equal, 1 s>o
+- `int` - returns 1 if self > other, 0 if equal, -1 if self < other
 
 <a name="binary.Binary.__repr__"></a>
 #### \_\_repr\_\_
@@ -1430,7 +1450,16 @@ Returns integer.
  | __repr__() -> str
 ```
 
-Represent self.
+Represents self. Shows details of the given object.
+
+**Arguments**:
+
+  None
+
+
+**Returns**:
+
+- `str` - returns details of the object
 
 <a name="binary.Binary.no_prefix"></a>
 #### no\_prefix
@@ -1442,7 +1471,15 @@ Represent self.
 Remove prefix '0b' from string representation.
 
 A method as well as a utility function.
-Return format is e.g. -101.101e-23.
+Return format is without prefix '0b'.
+
+**Examples**:
+
+  * 0
+  * 1
+  * 10.1e45
+  * -101.101e-23.
+
 
 **Arguments**:
 
@@ -1451,7 +1488,7 @@ Return format is e.g. -101.101e-23.
 
 **Returns**:
 
-- `str` - without prefix
+- `str` - string without prefix '0b'
 
 <a name="binary.Binary.np"></a>
 #### np
@@ -1462,7 +1499,7 @@ Return format is e.g. -101.101e-23.
 
 Remove prefix '0b' from string representation.
 
-Same as no_prefix().
+Same as `no_prefix()`.
 
 **Arguments**:
 
@@ -1471,7 +1508,7 @@ Same as no_prefix().
 
 **Returns**:
 
-- `str` - without prefix
+- `str` - string without prefix '0b'
 
 <a name="binary.Binary.version"></a>
 #### version
@@ -1480,13 +1517,18 @@ Same as no_prefix().
  | version() -> str
 ```
 
-Give version number.
+Gives version number.
 
-Is a utility function.
+This is a utility function giving version of this program.
+
+**Examples**:
+
+  * "20210622-103815"
+
 
 **Returns**:
 
-- `str` - version number as date in format "YYMMDD-HHMMSS", e.g. "20210622-103815"
+- `str` - version number as date in format "YYMMDD-HHMMSS".
 
 <a name="binary.Binary.simplify"></a>
 #### simplify
@@ -1495,13 +1537,11 @@ Is a utility function.
  | simplify(value: str, add_prefix: bool = False) -> str
 ```
 
-Simplify string representation.
+Simplifies string representation.
 
 This is a utility function.
-Do NOT use it on Twos-complement strings!
-This function does not validate the input string.
-Input string is assumed to be a syntactically valid binary fraction string.
-Invalid strings can lead to undefined results.
+
+Do *NOT* use it on Twos-complement strings!
 
 **Examples**:
 
@@ -1512,8 +1552,8 @@ Invalid strings can lead to undefined results.
 **Arguments**:
 
 - `value` _str_ - binary string representation of number
-- `add_prefix` _bool_ - if True add 0b prefix to returned output,
-  if False then do not add prefix to returned output
+- `add_prefix` _bool_ - if True add '0b' prefix to returned output;
+  if False then do not add prefix to returned output.
 
 
 **Returns**:
@@ -1529,7 +1569,8 @@ Invalid strings can lead to undefined results.
 
 Normalize and round number to n digits after decimal point.
 
-A method. Same as function round(). See also utility function round_to().
+This is a method. Same as function `round()`.
+See utility function `round_to()` for details and examples.
 
 **Arguments**:
 
@@ -1552,7 +1593,8 @@ A method. Same as function round(). See also utility function round_to().
 
 Normalize and round number to n digits after decimal point.
 
-A method. Same as __round__() (round()). See also function round_to().
+This is a method. Same as function `__round__()`.
+See utility function `round_to()` for details and examples.
 
 **Arguments**:
 
@@ -1600,7 +1642,7 @@ This is a utility function.
 
 Normalize and fill number to n digits after decimal point.
 
-This is a method. See also function fill_to().
+This is a method. See also function `fill_to()` for more details.
 
 **Arguments**:
 
@@ -1624,14 +1666,28 @@ This is a method. See also function fill_to().
 Normalize and fill number to n digits after decimal point.
 
 This is a utility function.
-If strict is False then if value is longer, don't touch, don't shorten it.
-If strict is True then if value is longer, then shorten to strictly ndigits.
+
+Normalizes the input, i.e. it converts it into a representation
+without an exponent. Then it appends 0s to the end, after the
+decimal point to assure at least ndigits digits after the
+decimal point.
+
+If strict is True and if value does not fit into ndigit digits
+after the decimal point,
+then shorten fractional part to strictly (exactly) ndigits.
+In this case precision is lost.
+
+If strict is False, never shorten, never truncate the result.
+In this case more return value could have more than ndigits
+digits after the decimal point.
 
 **Arguments**:
 
 - `ndigits` _int_ - number of digits after decimal point, precision
-- `strict` _bool_ - cut off by rounding if input is too long,
-  remove precision if True and necessary
+- `strict` _bool_ - If True, truncate result by rounding if input is
+  too long to fit into ndigits after decimal point. This would
+  remove precision.
+  If False, never truncate.
 
 
 **Returns**:
@@ -1645,10 +1701,16 @@ If strict is True then if value is longer, then shorten to strictly ndigits.
  | get_components(value: str) -> tuple
 ```
 
-Return sign, intpart (without sign), fracpart, exp.
+Return sign, integer part (without sign), fractional part, and
+exponent.
+
+A sign of integer 1 represents negative (-) value. A sign of integer 0
+represents a positive (+) value
 
 **Examples**:
 
+  * converts 11 ==> (0, '11', '', 0)
+  * converts 11.01e3 ==> (0, '11', '01', 3)
   * converts -11.01e2 ==> (1, '11', '01', 2)
 
 
@@ -1659,7 +1721,8 @@ Return sign, intpart (without sign), fracpart, exp.
 
 **Returns**:
 
-- `tuple` - tuple of sign, intpart (without sign), fracpart, exp
+- `tuple` - tuple of 4 elements: sign (int), integer part (without sign) (str),
+  fractional part (str), exponent (int)
 
 <a name="binary.Binary.components"></a>
 #### components
@@ -1756,7 +1819,7 @@ Determine if object is not-a-number (NaN).
 
 **Returns**:
 
-- `bool` - is or is not a NaN (division by zero)
+- `bool` - is or is not a NaN
 
 <a name="binary.Binary.isint"></a>
 #### isint
@@ -1771,7 +1834,7 @@ This is a utility function.
 
 **Returns**:
 
-- `bool` - True if int, False otherwise (Fraction, float)
+- `bool` - True if int, False otherwise (has a fraction).
 
 <a name="binary.Binary.fraction"></a>
 #### fraction
@@ -1780,7 +1843,7 @@ This is a utility function.
  | fraction() -> Fraction
 ```
 
-Extract Fractional representation from Binary instance.
+Extracts Fractional representation from Binary instance.
 
 A method to get the Binary as a Fraction.
 
@@ -1793,14 +1856,14 @@ A method to get the Binary as a Fraction.
 
 - `Fraction` - binary number in Fraction representation
 
-<a name="binary.Binary.value"></a>
-#### value
+<a name="binary.Binary.string"></a>
+#### string
 
 ```python
- | value() -> str
+ | string() -> str
 ```
 
-Extract string representation from Binary instance.
+Extracts string representation from Binary instance.
 
 A method to get the Binary as a string.
 It does not have a '0b' prefix.
@@ -1812,7 +1875,7 @@ It does not have a '0b' prefix.
 
 **Returns**:
 
-- `Fraction` - binary number in string representation
+- `str` - binary number in string representation
 
 <a name="binary.Binary.fraction_to_string"></a>
 #### fraction\_to\_string
@@ -1821,7 +1884,7 @@ It does not have a '0b' prefix.
  | fraction_to_string(number: Union[int, float, Fraction], ndigits: int = _BINARY_PRECISION, simplify: bool = True) -> str
 ```
 
-Convert number representation (int, float, or Fraction) to string.
+Converts number representation (int, float, or Fraction) to string.
 
 This is a utility function.
 
@@ -1849,7 +1912,7 @@ This is a utility function.
 Compare two objects to see if they are mathematically close.
 
 This is a utility function. Useful for floats that have been converted
-to binary fractions. A substitute for == for binary fractions
+to binary fractions. A substitute for the `==` operand for binary fractions
 created from floats with precision errors.
 
 **Arguments**:
@@ -1870,12 +1933,15 @@ created from floats with precision errors.
  | compare(other: Any) -> Binary
 ```
 
-Compare self to other. Return a Binary value.
+Compares self to other. Returns a Binary value.
 
+
+```
 a or b is a NaN ==> Binary('NaN')
 a < b           ==> Binary('-1')
 a == b          ==> Binary('0')
 a > b           ==> Binary('1')
+```
 
 **Arguments**:
 
@@ -1884,7 +1950,8 @@ a > b           ==> Binary('1')
 
 **Returns**:
 
-- `Binary` - -1 s<o, 0 equal, 1 s>o
+- `Binary` - returns Binary -1 if s<o, Binary 0 if equal,
+  Binary 1 if s>o
 
 <a name="binary.Binary.__eq__"></a>
 #### \_\_eq\_\_
@@ -1893,16 +1960,16 @@ a > b           ==> Binary('1')
  | __eq__(other: Any) -> bool
 ```
 
-Implements equal, implements operand ==.
+Implements equal, implements operand `==`.
 
-See _cmp() for details.
+See `_cmp()` for details.
 
 Method that implements "==" operand.
 
 **Arguments**:
 
-- `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `self` _Binary_ - binary fraction number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -1922,8 +1989,8 @@ Method that implements "<" operand.
 
 **Arguments**:
 
-- `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `self` _Binary_ - binary fraction number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -1944,7 +2011,7 @@ Method that implements ">" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -1965,7 +2032,7 @@ Method that implements "<=" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -1986,7 +2053,7 @@ Method that implements ">=" operand.
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -2002,17 +2069,17 @@ Method that implements ">=" operand.
 
 Add operation.
 
-Method that implements the + operand.
+Method that implements the `+` operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
 
-- `Binary` - addittion of the two numbers
+- `Binary` - addition of the two numbers
 
 <a name="binary.Binary.__sub__"></a>
 #### \_\_sub\_\_
@@ -2023,17 +2090,17 @@ Method that implements the + operand.
 
 Subtraction operation.
 
-Method that implements the - operand.
+Method that implements the `-` operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
 
-- `Binary` - addittion of the two numbers
+- `Binary` - substraction of the two numbers
 
 <a name="binary.Binary.__mul__"></a>
 #### \_\_mul\_\_
@@ -2044,7 +2111,7 @@ Method that implements the - operand.
 
 Multiply operation.
 
-Method that implements the * operand.
+Method that implements the `*` operand.
 
 **Arguments**:
 
@@ -2065,7 +2132,7 @@ Method that implements the * operand.
 
 True division operation.
 
-Method that implements the / operand.
+Method that implements the `/` operand.
 
 **Arguments**:
 
@@ -2086,12 +2153,12 @@ Method that implements the / operand.
 
 Floor division operation.
 
-Method that implements the // operand.
+Method that implements the `//` operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
@@ -2108,17 +2175,17 @@ Method that implements the // operand.
 Compute modulo operation.
 
 Method that implements modulo, i.e. it returns the integer remainder.
-Method that implements the % operand.
+Method that implements the `%` operand.
 
 **Arguments**:
 
 - `self` _Binary_ - binary number
-- `other` _Any_ - binary number
+- `other` _Any_ - number
 
 
 **Returns**:
 
-- `Binary` - modulation of the two numbers
+- `Binary` - modulo of the two numbers
 
 <a name="binary.Binary.__pow__"></a>
 #### \_\_pow\_\_
@@ -2129,7 +2196,7 @@ Method that implements the % operand.
 
 Power of operation.
 
-Method that implements the ** operand.
+Method that implements the `**` operand.
 
 **Arguments**:
 
@@ -2169,6 +2236,8 @@ Method that implements absolute value, i.e. the positive value.
 ```
 
 Perform math ceiling operation returning an int.
+
+TODO continue docstrings review here TODO
 
 Method that implements ceil. This method is invoked by calling
 'math.ceil()'. Note, that math.ceil() will return an int (and NOT
@@ -2984,11 +3053,11 @@ Test function/method.
 
 Test function/method.
 
-<a name="binary.TestBinary.test_value"></a>
-#### test\_value
+<a name="binary.TestBinary.test_string"></a>
+#### test\_string
 
 ```python
- | test_value()
+ | test_string()
 ```
 
 Test function/method.

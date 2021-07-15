@@ -234,12 +234,12 @@ TwosComplement(-1975.5) = 100001001000.1
 ## Testing, Maturity
 - run `python3 binary_sample.py` to execute a simple sample program
 - run `python3 binary_test.py` to execute all unit tests
-- `Binary` is relatively mature, more than 1400 test cases have been written and all
+- `Binary` is relatively mature, more than 1500 test cases have been written and all
     passed.
 
 ## Contributions:
 - PRs are welcome and very much appreciated! :+1:
-- Please run and pass all existing 1400+ test cases in
+- Please run and pass all existing 1500+ test cases in
     [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
     before issuing a PR.
 - File Format: linted/beautified with [black](https://github.com/psf/black)
@@ -268,9 +268,9 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210715-154222"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210715-204621"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
-_BINARY_TOTAL_TESTS = 1492  # number of asserts in .py file
+_BINARY_TOTAL_TESTS = 1503  # number of asserts in .py file
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -390,6 +390,7 @@ class TwosComplement(str):
         * TwosComplement(-1.5) returns '10.1'
         * TwosComplement(Fraction(-1.5)) returns '10.1'
         * TwosComplement('110.101') returns '110.101'
+        * TwosComplement('110.101e-34') returns '110.101e-34'
 
         Parameters:
         value (int, float, Fraction, str): value of number
@@ -935,7 +936,7 @@ class TwosComplement(str):
         self_value (str, TwosComplement): twos-complement string to be simplified
 
         Returns:
-        str, TwosComplement: returns simplied twos-complement. Return type is
+        Union[str, TwosComplement]: returns simplied twos-complement. Return type is
             str if input was of class str, return type is
             TwosComplement if input was of class TwosComplement.
         """
@@ -1044,7 +1045,7 @@ class TwosComplement(str):
             Example of length 4 is '01.1'.
 
         Returns:
-        str, TwosComplement: returns twos-complement without mantissa.
+        Union[str, TwosComplement]: returns twos-complement without mantissa.
             Return type is
             str if input was of class str, return type is
             TwosComplement if input was of class TwosComplement.
@@ -1115,7 +1116,7 @@ class TwosComplement(str):
             without any cleanup or simplifications.
 
         Returns:
-        str, TwosComplement: returns twos-complement without exponent.
+        Union[str, TwosComplement]: returns twos-complement without exponent.
             Return type is
             str if input was of class str, return type is
             TwosComplement if input was of class TwosComplement.
@@ -1192,6 +1193,15 @@ class TwosComplement(str):
 
         It negates (flips) every bit in the given twos-complement string.
 
+        Using 'simplify' can lead to a representation that drops
+        leading and/or trailing bits for simplification. If no bits
+        should be dropped by `invert`, set `simplify` to False.
+
+        `invert` will try to maintain the representation of the input.
+        If the input has an exponent, the output will have an exponent.
+        If the input has no exponent, the output will have no exponent.
+
+
         Examples:
         * invert('01') returns '10' (like decimal: ~1==-2)
         * invert('0') returns 1  (like decimal: ~0==-1)
@@ -1202,9 +1212,9 @@ class TwosComplement(str):
         * invert('0101010e-34') returns '1010101e-34'
         * invert('1010101e-34') returns '0101010e-34'
         * invert(invert('0101010e-34')) returns '0101010e-34'
-        * invert('010101e34') returns '1010101111111111111111111111111111111111'
-        * invert('101010e34') returns '0101011111111111111111111111111111111111'
-        * invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
+        * invert('010101e34') returns '101010.1111111111111111111111111111111111e34'
+        * invert('101010e34') returns '010101.1111111111111111111111111111111111e34'
+        * invert(invert('101010e34')) returns '101010e34'
         * invert(invert(n)) == n for all valid n
         * invert('1..1') raises exception, 2 decimal points
         * invert('34') raises exception, not binary
@@ -1214,13 +1224,13 @@ class TwosComplement(str):
         Parameters:
         self_value (str, TwosComplement): twos-complement string to be
             inverted
-        simplify (bool): If True, try to change the string as little as
+        simplify (bool): If False, try to change the string as little as
             possible in format.
-            If False, returned string will also be simplified
+            If True, returned string will also be simplified
             by removing unnecessary digits.
 
         Returns:
-        str, TwosComplement: returns the bitwise negated string,
+        Union[str, TwosComplement]: returns the bitwise negated string,
             a twos-complement formated string. The
             return type is
             str if input was of class str, return type is
@@ -1243,9 +1253,14 @@ class TwosComplement(str):
         if _EXP in value:
             sign, intpart, fracpart, exp = TwosComplement.components(value, simplify)
             if exp > 0:
-                # simplify = False to not miss any bits on the right
-                value = TwosComplement.to_no_exponent(value, simplify=False)
-                # print(f" {self_value} and {value} ")
+                # # Alternative implementation A: using TwosComplement.to_no_exponent()
+                # # simplify = False to not miss any bits on the right
+                # value = TwosComplement.to_no_exponent(value, simplify=False)
+                # Alternative implementation B: just adding sufficient 0s after decimal point
+                fl = len(fracpart)
+                fracpart += "0" * (exp - fl)  # if negative, no 0s will be added
+                value = intpart + "." + fracpart + _EXP + str(exp)
+                # assert len(fracpart) >= exp
         result = ""
         for i in value:
             if i == "0":
@@ -1804,7 +1819,7 @@ class Binary(object):
 
         Examples:
         * converts '1.1' to '11e-1'
-        * converts '-0.01e-2' to'-1e-4'
+        * converts '-0.01e-2' to '-1e-4'
 
         Parameters:
         none
@@ -1858,6 +1873,7 @@ class Binary(object):
         Examples:
         * converts '1.1' with exp=0 ==> '1.1'
         * converts '1.1' with exp=3 ==> '0.0011e3'
+        * converts '1.1' with exp=-3 ==> '1100e-3'
         * converts '-0.01e-2' with exp=2 ==> '-0.000001e2'
 
         Parameters:
@@ -1962,8 +1978,6 @@ class Binary(object):
 
     def to_eng_exponent(self: Binary) -> Binary:
         """Convert to exponential representation in engineering notation.
-
-        TODO zzz continue review here zzz TODO
 
         - See https://www.purplemath.com/modules/exponent4.htm.
         - See https://www.thinkcalculator.com/numbers/decimal-to-engineering.php
@@ -2079,6 +2093,9 @@ class Binary(object):
 
         This is a utility function.
 
+        This is an alternative implementation with possibly less precision.
+        Use `to_fraction()` instead.
+
         Parameters:
         value (str): binary number as string
 
@@ -2099,9 +2116,9 @@ class Binary(object):
     def to_twoscomplement(self: Binary, length: int = -1) -> TwosComplement:
         """Computes the representation as a string in twos-complement.
 
-        This is a method returning a string of class TwosComplement.
+        This is a method returning a string of class `TwosComplement`.
 
-        See 'TwosComplement' class for more details on twos-complement format.
+        See `TwosComplement` class for more details on twos-complement format.
 
         Examples:
         * converts '-11.1e-2' to '101.1e-2' (-3/4)
@@ -2144,7 +2161,7 @@ class Binary(object):
         return TwosComplement(self._fraction, length=length)
 
     def from_twoscomplement(value: TwosComplement, simplify: bool = True) -> str:
-        """The opposite of to_twoscomplement() function.
+        """The opposite of `to_twoscomplement()` function.
 
         This is a utility function that converts from twos-complement format
         to binary fraction format.
@@ -2186,14 +2203,14 @@ class Binary(object):
             return result
         return Binary(value, simplify=simplify)._value
 
-    def __float__(self: Binary) -> [float, int]:
+    def __float__(self: Binary) -> Union[float, int]:
         """Convert from Binary to float.
 
         This is a method that convert Binary to float (or if possible to
-        integer). (Binary --> float or integer)
+        integer).
 
         Returns:
-        float: number as float or integer
+        float or integer: number as float or integer
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2207,14 +2224,13 @@ class Binary(object):
         # result = Binary.to_float(self._value)
         return result  # float or integer
 
-    def __int__(self: Binary):
+    def __int__(self: Binary) -> int:
         """Convert from Binary to int.
 
-        method
-        Binary --> float or integer
+        This method converts a Binary to an integer.
 
         Returns:
-        float: number as integer
+        int: number as integer
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2224,16 +2240,19 @@ class Binary(object):
             )
         else:
             result = int(self._fraction)
-        # alternative implementation of float
-        # result = Binary.to_float(self._value)
-        return result  # float or integer
+        return result  # int
 
     def __str__(self: Binary) -> str:
         """Stringify self.
 
         Method that implements the string conversion.
-        Return format is e.g. -0b101.101e-23.
-        Note the prefix of '0b'.
+        Return format includes the prefix of '0b'.
+
+        Examples:
+        * 0b1
+        * 0b0
+        * 0b101.101e23
+        * -0b101.101e-23
 
         Parameters:
         None
@@ -2257,15 +2276,17 @@ class Binary(object):
     def compare_representation(self: Binary, other: Union[str, Binary]) -> int:
         """Compare representation of self to representation of other string.
 
-        Does NOT compare values! '1.1' does NOT equal to '11e-1' !
-        Only '11e-1' equals to '11e-1' !
+        Does *NOT* compare values! '1.1' does *NOT* equal to '11e-1' in
+        `compare_representation()` even though the values are equal.
+
+        Only string '11e-1' equals '11e-1' !
         Returns integer.
 
         Parameters:
         other (str, Binary): object to compare to
 
         Returns:
-        int: -1 s<o, 0 equal, 1 s>o
+        int: returns 1 if self > other, 0 if equal, -1 if self < other
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2278,7 +2299,14 @@ class Binary(object):
             return str(self._value) == str(other)
 
     def __repr__(self: Boolean) -> str:
-        """Represent self."""
+        """Represents self. Shows details of the given object.
+
+        Parameters:
+        None
+
+        Returns:
+        str: returns details of the object
+        """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return (
@@ -2290,13 +2318,19 @@ class Binary(object):
         """Remove prefix '0b' from string representation.
 
         A method as well as a utility function.
-        Return format is e.g. -101.101e-23.
+        Return format is without prefix '0b'.
+
+        Examples:
+        * 0
+        * 1
+        * 10.1e45
+        * -101.101e-23.
 
         Parameters:
         value (str, Binary): string from where to remove prefix
 
         Returns:
-        str: without prefix
+        str: string without prefix '0b'
         """
         if not isinstance(self_value, str) and not isinstance(self_value, Binary):
             raise TypeError(f"Argument {self_value} must be of type str or Binary.")
@@ -2308,34 +2342,35 @@ class Binary(object):
     def np(self_value: Union[str, Binary]) -> str:  # no prefix
         """Remove prefix '0b' from string representation.
 
-        Same as no_prefix().
+        Same as `no_prefix()`.
 
         Parameters:
         value (str, Binary): string from where to remove prefix
 
         Returns:
-        str: without prefix
+        str: string without prefix '0b'
         """
         return Binary.no_prefix(self_value)
 
     def version() -> str:
-        """Give version number.
+        """Gives version number.
 
-        Is a utility function.
+        This is a utility function giving version of this program.
+
+        Examples:
+        * "20210622-103815"
 
         Returns:
-        str: version number as date in format "YYMMDD-HHMMSS", e.g. "20210622-103815"
+        str: version number as date in format "YYMMDD-HHMMSS".
         """
         return _BINARY_VERSION
 
     def simplify(value: str, add_prefix: bool = False) -> str:
-        """Simplify string representation.
+        """Simplifies string representation.
 
         This is a utility function.
-        Do NOT use it on Twos-complement strings!
-        This function does not validate the input string.
-        Input string is assumed to be a syntactically valid binary fraction string.
-        Invalid strings can lead to undefined results.
+
+        Do *NOT* use it on Twos-complement strings!
 
         Examples:
         * converts '11.0' to '11'
@@ -2343,8 +2378,8 @@ class Binary(object):
 
         Parameters:
         value (str): binary string representation of number
-        add_prefix (bool): if True add 0b prefix to returned output,
-            if False then do not add prefix to returned output
+        add_prefix (bool): if True add '0b' prefix to returned output;
+            if False then do not add prefix to returned output.
 
         Returns:
         str: simplified binary string representation of number
@@ -2378,7 +2413,8 @@ class Binary(object):
     def __round__(self: Binary, ndigits: int = 0) -> Binary:
         """Normalize and round number to n digits after decimal point.
 
-        A method. Same as function round(). See also utility function round_to().
+        This is a method. Same as function `round()`.
+        See utility function `round_to()` for details and examples.
 
         Parameters:
         ndigits (int): number of digits after decimal point, precision
@@ -2394,7 +2430,8 @@ class Binary(object):
     def round(self: Binary, ndigits: int = 0) -> Binary:
         """Normalize and round number to n digits after decimal point.
 
-        A method. Same as __round__() (round()). See also function round_to().
+        This is a method. Same as function `__round__()`.
+        See utility function `round_to()` for details and examples.
 
         Parameters:
         ndigits (int): number of digits after decimal point, precision
@@ -2476,7 +2513,7 @@ class Binary(object):
     def fill(self: Binary, ndigits: int = 0, strict: bool = False):
         """Normalize and fill number to n digits after decimal point.
 
-        This is a method. See also function fill_to().
+        This is a method. See also function `fill_to()` for more details.
 
         Parameters:
         ndigits (int): number of digits after decimal point, precision
@@ -2496,13 +2533,27 @@ class Binary(object):
         """Normalize and fill number to n digits after decimal point.
 
         This is a utility function.
-        If strict is False then if value is longer, don't touch, don't shorten it.
-        If strict is True then if value is longer, then shorten to strictly ndigits.
+
+        Normalizes the input, i.e. it converts it into a representation
+        without an exponent. Then it appends 0s to the end, after the
+        decimal point to assure at least ndigits digits after the
+        decimal point.
+
+        If strict is True and if value does not fit into ndigit digits
+        after the decimal point,
+        then shorten fractional part to strictly (exactly) ndigits.
+        In this case precision is lost.
+
+        If strict is False, never shorten, never truncate the result.
+        In this case more return value could have more than ndigits
+        digits after the decimal point.
 
         Parameters:
         ndigits (int): number of digits after decimal point, precision
-        strict (bool): cut off by rounding if input is too long,
-            remove precision if True and necessary
+        strict (bool): If True, truncate result by rounding if input is
+            too long to fit into ndigits after decimal point. This would
+            remove precision.
+            If False, never truncate.
 
         Returns:
         str: binary string representation of number
@@ -2537,16 +2588,23 @@ class Binary(object):
             return Binary.fill_to(result, ndigits, strict)
 
     def get_components(value: str) -> tuple:
-        """Return sign, intpart (without sign), fracpart, exp.
+        """Return sign, integer part (without sign), fractional part, and
+        exponent.
+
+        A sign of integer 1 represents negative (-) value. A sign of integer 0
+        represents a positive (+) value
 
         Examples:
+        * converts 11 ==> (0, '11', '', 0)
+        * converts 11.01e3 ==> (0, '11', '01', 3)
         * converts -11.01e2 ==> (1, '11', '01', 2)
 
         Parameters:
         value (str): respresentation of a binary
 
         Returns:
-        tuple: tuple of sign, intpart (without sign), fracpart, exp
+        tuple: tuple of 4 elements: sign (int), integer part (without sign) (str),
+            fractional part (str), exponent (int)
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
@@ -2643,7 +2701,7 @@ class Binary(object):
         none
 
         Returns:
-        bool: is or is not a NaN (division by zero)
+        bool: is or is not a NaN
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2655,7 +2713,7 @@ class Binary(object):
         This is a utility function.
 
         Returns:
-        bool: True if int, False otherwise (Fraction, float)
+        bool: True if int, False otherwise (has a fraction).
         """
         if self._is_special:
             return False
@@ -2682,7 +2740,7 @@ class Binary(object):
         return exp + len(intpart) - 1
 
     def fraction(self: Binary) -> Fraction:
-        """Extract Fractional representation from Binary instance.
+        """Extracts Fractional representation from Binary instance.
 
         A method to get the Binary as a Fraction.
 
@@ -2696,8 +2754,8 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return self._fraction
 
-    def value(self: Binary) -> str:
-        """Extract string representation from Binary instance.
+    def string(self: Binary) -> str:
+        """Extracts string representation from Binary instance.
 
         A method to get the Binary as a string.
         It does not have a '0b' prefix.
@@ -2706,7 +2764,7 @@ class Binary(object):
         None
 
         Returns:
-        Fraction: binary number in string representation
+        str: binary number in string representation
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2717,7 +2775,7 @@ class Binary(object):
         ndigits: int = _BINARY_PRECISION,
         simplify: bool = True,
     ) -> str:
-        """Convert number representation (int, float, or Fraction) to string.
+        """Converts number representation (int, float, or Fraction) to string.
 
         This is a utility function.
 
@@ -2764,7 +2822,7 @@ class Binary(object):
         """Compare two objects to see if they are mathematically close.
 
         This is a utility function. Useful for floats that have been converted
-        to binary fractions. A substitute for == for binary fractions
+        to binary fractions. A substitute for the `==` operand for binary fractions
         created from floats with precision errors.
 
         Parameters:
@@ -2796,6 +2854,7 @@ class Binary(object):
         subject of what should happen for a comparison involving a NaN.
         In Decimal they take the following approach:
 
+        ```
           == comparisons involving a quiet NaN always return False
           != comparisons involving a quiet NaN always return True
           == or != comparisons involving a signaling NaN signal
@@ -2804,6 +2863,7 @@ class Binary(object):
           <, >, <= and >= comparisons involving a (quiet or signaling)
              NaN signal InvalidOperation, and return False if the
              InvalidOperation is not trapped.
+        ```
 
         That Decimal behavior is designed to conform as closely as possible to
         that specified by IEEE 754.
@@ -2814,7 +2874,7 @@ class Binary(object):
         other (Any, str, Binary, int, float, Fraction): object to compare to
 
         Returns:
-        int: -1 s<o, 0 equal, 1 s>o
+        int: returns -1 if s<o, 0 if equal, 1 if s>o
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2853,31 +2913,34 @@ class Binary(object):
         return result
 
     def compare(self: Binary, other: Any) -> Binary:
-        """Compare self to other. Return a Binary value.
+        """Compares self to other. Returns a Binary value.
 
+        ```
         a or b is a NaN ==> Binary('NaN')
         a < b           ==> Binary('-1')
         a == b          ==> Binary('0')
         a > b           ==> Binary('1')
+        ```
 
         Parameters:
         other (str, Binary): object to compare to
 
         Returns:
-        Binary: -1 s<o, 0 equal, 1 s>o
+        Binary: returns Binary -1 if s<o, Binary 0 if equal,
+            Binary 1 if s>o
         """
         return Binary(self._cmp(other))
 
     def __eq__(self: Binary, other: Any) -> bool:
-        """Implements equal, implements operand ==.
+        """Implements equal, implements operand `==`.
 
-        See _cmp() for details.
+        See `_cmp()` for details.
 
         Method that implements "==" operand.
 
         Parameters:
-        self (Binary): binary number
-        other (Any): binary number
+        self (Binary): binary fraction number
+        other (Any): number
 
         Returns:
         bool: result
@@ -2896,8 +2959,8 @@ class Binary(object):
         Method that implements "<" operand.
 
         Parameters:
-        self (Binary): binary number
-        other (Any): binary number
+        self (Binary): binary fraction number
+        other (Any): number
 
         Returns:
         bool: result
@@ -2917,7 +2980,7 @@ class Binary(object):
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
         bool: result
@@ -2937,7 +3000,7 @@ class Binary(object):
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
         bool: result
@@ -2957,7 +3020,7 @@ class Binary(object):
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
         bool: result
@@ -2973,14 +3036,14 @@ class Binary(object):
     def __add__(self: Binary, other: Any) -> Binary:
         """Add operation.
 
-        Method that implements the + operand.
+        Method that implements the `+` operand.
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
-        Binary: addittion of the two numbers
+        Binary: addition of the two numbers
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -3005,14 +3068,14 @@ class Binary(object):
     def __sub__(self: Binary, other: Any) -> Binary:
         """Subtraction operation.
 
-        Method that implements the - operand.
+        Method that implements the `-` operand.
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
-        Binary: addittion of the two numbers
+        Binary: substraction of the two numbers
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -3041,7 +3104,7 @@ class Binary(object):
     def __mul__(self: Binary, other: Any) -> Binary:
         """Multiply operation.
 
-        Method that implements the * operand.
+        Method that implements the `*` operand.
 
         Parameters:
         self (Binary): binary number
@@ -3077,7 +3140,7 @@ class Binary(object):
     def __truediv__(self: Binary, other: Any) -> Binary:
         """True division operation.
 
-        Method that implements the / operand.
+        Method that implements the `/` operand.
 
         Parameters:
         self (Binary): binary number
@@ -3115,11 +3178,11 @@ class Binary(object):
     def __floordiv__(self: Binary, other: Any) -> Binary:
         """Floor division operation.
 
-        Method that implements the // operand.
+        Method that implements the `//` operand.
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
         Binary: floor division of the two numbers
@@ -3154,14 +3217,14 @@ class Binary(object):
         """Compute modulo operation.
 
         Method that implements modulo, i.e. it returns the integer remainder.
-        Method that implements the % operand.
+        Method that implements the `%` operand.
 
         Parameters:
         self (Binary): binary number
-        other (Any): binary number
+        other (Any): number
 
         Returns:
-        Binary: modulation of the two numbers
+        Binary: modulo of the two numbers
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -3192,7 +3255,7 @@ class Binary(object):
     def __pow__(self: Binary, other: Any) -> Binary:
         """Power of operation.
 
-        Method that implements the ** operand.
+        Method that implements the `**` operand.
 
         Parameters:
         self (Binary): binary number
@@ -3256,6 +3319,8 @@ class Binary(object):
 
     def __ceil__(self: Binary) -> int:
         """Perform math ceiling operation returning an int.
+
+        TODO continue docstrings review here TODO
 
         Method that implements ceil. This method is invoked by calling
         'math.ceil()'. Note, that math.ceil() will return an int (and NOT
@@ -4204,7 +4269,10 @@ class TestTwosComplement(unittest.TestCase):
         self.assertEqual(TwosComplement.invert("0101010"), "1010101")
         self.assertEqual(TwosComplement.invert("101.010"), "010.101")
         self.assertEqual(TwosComplement.invert("010.1010"), "101.0101")
-        self.assertEqual(TwosComplement.invert("1e1"), "01")
+        self.assertEqual(TwosComplement.invert("1e1"), "0.1e1")
+        self.assertEqual(
+            TwosComplement("1e1", simplify=False).invert().to_no_exponent(), "01"
+        )
         self.assertEqual(
             TwosComplement.invert("0101010e-3", simplify=False), "1010101e-3"
         )
@@ -4214,18 +4282,63 @@ class TestTwosComplement(unittest.TestCase):
         self.assertEqual(TwosComplement.invert("1010101e-34"), "0101010e-34")
         self.assertEqual(TwosComplement.invert("0101010e-34"), "1010101e-34")
         self.assertEqual(
+            TwosComplement.invert("010101e34"),
+            "101010.1111111111111111111111111111111111e34",
+        )
+        self.assertEqual(
+            TwosComplement("010101e34").invert().to_no_exponent(),
+            "1010101111111111111111111111111111111111",
+        )
+        self.assertEqual(
             TwosComplement.invert("101010e34"),
+            "010101.1111111111111111111111111111111111e34",
+        )
+        self.assertEqual(
+            TwosComplement("101010e34").invert().to_no_exponent(),
             "0101011111111111111111111111111111111111",
         )
         self.assertEqual(TwosComplement.invert("010.1010e-34"), "101.0101e-34")
+
         self.assertEqual(
-            TwosComplement.invert("101.010e34"), "0101011111111111111111111111111111111"
+            TwosComplement.invert("101.010e34"),
+            "010.1011111111111111111111111111111111e34",
         )
+        self.assertEqual(
+            TwosComplement("101.010e34").invert().to_no_exponent(),
+            "0101011111111111111111111111111111111",
+        )
+        self.assertEqual(
+            TwosComplement.invert("101.010e1", simplify=False), "010.101e1"
+        )
+        self.assertEqual(
+            TwosComplement("101.010e1", simplify=False)
+            .invert(simplify=False)
+            .to_no_exponent(),
+            "0101.01",
+        )
+        self.assertEqual(
+            TwosComplement("101.010e1", simplify=False).invert(simplify=False),
+            "010.101e1",
+        )
+        self.assertEqual(
+            TwosComplement.invert("101.010e1", simplify=False), "010.101e1"
+        )
+        self.assertEqual(
+            TwosComplement("101.010e1", simplify=False)
+            .invert(simplify=False)
+            .to_no_exponent(),
+            "0101.01",
+        )
+        self.assertEqual(TwosComplement.invert("101.010e0"), "010.101")
         self.assertEqual(
             TwosComplement.invert(TwosComplement.invert("0101010e-34")), "0101010e-34"
         )
         self.assertEqual(
             TwosComplement.invert(TwosComplement.invert("101010e34")),
+            "101010e34",
+        )
+        self.assertEqual(
+            TwosComplement("101010e34").invert().invert().to_no_exponent(),
             "1010100000000000000000000000000000000000",
         )
         with self.assertRaises(ValueError):
@@ -5331,10 +5444,10 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(isinstance(Binary(0).fraction(), Fraction), True)
         self.assertEqual(isinstance(Binary("0").fraction(), Fraction), True)
 
-    def test_value(self):
+    def test_string(self):
         """Test function/method."""
-        self.assertEqual(isinstance(Binary(0).value(), str), True)
-        self.assertEqual(isinstance(Binary("0").value(), str), True)
+        self.assertEqual(isinstance(Binary(0).string(), str), True)
+        self.assertEqual(isinstance(Binary("0").string(), str), True)
 
     def test_fraction_to_string(self):
         """Test function/method."""
@@ -6321,28 +6434,24 @@ class TestBinary(unittest.TestCase):
             ),
             "011100.00e+00",
         )
-        # TODO, NOTE: not yet implemented
         self.assertEqual(
             Binary.from_twoscomplement(
                 TwosComplement("1110.00e+00", simplify=False), simplify=False
             ),
             "-10e0",
         )
-        # TODO, NOTE: not yet implemented
         self.assertEqual(
             Binary.from_twoscomplement(
                 TwosComplement("1110.00e2", simplify=False), simplify=False
             ),
             "-10e2",
         )
-        # TODO, NOTE: not yet implemented
         self.assertEqual(
             Binary.from_twoscomplement(
                 TwosComplement("1110.01e2", simplify=False), simplify=False
             ),
             "-1.11e2",
         )
-        # TODO, NOTE: not yet implemented
         self.assertEqual(
             Binary.from_twoscomplement(
                 TwosComplement("1110.01e-2", simplify=False), simplify=False
