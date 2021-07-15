@@ -508,11 +508,11 @@ the string representation as close to the original as possible.
 
 **Examples**:
 
-- `Example` - TwosComplement(4) returns '0100'
-- `Example` - TwosComplement(-2) returns '10'
-- `Example` - TwosComplement(-1.5) returns '10.1'
-- `Example` - TwosComplement(Fraction(-1.5)) returns '10.1'
-- `Example` - TwosComplement('110.101') returns '110.101'
+  * TwosComplement(4) returns '0100'
+  * TwosComplement(-2) returns '10'
+  * TwosComplement(-1.5) returns '10.1'
+  * TwosComplement(Fraction(-1.5)) returns '10.1'
+  * TwosComplement('110.101') returns '110.101'
 
 
 **Arguments**:
@@ -613,24 +613,24 @@ This is both a function and a method.
 **Examples**:
 
   Here are some examples for `simplify` being False.
-- `Example` - For 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
-- `Example` - For 0, input '0' returns (0, '0', '', 0).
-- `Example` - For -1, input '1' returns (1, '1', '', 0).
-- `Example` - For 1, input '01' returns (0, '01', '', 0).
-- `Example` - For -0.5, input 1.1 returns (1, '1', '1', 0).
-- `Example` - For neg. number, input 101.010e-4 returns (1, '101', '010', -4).
-- `Example` - For pos. number, input 0101.010e-4 returns (0, '0101', '010', -4).
-- `Example` - For input 111101.010000e-4 returns (1, '111101', '010000', -4).
+  * For 3.25*4, input '11.01e2' returns (1, '11', '01', 2).
+  * For 0, input '0' returns (0, '0', '', 0).
+  * For -1, input '1' returns (1, '1', '', 0).
+  * For 1, input '01' returns (0, '01', '', 0).
+  * For -0.5, input 1.1 returns (1, '1', '1', 0).
+  * For neg. number, input 101.010e-4 returns (1, '101', '010', -4).
+  * For pos. number, input 0101.010e-4 returns (0, '0101', '010', -4).
+  * For input 111101.010000e-4 returns (1, '111101', '010000', -4).
 
   Here are some examples for `simplify` being True.
-- `Example` - For -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
-- `Example` - For input '11111111.0111e4' returns (1, '1', '0111', 4).
-- `Example` - For 0, input '0' returns (0, '0', '', 0).
-- `Example` - For -1, input '1' returns (1, '1', '', 0).
-- `Example` - For 1, input '01' returns (0, '01', '', 0).
-- `Example` - For -0.5, input 1.1 returns (1, '1', '1', 0).
-- `Example` - For neg. number, input 111101.0100e-4 returns (1, '101', '01', -4).
-- `Example` - For pos. number, input 0000101.0100e-4 returns (0, '0101', '01', -4).
+  * For -3.25*4, input '1111101.11e2' returns (1, '101', '11', 2).
+  * For input '11111111.0111e4' returns (1, '1', '0111', 4).
+  * For 0, input '0' returns (0, '0', '', 0).
+  * For -1, input '1' returns (1, '1', '', 0).
+  * For 1, input '01' returns (0, '01', '', 0).
+  * For -0.5, input 1.1 returns (1, '1', '1', 0).
+  * For neg. number, input 111101.0100e-4 returns (1, '101', '01', -4).
+  * For pos. number, input 0000101.0100e-4 returns (0, '0101', '01', -4).
 
 
 **Arguments**:
@@ -740,8 +740,8 @@ same value is represented but without mantissa.
 
 **Examples**:
 
-- `Example` - converts 1.1 to 11e-1
-- `Example` - converts 01.11 to 0111e-2
+  * converts 1.1 to 11e-1
+  * converts 01.11 to 0111e-2
 
 
 **Arguments**:
@@ -786,16 +786,16 @@ It removes the exponent, and returns a fully "decimal" twos-complement string.
 
 **Examples**:
 
-- `Example` - converts '011.01e-2' to '0.1101'.
-- `Example` - converts 0.25, '0.1e-1' to '0.01'.
-- `Example` - converts -0.125, '1.111e0' to '1.111'.
-- `Example` - converts -0.25, '1.11e0' to '1.11'.
-- `Example` - converts -0.5, '1.1e0' to '1.1'.
-- `Example` - converts -1.0, '1.e0' to '1'.
-- `Example` - converts -2.0, '1.e1' to '10'.
-- `Example` - converts -3.0, '1.01e2' to '101'.
-- `Example` - converts -1.5, '1.01e1' to '10.1'.
-- `Example` - converts -2.5, '1.011e2' to '101.1'.
+  * converts '011.01e-2' to '0.1101'.
+  * converts 0.25, '0.1e-1' to '0.01'.
+  * converts -0.125, '1.111e0' to '1.111'.
+  * converts -0.25, '1.11e0' to '1.11'.
+  * converts -0.5, '1.1e0' to '1.1'.
+  * converts -1.0, '1.e0' to '1'.
+  * converts -2.0, '1.e1' to '10'.
+  * converts -3.0, '1.01e2' to '101'.
+  * converts -1.5, '1.01e1' to '10.1'.
+  * converts -2.5, '1.011e2' to '101.1'.
 
 
 **Arguments**:
@@ -838,23 +838,23 @@ It negates (flips) every bit in the given twos-complement string.
 
 **Examples**:
 
-- `Example` - invert('01') returns '10' (like decimal: ~1==-2)
-- `Example` - invert('0') returns 1  (like decimal: ~0==-1)
-- `Example` - invert('1') returns 0  (like decimal: ~-1==0)
-- `Example` - invert('10') returns '01'  (like decimal: ~-2==1)
-- `Example` - invert('101010') returns '010101'
-- `Example` - invert('0101010') returns '1010101'
-- `Example` - invert('0101010e-34') returns '1010101e-34'
-- `Example` - invert('1010101e-34') returns '0101010e-34'
-- `Example` - invert(invert('0101010e-34')) returns '0101010e-34'
-- `Example` - invert('010101e34') returns '1010101111111111111111111111111111111111'
-- `Example` - invert('101010e34') returns '0101011111111111111111111111111111111111'
-- `Example` - invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
-- `Example` - invert(invert(n)) == n for all valid n
-- `Example` - invert('1..1') raises exception, 2 decimal points
-- `Example` - invert('34') raises exception, not binary
-- `Example` - invert('1ee2') raises exception, two exponential signs
-- `Example` - invert('1e') raises exception, missing exponent digit
+  * invert('01') returns '10' (like decimal: ~1==-2)
+  * invert('0') returns 1  (like decimal: ~0==-1)
+  * invert('1') returns 0  (like decimal: ~-1==0)
+  * invert('10') returns '01'  (like decimal: ~-2==1)
+  * invert('101010') returns '010101'
+  * invert('0101010') returns '1010101'
+  * invert('0101010e-34') returns '1010101e-34'
+  * invert('1010101e-34') returns '0101010e-34'
+  * invert(invert('0101010e-34')) returns '0101010e-34'
+  * invert('010101e34') returns '1010101111111111111111111111111111111111'
+  * invert('101010e34') returns '0101011111111111111111111111111111111111'
+  * invert(invert('101010e34')) returns '1010100000000000000000000000000000000000'
+  * invert(invert(n)) == n for all valid n
+  * invert('1..1') raises exception, 2 decimal points
+  * invert('34') raises exception, not binary
+  * invert('1ee2') raises exception, two exponential signs
+  * invert('1e') raises exception, missing exponent digit
 
 
 **Arguments**:
@@ -949,11 +949,11 @@ With 'simplify' set to True, simplifications will be performed, e.g.
 
 **Examples**:
 
-- `Example` - Binary(123)
-- `Example` - Binary(123.456)
-- `Example` - Binary(Fraction(179, 1024))
-- `Example` - Binary('-101.0101e-45')
-- `Example` - Binary(TwosComplement(Fraction(179, 1024)))
+  * Binary(123)
+  * Binary(123.456)
+  * Binary(Fraction(179, 1024))
+  * Binary('-101.0101e-45')
+  * Binary(TwosComplement(Fraction(179, 1024)))
 
 
 **Arguments**:
@@ -1040,7 +1040,7 @@ Any possible simplification will be done before any possible length adjustment.
 
 **Examples**:
 
-- `Example` - converts '11.01e-2' to '0.1101'
+  * converts '11.01e-2' to '0.1101'
 
 
 **Arguments**:
@@ -1085,8 +1085,8 @@ The value does not change. The precision does not change.
 
 **Examples**:
 
-- `Example` - converts '1.1' to '11e-1'
-- `Example` - converts '-0.01e-2' to'-1e-4'
+  * converts '1.1' to '11e-1'
+  * converts '-0.01e-2' to'-1e-4'
 
 
 **Arguments**:
@@ -1115,9 +1115,9 @@ without an exponent, same as `to_no_exponent()`.
 
 **Examples**:
 
-- `Example` - converts '1.1' with exp=0 ==> '1.1'
-- `Example` - converts '1.1' with exp=3 ==> '0.0011e3'
-- `Example` - converts '-0.01e-2' with exp=2 ==> '-0.000001e2'
+  * converts '1.1' with exp=0 ==> '1.1'
+  * converts '1.1' with exp=3 ==> '0.0011e3'
+  * converts '-0.01e-2' with exp=2 ==> '-0.000001e2'
 
 
 **Arguments**:
@@ -1148,8 +1148,8 @@ The decimal part is always 1 or -1 except for the number 0.
 
 **Examples**:
 
-- `Example` - converts '1.1' ==> '1.1e0'
-- `Example` - converts '-0.01e-2' ==> '-1e-4'
+  * converts '1.1' ==> '1.1e0'
+  * converts '-0.01e-2' ==> '-1e-4'
 
 
 **Arguments**:
@@ -1189,30 +1189,30 @@ value. It does not change precision.
 
 **Examples**:
 
-- `Example` - convert '1.1' ==> '1.1'
-- `Example` - convert '1.1111' ==> '1.1111'
-- `Example` - convert '100.1111' ==> '100.1111'
-- `Example` - convert '1.1111' ==> '1.1111'
-- `Example` - convert '10.1111' ==> '10.1111'
-- `Example` - convert '100.1111' ==> '100.1111'
-- `Example` - convert '1000.1111' ==> '1000.1111'
-- `Example` - convert 1023 ==> '1111111111' => '1111111111'
-- `Example` - convert 1024 ==> '10000000000' => '1e10'
-- `Example` - convert 1025 ==> '10000000001' => '1.0000000001e10'
-- `Example` - convert 3072 ==> '110000000000' ==> 1.1e10
-- `Example` - convert 1024 ** 2 ==> '1000000000000000000000000000000' => '1e20'
-- `Example` - convert '0.1' => '100000000e-10'
-- `Example` - convert '0.11' => '110000000e-10'
-- `Example` - convert '0.01' => '10000000e-10'
-- `Example` - convert '0.0000000001' => '1e-10'
-- `Example` - convert '0.000000001' => '10e-10'
-- `Example` - convert '0.00000000111' => '11.1e-10'
-- `Example` - convert '.11111e1' ==> '1.1111'
-- `Example` - convert '.011111e2' ==> '1.1111'
-- `Example` - convert '.0011111e3' ==> '1.1111'
-- `Example` - convert '-0.01e-2' ==> '-1e-3' => '-1000000e-10'
-- `Example` - convert '-0.0001e-4' == -0.00000001 ==> '-100e-10',
-- `Example` - convert '-0.0001111e-4' == -0.00000001111 ==> '-111.1e-10',
+  * converts '1.1' ==> '1.1'
+  * converts '1.1111' ==> '1.1111'
+  * converts '100.1111' ==> '100.1111'
+  * converts '1.1111' ==> '1.1111'
+  * converts '10.1111' ==> '10.1111'
+  * converts '100.1111' ==> '100.1111'
+  * converts '1000.1111' ==> '1000.1111'
+  * converts 1023 ==> '1111111111' => '1111111111'
+  * converts 1024 ==> '10000000000' => '1e10'
+  * converts 1025 ==> '10000000001' => '1.0000000001e10'
+  * converts 3072 ==> '110000000000' ==> 1.1e10
+  * converts 1024 ** 2 ==> '1000000000000000000000000000000' => '1e20'
+  * converts '0.1' => '100000000e-10'
+  * converts '0.11' => '110000000e-10'
+  * converts '0.01' => '10000000e-10'
+  * converts '0.0000000001' => '1e-10'
+  * converts '0.000000001' => '10e-10'
+  * converts '0.00000000111' => '11.1e-10'
+  * converts '.11111e1' ==> '1.1111'
+  * converts '.011111e2' ==> '1.1111'
+  * converts '.0011111e3' ==> '1.1111'
+  * converts '-0.01e-2' ==> '-1e-3' => '-1000000e-10'
+  * converts '-0.0001e-4' == -0.00000001 ==> '-100e-10',
+  * converts '-0.0001111e-4' == -0.00000001111 ==> '-111.1e-10',
 
 
 **Arguments**:
@@ -1279,16 +1279,16 @@ See 'TwosComplement' class for more details on twos-complement format.
 
 **Examples**:
 
-- `Example` - converts '-11.1e-2' to '101.1e-2' (-3/4)
-- `Example` - converts '-11', 3 to '101' (3)
-- `Example` - converts '-0.1' to '11.1' (-0.5)
-- `Example` - converts '-1' to '1' (-1)
-- `Example` - converts '-10' to '10' (-2)
-- `Example` - converts '-11' to '101' (-3)
-- `Example` - converts '-100' to '100' (-4)
-- `Example` - converts '-1.5' to '10.1'
-- `Example` - converts '-2.5' to '101.1'
-- `Example` - converts '-2.5e89' to '101.1e89'
+  * converts '-11.1e-2' to '101.1e-2' (-3/4)
+  * converts '-11', 3 to '101' (3)
+  * converts '-0.1' to '11.1' (-0.5)
+  * converts '-1' to '1' (-1)
+  * converts '-10' to '10' (-2)
+  * converts '-11' to '101' (-3)
+  * converts '-100' to '100' (-4)
+  * converts '-1.5' to '10.1'
+  * converts '-2.5' to '101.1'
+  * converts '-2.5e89' to '101.1e89'
 
 
 **Arguments**:
@@ -1330,8 +1330,8 @@ See `TwosComplement` class for more details on twos-complement format.
 
 **Examples**:
 
-- `Example` - converts '1101' to '-11' (-3)
-- `Example` - converts '1101.1e-2' to '-11.1e-2'  (-3.5/4)
+  * converts '1101' to '-11' (-3)
+  * converts '1101.1e-2' to '-11.1e-2'  (-3.5/4)
 
 
 **Arguments**:
@@ -1505,8 +1505,8 @@ Invalid strings can lead to undefined results.
 
 **Examples**:
 
-- `Example` - converts '11.0' to '11'
-- `Example` - converts '0011.0e-0' to '11'
+  * converts '11.0' to '11'
+  * converts '0011.0e-0' to '11'
 
 
 **Arguments**:
@@ -1576,9 +1576,9 @@ This is a utility function.
 
 **Examples**:
 
-- `Example` - converts '11.01e-2' to '0.11' with ndigits==2.
-- `Example` - converts '0.1' to '0' with ndigits==0.
-- `Example` - converts '0.10000001' to '1' with ndigits==0.
+  * converts '11.01e-2' to '0.11' with ndigits==2.
+  * converts '0.1' to '0' with ndigits==0.
+  * converts '0.10000001' to '1' with ndigits==0.
 
 
 **Arguments**:
@@ -1649,7 +1649,7 @@ Return sign, intpart (without sign), fracpart, exp.
 
 **Examples**:
 
-- `Example` - input -11.01e2 ==> (1, '11', '01', 2)
+  * converts -11.01e2 ==> (1, '11', '01', 2)
 
 
 **Arguments**:
@@ -1672,10 +1672,9 @@ Return sign, intpart (without sign), fracpart, exp.
 
 The intpart does not have a sign bit or a sign (-,+).
 
-
 **Examples**:
 
-- `Example` - -11.01e2 ==> (1, '11', '01', 2)
+  * converts -11.01e2 ==> (1, '11', '01', 2)
 
 
 **Arguments**:
@@ -2177,7 +2176,7 @@ a Binary).
 
 **Examples**:
 
-- `Example` - input '1.11' will return 1.
+  * input '1.11' will return 1.
 
 
 **Arguments**:
@@ -2209,7 +2208,7 @@ See method '__ceil__()' for getting an int return.
 
 **Examples**:
 
-- `Example` - input '1.11' will return '0b1' as Binary.
+  * input '1.11' will return '0b1' as Binary.
 
 
 **Arguments**:
@@ -2236,7 +2235,7 @@ a Binary).
 
 **Examples**:
 
-- `Example` - input '1.11' will return 1.
+  * input '1.11' will return 1.
 
 
 
@@ -2269,7 +2268,7 @@ See method '__floor__()' for getting an int return.
 
 **Examples**:
 
-- `Example` - input '1.11' will return '0b1' as Binary.
+  * input '1.11' will return '0b1' as Binary.
 
 
 
@@ -2376,8 +2375,8 @@ For all other values it returns False.
 
 **Examples**:
 
-- `Example` - operation not Binary(0) returns True.
-- `Example` - operation not Binary(3.5) returns False.
+  * operation not Binary(0) returns True.
+  * operation not Binary(3.5) returns False.
 
 
 **Arguments**:
@@ -2407,8 +2406,8 @@ binary string format.
 
 **Examples**:
 
-- `Example` - operation '11.1' & '10.1' will return '10.1'
-- `Example` - operation '-0.1' & '+1' will return '-1'
+  * operation '11.1' & '10.1' will return '10.1'
+  * operation '-0.1' & '+1' will return '-1'
   because twos-complement of '-0.1' is 1.1.
   Further, 1.1 & 01.0 results in twos-complement 1.0,
   and 1.0 in twos-complement is '-1' in binary fraction.
@@ -2442,8 +2441,8 @@ binary string format.
 
 **Examples**:
 
-- `Example` - operation '11.1' | '10.1' will return '11.1'
-- `Example` - operation '-0.1' | '+1' will return '-0.1'
+  * operation '11.1' | '10.1' will return '11.1'
+  * operation '-0.1' | '+1' will return '-0.1'
   because twos-complement of
   '-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
   and 1.1 in twos-complement is '-0.1' in binary fraction.
@@ -2477,8 +2476,8 @@ binary string format.
 
 **Examples**:
 
-- `Example` - operation '11.1' ^ '10.1' will return '1'.
-- `Example` - operation '-0.1' ^ '+1' will return '-1.1' because twos-complement of
+  * operation '11.1' ^ '10.1' will return '1'.
+  * operation '-0.1' ^ '+1' will return '-1.1' because twos-complement of
   '-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
   and 10.1 in twos-complement is '-1.1' in binary fraction.
 
@@ -2516,8 +2515,8 @@ For more information, see also the invert() function.
 
 **Examples**:
 
-- `Example` - operation ~9 will return -10.
-- `Example` - operation ~-10 will return 9.
+  * operation ~9 will return -10.
+  * operation ~-10 will return 9.
 
 
 **Arguments**:
