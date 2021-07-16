@@ -96,7 +96,7 @@ If you are curious about Two's complement:
     - Or look at the pydoc-generated documentation in
   [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 - well tested
-    - over 1500 test cases
+    - over 1600 test cases
 
 
 ## Sample usage, Example calls:
@@ -236,12 +236,12 @@ TwosComplement(-1975.5) = 100001001000.1
 ## Testing, Maturity
 - run `python3 binary_sample.py` to execute a simple sample program
 - run `python3 binary_test.py` to execute all unit tests
-- `Binary` is relatively mature, more than 1500 test cases have been written and all
+- `Binary` is relatively mature, more than 1600 test cases have been written and all
     passed.
 
 ## Contributions:
 - PRs are welcome and very much appreciated! :+1:
-- Please run and pass all existing 1500+ test cases in
+- Please run and pass all existing 1600+ test cases in
     [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
     before issuing a PR.
 - File Format: linted/beautified with [black](https://github.com/psf/black)
