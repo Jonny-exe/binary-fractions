@@ -272,7 +272,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210716-140252"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210716-164214"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1503  # number of asserts in .py file
 
@@ -2526,16 +2526,112 @@ class Binary(object):
         result = Binary.simplify(result)
         return result
 
-    def fill(self: Binary, ndigits: int = 0, strict: bool = False):
-        """Normalize and fill number to `ndigits` digits after decimal point.
+    def lfill(self: Binary, ndigits: int = 0, strict: bool = False):
+        """Normalize and left-fill number to `ndigits` digits after decimal point.
 
-        This is a method. See also function `fill_to()` for more details.
+        This is a method. See also function `lfill_to()` for more details.
+        See also function `rfill()` to perform a right-fill.
+
+        Parameters:
+        ndigits (int): desired number of leading integer digits
+        strict (bool): If True, truncate result by cutting off leading integer digits
+            if input is
+            too long to fit into `ndigits` before the decimal point. This would
+            change the value significantly as the largest-value bits are removed.
+            If True, result will have strictly
+            (i.e. exactly) `ndigits` digits before the (possible) decimal point.
+            If False, never truncate. If False, result can have more than
+            `ndigits` integer
+            digits before the decimal point. In this case the value will not change.
+
+        Returns:
+        Binary: binary string representation of number
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(ndigits, int):
+            raise TypeError(f"Argument {self} must be of type int.")
+        if not isinstance(strict, bool):
+            raise TypeError(f"Argument {self} must be of type bool.")
+        value = self._value
+        return Binary(Binary.lfill_to(value, ndigits, strict))
+
+    def lfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str:
+        """Normalize and left-fill number to n digits after decimal point.
+
+        This is a utility function.
+
+        See also function `rfill_to()` to perform a right-fill.
+
+        Normalizes the input, i.e. it converts it into a representation
+        without an exponent. Then it appends leading '0's to the left,
+        to assure at least `ndigits` digits before the
+        decimal point.
+        This function is a bit similar to the `str.zfill()` method.
+
+        If strict is True and if value does not fit into `ndigit`
+        integer digits before the decimal point,
+        then the integer part is shortened to strictly (exactly) `ndigits` digits.
+        In this case the value changes as the leading digits are cut off.
+
+        If strict is False, the function never shortens, never truncates the result.
+        In this case, the return value could have more than `ndigits`
+        digits before the decimal point.
+
+        Parameters:
+        ndigits (int): desired number of leading integer digits
+        strict (bool): If True, truncate result by cutting off leading integer digits
+            if input is
+            too long to fit into `ndigits` before the decimal point. This would
+            change the value significantly as the largest-value bits are removed.
+            If True, result will have strictly
+            (i.e. exactly) `ndigits` digits before the (possible) decimal point.
+            If False, never truncate. If False, result can have more than
+            `ndigits` integer
+            digits before the decimal point. In this case the value will not change.
+
+        Returns:
+        str: binary string representation of number
+        """
+        if not isinstance(value, str):
+            raise TypeError(f"Argument {value} must be of type str.")
+        if _NAN.lower() in value.lower():
+            raise ValueError(f"Argument 'value' ({value}): cannot fill NaN.")
+        if _INF.lower() in value.lower():
+            raise OverflowError(f"Argument 'value' ({value}): cannot fill infinities.")
+        if ndigits < 0:
+            raise ValueError(
+                f"Argument 'ndigits' ({ndigits}) must be a positive integer."
+            )
+        # TODO: this is the old rfill code, write the new lfill code.
+        value = Binary.to_no_exponent(value)
+        sign, intpart, fracpart, exp = Binary.get_components(value)
+        if ndigits > len(intpart):
+            result = (ndigits - len(intpart)) * "0" + intpart
+        else:
+            if strict:
+                result = intpart[len(intpart) - ndigits :]
+            else:
+                result = intpart
+        if len(result) == 0:
+            result = "0"
+
+        if len(fracpart) > 0:
+            result += "." + fracpart
+        result = "-" + result if sign and result != "0" else result
+        return result
+
+    def rfill(self: Binary, ndigits: int = 0, strict: bool = False):
+        """Normalize and right-fill number to `ndigits` digits after decimal point.
+
+        This is a method. See also function `rfill_to()` for more details.
+        See also function `lfill()` to perform a left-fill.
 
         Parameters:
         ndigits (int): desired number of digits after decimal point, precision
         strict (bool): If True, truncate result by rounding if input is
             too long to fit into ndigits after decimal point. This would
-            remove precision. If True, result will have at strictly
+            remove precision. If True, result will have strictly
             (i.e. exactly) `ndigits` digits after decimal point.
             If False, never truncate. If False, result can have more than
             `ndigits`
@@ -2551,12 +2647,14 @@ class Binary(object):
         if not isinstance(strict, bool):
             raise TypeError(f"Argument {self} must be of type bool.")
         value = self._value
-        return Binary(Binary.fill_to(value, ndigits, strict))
+        return Binary(Binary.rfill_to(value, ndigits, strict))
 
-    def fill_to(value: str, ndigits: int = 0, strict: bool = False) -> str:
-        """Normalize and fill number to n digits after decimal point.
+    def rfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str:
+        """Normalize and right-fill number to n digits after decimal point.
 
         This is a utility function.
+
+        See also function `lfill_to()` to perform a left-fill.
 
         Normalizes the input, i.e. it converts it into a representation
         without an exponent. Then it appends '0's to the right, after the
@@ -2576,7 +2674,7 @@ class Binary(object):
         ndigits (int): desired number of digits after decimal point, precision
         strict (bool): If True, truncate result by rounding if input is
             too long to fit into ndigits after decimal point. This would
-            remove precision. If True, result will have at strictly
+            remove precision. If True, result will have strictly
             (i.e. exactly) `ndigits` digits after decimal point.
             If False, never truncate. If False, result can have more than
             `ndigits`
@@ -2612,7 +2710,7 @@ class Binary(object):
         else:  # strict
             result = Binary.round_to(value, ndigits)
             # rounding can shorten it drastically, 0.1111 => 1
-            return Binary.fill_to(result, ndigits, strict)
+            return Binary.rfill_to(result, ndigits, strict)
 
     def get_components(value: str) -> tuple:
         """Returns sign, integer part (without sign), fractional part, and
@@ -4879,42 +4977,157 @@ class TestBinary(unittest.TestCase):
         with self.assertRaises(OverflowError):
             Binary.round_to("-Inf", 0)  # should fail
 
-    def test_fill(self):
+    def test_lfill(self):
         """Test function/method."""
-        self.assertIsInstance(Binary(1).fill(1), Binary)
-        self.assertIsInstance(Binary.fill_to("1", 1), str)
-        self.assertEqual(Binary("1.1111").fill(1), "1.1111")
-        self.assertEqual(Binary("1.1111").fill(4), "1.1111")
-        self.assertEqual(Binary("1.1111").fill(5), "1.11110")
-        self.assertEqual(Binary("1.1111").fill(6), "1.111100")
-        self.assertEqual(Binary("1.1111").fill(1, True), "10.0")
-        self.assertEqual(Binary("1.1111").fill(4, True), "1.1111")
-        self.assertEqual(Binary("1.1111").fill(5, True), "1.11110")
-        self.assertEqual(Binary("1.1111").fill(6, True), "1.111100")
-        self.assertEqual(Binary("1.0011").fill(1, True), "1.0")
+        self.assertIsInstance(Binary(1).lfill(1), Binary)
+        self.assertIsInstance(Binary.lfill_to("1", 1), str)
+        self.assertEqual(Binary("1.1111").lfill(0), "1.1111")
+        self.assertEqual(Binary("1").lfill(0, strict=True), "0")
+        self.assertEqual(Binary("1010").lfill(0, strict=True), "0")
+        self.assertEqual(Binary("1010").lfill(1, strict=True), "0")
+        self.assertEqual(Binary("1010").lfill(2, strict=True), "10")
+        self.assertEqual(Binary("1010").lfill(3, strict=True), "010")
+        self.assertEqual(Binary("1010").lfill(4, strict=True), "1010")
+        self.assertEqual(Binary("1010").lfill(5, strict=True), "01010")
+        self.assertEqual(Binary("1010").lfill(6, strict=True), "001010")
+        self.assertEqual(Binary("1010").lfill(0, strict=False), "1010")
+        self.assertEqual(Binary("1010").lfill(1, strict=False), "1010")
+        self.assertEqual(Binary("1010").lfill(2, strict=False), "1010")
+        self.assertEqual(Binary("1010").lfill(3, strict=False), "1010")
+        self.assertEqual(Binary("1010").lfill(4, strict=False), "1010")
+        self.assertEqual(Binary("1010").lfill(5, strict=False), "01010")
+        self.assertEqual(Binary("1010").lfill(6, strict=False), "001010")
+        self.assertEqual(Binary("10.10e2").lfill(0, strict=False), "1010")
+        self.assertEqual(Binary("10.10e2").lfill(1, strict=False), "1010")
+        self.assertEqual(Binary("10.10e2").lfill(2, strict=False), "1010")
+        self.assertEqual(Binary("10.10e2").lfill(3, strict=False), "1010")
+        self.assertEqual(Binary("10.10e2").lfill(4, strict=False), "1010")
+        self.assertEqual(Binary("10.10e2").lfill(5, strict=False), "01010")
+        self.assertEqual(Binary("10.10e2").lfill(6, strict=False), "001010")
+        self.assertEqual(Binary("10.10e-1").lfill(0, strict=False), "1.01")
+        self.assertEqual(Binary("10.10e-1").lfill(1, strict=False), "1.01")
+        self.assertEqual(Binary("10.10e-1").lfill(2, strict=False), "01.01")
+        self.assertEqual(Binary("10.10e-1").lfill(3, strict=False), "001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(4, strict=False), "0001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(5, strict=False), "00001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(6, strict=False), "000001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(0, strict=True), "0.01")
+        self.assertEqual(Binary("10.10e-1").lfill(1, strict=True), "1.01")
+        self.assertEqual(Binary("10.10e-1").lfill(2, strict=True), "01.01")
+        self.assertEqual(Binary("10.10e-1").lfill(3, strict=True), "001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(4, strict=True), "0001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(5, strict=True), "00001.01")
+        self.assertEqual(Binary("10.10e-1").lfill(6, strict=True), "000001.01")
+        self.assertEqual(Binary("1.1111").lfill(0, strict=True), "0.1111")
+        self.assertEqual(Binary("1.1111").lfill(1), "1.1111")
+        self.assertEqual(Binary("1.1111").lfill(4), "0001.1111")
+        self.assertEqual(Binary("1.1111").lfill(5), "00001.1111")
+        self.assertEqual(Binary("1.1111").lfill(6), "000001.1111")
+        self.assertEqual(Binary("111111.1111").lfill(0, True), "0.1111")
+        self.assertEqual(Binary("111111.1111").lfill(1, True), "1.1111")
+        self.assertEqual(Binary("111111.1111").lfill(4, True), "1111.1111")
+        self.assertEqual(Binary("111111.1111").lfill(5, True), "11111.1111")
+        self.assertEqual(Binary("111111.1111").lfill(6, True), "111111.1111")
+        self.assertEqual(Binary("111111.0011").lfill(1, True), "1.0011")
         with self.assertRaises(TypeError):
-            Binary.fill(1, "1")  # should fail
+            Binary.lfill(1, "1")  # should fail
         with self.assertRaises(ValueError):
-            Binary(1).fill(-1)  # should fail
+            Binary(1).lfill(-1)  # should fail
 
-    def test_fill_to(self):
+    def test_lfill_to(self):
         """Test function/method."""
-        self.assertIsInstance(Binary.fill_to("1", 1), str)
-        self.assertEqual(Binary.fill_to("1.1111", 1), "1.1111")
-        self.assertEqual(Binary.fill_to("1.1111", 4), "1.1111")
-        self.assertEqual(Binary.fill_to("1.1111", 5), "1.11110")
-        self.assertEqual(Binary.fill_to("1.1111", 6), "1.111100")
-        self.assertEqual(Binary.fill_to("1.1111", 1, True), "10.0")
-        self.assertEqual(Binary.fill_to("1.1111", 4, True), "1.1111")
-        self.assertEqual(Binary.fill_to("1.1111", 5, True), "1.11110")
-        self.assertEqual(Binary.fill_to("1.1111", 6, True), "1.111100")
-        self.assertEqual(Binary.fill_to("1.0011", 1, True), "1.0")
+        self.assertIsInstance(Binary.lfill_to("1", 1), str)
+        self.assertEqual(Binary.lfill_to("1.1111", 0), "1.1111")
+        self.assertEqual(Binary.lfill_to("1", 0, strict=True), "0")
+        self.assertEqual(Binary.lfill_to("1010", 0, strict=True), "0")
+        self.assertEqual(Binary.lfill_to("1010", 1, strict=True), "0")
+        self.assertEqual(Binary.lfill_to("1010", 2, strict=True), "10")
+        self.assertEqual(Binary.lfill_to("1010", 3, strict=True), "010")
+        self.assertEqual(Binary.lfill_to("1010", 4, strict=True), "1010")
+        self.assertEqual(Binary.lfill_to("1010", 5, strict=True), "01010")
+        self.assertEqual(Binary.lfill_to("1010", 6, strict=True), "001010")
+        self.assertEqual(Binary.lfill_to("1010", 0, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("1010", 1, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("1010", 2, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("1010", 3, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("1010", 4, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("1010", 5, strict=False), "01010")
+        self.assertEqual(Binary.lfill_to("1010", 6, strict=False), "001010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 0, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 1, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 2, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 3, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 4, strict=False), "1010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 5, strict=False), "01010")
+        self.assertEqual(Binary.lfill_to("10.10e2", 6, strict=False), "001010")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 0, strict=False), "1.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 1, strict=False), "1.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 2, strict=False), "01.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 3, strict=False), "001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 4, strict=False), "0001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 5, strict=False), "00001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 6, strict=False), "000001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 0, strict=True), "0.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 1, strict=True), "1.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 2, strict=True), "01.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 3, strict=True), "001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 4, strict=True), "0001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 5, strict=True), "00001.01")
+        self.assertEqual(Binary.lfill_to("10.10e-1", 6, strict=True), "000001.01")
+        self.assertEqual(Binary.lfill_to("1.1111", 0, strict=True), "0.1111")
+        self.assertEqual(Binary.lfill_to("1.1111", 1), "1.1111")
+        self.assertEqual(Binary.lfill_to("1.1111", 4), "0001.1111")
+        self.assertEqual(Binary.lfill_to("1.1111", 5), "00001.1111")
+        self.assertEqual(Binary.lfill_to("1.1111", 6), "000001.1111")
+        self.assertEqual(Binary.lfill_to("111111.1111", 0, True), "0.1111")
+        self.assertEqual(Binary.lfill_to("111111.1111", 1, True), "1.1111")
+        self.assertEqual(Binary.lfill_to("111111.1111", 4, True), "1111.1111")
+        self.assertEqual(Binary.lfill_to("111111.1111", 5, True), "11111.1111")
+        self.assertEqual(Binary.lfill_to("111111.1111", 6, True), "111111.1111")
+        self.assertEqual(Binary.lfill_to("111111.0011", 1, True), "1.0011")
         with self.assertRaises(TypeError):
-            Binary.fill_to(1, "1")  # should fail
+            Binary.lfill_to(1, "1")  # should fail
         with self.assertRaises(ValueError):
-            Binary.fill_to("1", -1)  # should fail
+            Binary.lfill_to("1", -1)  # should fail
         with self.assertRaises(OverflowError):
-            Binary.fill_to("-Inf")  # should fail
+            Binary.lfill_to("-Inf")  # should fail
+
+    def test_rfill(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary(1).rfill(1), Binary)
+        self.assertIsInstance(Binary.rfill_to("1", 1), str)
+        self.assertEqual(Binary("1.1111").rfill(1), "1.1111")
+        self.assertEqual(Binary("1.1111").rfill(4), "1.1111")
+        self.assertEqual(Binary("1.1111").rfill(5), "1.11110")
+        self.assertEqual(Binary("1.1111").rfill(6), "1.111100")
+        self.assertEqual(Binary("1.1111").rfill(1, True), "10.0")
+        self.assertEqual(Binary("1.1111").rfill(4, True), "1.1111")
+        self.assertEqual(Binary("1.1111").rfill(5, True), "1.11110")
+        self.assertEqual(Binary("1.1111").rfill(6, True), "1.111100")
+        self.assertEqual(Binary("1.0011").rfill(1, True), "1.0")
+        with self.assertRaises(TypeError):
+            Binary.rfill(1, "1")  # should fail
+        with self.assertRaises(ValueError):
+            Binary(1).rfill(-1)  # should fail
+
+    def test_rfill_to(self):
+        """Test function/method."""
+        self.assertIsInstance(Binary.rfill_to("1", 1), str)
+        self.assertEqual(Binary.rfill_to("1.1111", 1), "1.1111")
+        self.assertEqual(Binary.rfill_to("1.1111", 4), "1.1111")
+        self.assertEqual(Binary.rfill_to("1.1111", 5), "1.11110")
+        self.assertEqual(Binary.rfill_to("1.1111", 6), "1.111100")
+        self.assertEqual(Binary.rfill_to("1.1111", 1, True), "10.0")
+        self.assertEqual(Binary.rfill_to("1.1111", 4, True), "1.1111")
+        self.assertEqual(Binary.rfill_to("1.1111", 5, True), "1.11110")
+        self.assertEqual(Binary.rfill_to("1.1111", 6, True), "1.111100")
+        self.assertEqual(Binary.rfill_to("1.0011", 1, True), "1.0")
+        with self.assertRaises(TypeError):
+            Binary.rfill_to(1, "1")  # should fail
+        with self.assertRaises(ValueError):
+            Binary.rfill_to("1", -1)  # should fail
+        with self.assertRaises(OverflowError):
+            Binary.rfill_to("-Inf")  # should fail
 
     def test_to_no_mantissa(self):
         """Test function/method."""

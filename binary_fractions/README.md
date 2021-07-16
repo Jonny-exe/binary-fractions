@@ -36,8 +36,10 @@
     * [\_\_round\_\_](#binary.Binary.__round__)
     * [round](#binary.Binary.round)
     * [round\_to](#binary.Binary.round_to)
-    * [fill](#binary.Binary.fill)
-    * [fill\_to](#binary.Binary.fill_to)
+    * [lfill](#binary.Binary.lfill)
+    * [lfill\_to](#binary.Binary.lfill_to)
+    * [rfill](#binary.Binary.rfill)
+    * [rfill\_to](#binary.Binary.rfill_to)
     * [get\_components](#binary.Binary.get_components)
     * [components](#binary.Binary.components)
     * [isinfinity](#binary.Binary.isinfinity)
@@ -109,8 +111,10 @@
     * [test\_\_\_round\_\_](#binary.TestBinary.test___round__)
     * [test\_round](#binary.TestBinary.test_round)
     * [test\_round\_to](#binary.TestBinary.test_round_to)
-    * [test\_fill](#binary.TestBinary.test_fill)
-    * [test\_fill\_to](#binary.TestBinary.test_fill_to)
+    * [test\_lfill](#binary.TestBinary.test_lfill)
+    * [test\_lfill\_to](#binary.TestBinary.test_lfill_to)
+    * [test\_rfill](#binary.TestBinary.test_rfill)
+    * [test\_rfill\_to](#binary.TestBinary.test_rfill_to)
     * [test\_to\_no\_mantissa](#binary.TestBinary.test_to_no_mantissa)
     * [test\_to\_exponent](#binary.TestBinary.test_to_exponent)
     * [test\_to\_sci\_exponent](#binary.TestBinary.test_to_sci_exponent)
@@ -1641,23 +1645,100 @@ This is a utility function.
 
 - `str` - binary string representation of number
 
-<a name="binary.Binary.fill"></a>
-#### fill
+<a name="binary.Binary.lfill"></a>
+#### lfill
 
 ```python
- | fill(ndigits: int = 0, strict: bool = False)
+ | lfill(ndigits: int = 0, strict: bool = False)
 ```
 
-Normalize and fill number to `ndigits` digits after decimal point.
+Normalize and left-fill number to `ndigits` digits after decimal point.
 
-This is a method. See also function `fill_to()` for more details.
+This is a method. See also function `lfill_to()` for more details.
+See also function `rfill()` to perform a right-fill.
+
+**Arguments**:
+
+- `ndigits` _int_ - desired number of leading integer digits
+- `strict` _bool_ - If True, truncate result by cutting off leading integer digits
+  if input is
+  too long to fit into `ndigits` before the decimal point. This would
+  change the value significantly as the largest-value bits are removed.
+  If True, result will have strictly
+  (i.e. exactly) `ndigits` digits before the (possible) decimal point.
+  If False, never truncate. If False, result can have more than
+  `ndigits` integer
+  digits before the decimal point. In this case the value will not change.
+
+
+**Returns**:
+
+- `Binary` - binary string representation of number
+
+<a name="binary.Binary.lfill_to"></a>
+#### lfill\_to
+
+```python
+ | lfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str
+```
+
+Normalize and left-fill number to n digits after decimal point.
+
+This is a utility function.
+
+See also function `rfill_to()` to perform a right-fill.
+
+Normalizes the input, i.e. it converts it into a representation
+without an exponent. Then it appends leading '0's to the left,
+to assure at least `ndigits` digits before the
+decimal point.
+This function is a bit similar to the `str.zfill()` method.
+
+If strict is True and if value does not fit into `ndigit`
+integer digits before the decimal point,
+then the integer part is shortened to strictly (exactly) `ndigits` digits.
+In this case the value changes as the leading digits are cut off.
+
+If strict is False, the function never shortens, never truncates the result.
+In this case, the return value could have more than `ndigits`
+digits before the decimal point.
+
+**Arguments**:
+
+- `ndigits` _int_ - desired number of leading integer digits
+- `strict` _bool_ - If True, truncate result by cutting off leading integer digits
+  if input is
+  too long to fit into `ndigits` before the decimal point. This would
+  change the value significantly as the largest-value bits are removed.
+  If True, result will have strictly
+  (i.e. exactly) `ndigits` digits before the (possible) decimal point.
+  If False, never truncate. If False, result can have more than
+  `ndigits` integer
+  digits before the decimal point. In this case the value will not change.
+
+
+**Returns**:
+
+- `str` - binary string representation of number
+
+<a name="binary.Binary.rfill"></a>
+#### rfill
+
+```python
+ | rfill(ndigits: int = 0, strict: bool = False)
+```
+
+Normalize and right-fill number to `ndigits` digits after decimal point.
+
+This is a method. See also function `rfill_to()` for more details.
+See also function `lfill()` to perform a left-fill.
 
 **Arguments**:
 
 - `ndigits` _int_ - desired number of digits after decimal point, precision
 - `strict` _bool_ - If True, truncate result by rounding if input is
   too long to fit into ndigits after decimal point. This would
-  remove precision. If True, result will have at strictly
+  remove precision. If True, result will have strictly
   (i.e. exactly) `ndigits` digits after decimal point.
   If False, never truncate. If False, result can have more than
   `ndigits`
@@ -1668,16 +1749,18 @@ This is a method. See also function `fill_to()` for more details.
 
 - `Binary` - binary string representation of number
 
-<a name="binary.Binary.fill_to"></a>
-#### fill\_to
+<a name="binary.Binary.rfill_to"></a>
+#### rfill\_to
 
 ```python
- | fill_to(value: str, ndigits: int = 0, strict: bool = False) -> str
+ | rfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str
 ```
 
-Normalize and fill number to n digits after decimal point.
+Normalize and right-fill number to n digits after decimal point.
 
 This is a utility function.
+
+See also function `lfill_to()` to perform a left-fill.
 
 Normalizes the input, i.e. it converts it into a representation
 without an exponent. Then it appends '0's to the right, after the
@@ -1698,7 +1781,7 @@ digits after the decimal point.
 - `ndigits` _int_ - desired number of digits after decimal point, precision
 - `strict` _bool_ - If True, truncate result by rounding if input is
   too long to fit into ndigits after decimal point. This would
-  remove precision. If True, result will have at strictly
+  remove precision. If True, result will have strictly
   (i.e. exactly) `ndigits` digits after decimal point.
   If False, never truncate. If False, result can have more than
   `ndigits`
@@ -2962,20 +3045,38 @@ Test function/method for rounding.
 
 Test function/method for rounding.
 
-<a name="binary.TestBinary.test_fill"></a>
-#### test\_fill
+<a name="binary.TestBinary.test_lfill"></a>
+#### test\_lfill
 
 ```python
- | test_fill()
+ | test_lfill()
 ```
 
 Test function/method.
 
-<a name="binary.TestBinary.test_fill_to"></a>
-#### test\_fill\_to
+<a name="binary.TestBinary.test_lfill_to"></a>
+#### test\_lfill\_to
 
 ```python
- | test_fill_to()
+ | test_lfill_to()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_rfill"></a>
+#### test\_rfill
+
+```python
+ | test_rfill()
+```
+
+Test function/method.
+
+<a name="binary.TestBinary.test_rfill_to"></a>
+#### test\_rfill\_to
+
+```python
+ | test_rfill_to()
 ```
 
 Test function/method.
