@@ -268,7 +268,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210716-103308"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210716-114757"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1503  # number of asserts in .py file
 
@@ -2103,6 +2103,8 @@ class Binary(object):
         Returns:
         Fraction: value as fraction
         """
+        if not isinstance(value, str):
+            raise TypeError(f"Argument {value} must be of type str.")
         if _EXP in value:
             value = Binary.to_no_exponent(value)
         sign, intpart, fracpart, exp = Binary.get_components(value)
@@ -2276,7 +2278,7 @@ class Binary(object):
         else:
             return _PREFIX + self._value
 
-    def compare_representation(self: Binary, other: Union[str, Binary]) -> int:
+    def compare_representation(self: Binary, other: Union[str, Binary]) -> bool:
         """Compare representation of self to representation of other string.
 
         Does *NOT* compare values! '1.1' does *NOT* equal to '11e-1' in
@@ -2289,9 +2291,11 @@ class Binary(object):
         other (str, Binary): object to compare to
 
         Returns:
-        int: returns 1 if self > other, 0 if equal, -1 if self < other
+        bool: returns True if both strings match, False otherwise
         """
-        if not isinstance(self, Binary):
+        if not isinstance(self, Binary) or not (
+            isinstance(other, Binary) or isinstance(other, str)
+        ):
             raise TypeError(f"Argument {self} must be of type Binary.")
         # compare representation to another Binary
         if isinstance(other, Binary):
@@ -2301,7 +2305,7 @@ class Binary(object):
         else:
             return str(self._value) == str(other)
 
-    def __repr__(self: Boolean) -> str:
+    def __repr__(self: Binary) -> str:
         """Represents self. Shows details of the given object.
 
         Parameters:
@@ -2389,6 +2393,8 @@ class Binary(object):
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
+        if not isinstance(add_prefix, bool):
+            raise TypeError(f"Argument {value} must be of type bool.")
         if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
             return value
         value = value.replace(_PREFIX, "")  # just in case: remove 0b prefix
@@ -2445,6 +2451,8 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(ndigits, int):
+            raise TypeError(f"Argument {self} must be of type int.")
         value = self._value
         result = Binary.round_to(value, ndigits)
         return Binary(result)
@@ -2534,6 +2542,10 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
+        if not isinstance(ndigits, int):
+            raise TypeError(f"Argument {self} must be of type int.")
+        if not isinstance(strict, bool):
+            raise TypeError(f"Argument {self} must be of type bool.")
         value = self._value
         return Binary(Binary.fill_to(value, ndigits, strict))
 
@@ -2731,6 +2743,8 @@ class Binary(object):
         Returns:
         bool: True if int, False otherwise (i.e. has a non-zero fraction).
         """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
         if self._is_special:
             return False
         return self._fraction == int(self._fraction)
@@ -3030,7 +3044,8 @@ class Binary(object):
             other = Binary(other)
         if self.isnan() or other.isnan():
             return False  # see comments in _cmp()
-        return not self._cmp(other) == 1
+        compare = self._cmp(other)
+        return not compare == 1 or compare == 0
 
     def __ge__(self: Binary, other: Any) -> bool:
         """Greater or equal operation.
@@ -3050,7 +3065,8 @@ class Binary(object):
             other = Binary(other)
         if self.isnan() or other.isnan():
             return False  # see comments in _cmp()
-        return not self._cmp(other) == -1
+        compare = self._cmp(other)
+        return not compare == -1 or compare == 0
 
     def __add__(self: Binary, other: Any) -> Binary:
         """Add operation.
@@ -3897,7 +3913,7 @@ class TestTwosComplement(unittest.TestCase):
     def selftest(self) -> bool:
         """Perform self test by running various test cases.
 
-        Binary uses module unittest for unit testing.
+        `TwosComplement` uses module `unittest` for unit testing.
         See https://docs.python.org/3/library/unittest.html for details.
 
         Parameters:
@@ -4401,7 +4417,7 @@ class TestBinary(unittest.TestCase):
     def selftest(self) -> bool:
         """Perform self test by running various test cases.
 
-        Binary uses module unittest for unit testing.
+        `Binary` uses module `unittest` for unit testing.
         See https://docs.python.org/3/library/unittest.html for details.
 
         Parameters:
@@ -5713,6 +5729,9 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary("+1.0e+1") <= 1, False)
         self.assertEqual(Binary("-100.0e-1") <= -13, False)
         self.assertEqual(Binary("0.000000000000000101") <= Fraction(6, 2 ** 18), True)
+        self.assertEqual(Binary("1") <= Binary("1"), True)
+        self.assertEqual(Binary(1) <= Binary(1), True)
+        self.assertEqual(Binary(1 / 2) <= Binary(1 / 2), True)
         with self.assertRaises(ValueError):
             Binary("-0.01e-2") <= "102"  # should fail
         with self.assertRaises(TypeError):
@@ -5745,6 +5764,8 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary("+1.0e+1") >= 1, True)
         self.assertEqual(Binary("-100.0e-1") >= -13, True)
         self.assertEqual(Binary("0.000000000000000101") >= Fraction(6, 2 ** 18), False)
+        self.assertEqual(Binary(1) >= Binary(1), True)
+        self.assertEqual(Binary(1 / 2) >= Binary(1 / 2), True)
         with self.assertRaises(ValueError):
             Binary("-0.01e-2") >= "102"  # should fail
         with self.assertRaises(TypeError):

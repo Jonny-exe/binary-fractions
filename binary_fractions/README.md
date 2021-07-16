@@ -1426,7 +1426,7 @@ the same but without prefix '0b'.
 #### compare\_representation
 
 ```python
- | compare_representation(other: Union[str, Binary]) -> int
+ | compare_representation(other: Union[str, Binary]) -> bool
 ```
 
 Compare representation of self to representation of other string.
@@ -1444,7 +1444,7 @@ Returns integer.
 
 **Returns**:
 
-- `int` - returns 1 if self > other, 0 if equal, -1 if self < other
+- `bool` - returns True if both strings match, False otherwise
 
 <a name="binary.Binary.__repr__"></a>
 #### \_\_repr\_\_
@@ -2646,7 +2646,7 @@ Unit testing of class TwosComplement.
 
 Perform self test by running various test cases.
 
-Binary uses module unittest for unit testing.
+`TwosComplement` uses module `unittest` for unit testing.
 See https://docs.python.org/3/library/unittest.html for details.
 
 **Arguments**:
@@ -2802,7 +2802,7 @@ Unit testing of class Binary.
 
 Perform self test by running various test cases.
 
-Binary uses module unittest for unit testing.
+`Binary` uses module `unittest` for unit testing.
 See https://docs.python.org/3/library/unittest.html for details.
 
 **Arguments**:
