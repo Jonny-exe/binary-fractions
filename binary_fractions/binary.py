@@ -268,7 +268,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210715-204621"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210716-103308"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1503  # number of asserts in .py file
 
@@ -1619,7 +1619,7 @@ class Binary(object):
         value (str): binary string representation of number
 
         Returns:
-        float or integer: number as float or integer
+        Union[float, int]: number as float or integer
         """
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
@@ -2067,7 +2067,8 @@ class Binary(object):
     def to_fraction(self_value: Union[str, Binary]) -> Fraction:
         """Convert string representation of Binary to Fraction.
 
-        This is a utility function.
+        This is a utility function. If operating on `Binary` use
+        method `fraction()` instead.
 
         Parameters:
         self_value (str, Binary): binary number as string
@@ -2094,7 +2095,7 @@ class Binary(object):
         This is a utility function.
 
         This is an alternative implementation with possibly less precision.
-        Use `to_fraction()` instead.
+        Use function `to_fraction()` or method `fraction()` instead.
 
         Parameters:
         value (str): binary number as string
@@ -2243,10 +2244,12 @@ class Binary(object):
         return result  # int
 
     def __str__(self: Binary) -> str:
-        """Stringify self.
+        """Returns string of the binary fraction.
 
-        Method that implements the string conversion.
+        Method that implements the string conversion `str()`.
         Return format includes the prefix of '0b'.
+        As alternative one can use method `string()` which returns
+        the same but without prefix '0b'.
 
         Examples:
         * 0b1
@@ -2411,9 +2414,10 @@ class Binary(object):
                 return signstr + pre + intpart + "." + fracpart + _EXP + str(exp)
 
     def __round__(self: Binary, ndigits: int = 0) -> Binary:
-        """Normalize and round number to n digits after decimal point.
+        """Normalize and round number to `ndigits` digits after decimal point.
 
-        This is a method. Same as function `round()`.
+        This is a method. It implements the function `round()`.
+        Same as method `round()`.
         See utility function `round_to()` for details and examples.
 
         Parameters:
@@ -2428,7 +2432,7 @@ class Binary(object):
         return self.round(ndigits)
 
     def round(self: Binary, ndigits: int = 0) -> Binary:
-        """Normalize and round number to n digits after decimal point.
+        """Normalize and round number to `ndigits` digits after decimal point.
 
         This is a method. Same as function `__round__()`.
         See utility function `round_to()` for details and examples.
@@ -2446,7 +2450,7 @@ class Binary(object):
         return Binary(result)
 
     def round_to(value: str, ndigits: int = 0) -> str:
-        """Normalize and round number to n digits after decimal point.
+        """Normalize and round number to `ndigits` digits after decimal point.
 
         This is a utility function.
 
@@ -2511,14 +2515,18 @@ class Binary(object):
         return result
 
     def fill(self: Binary, ndigits: int = 0, strict: bool = False):
-        """Normalize and fill number to n digits after decimal point.
+        """Normalize and fill number to `ndigits` digits after decimal point.
 
         This is a method. See also function `fill_to()` for more details.
 
         Parameters:
-        ndigits (int): number of digits after decimal point, precision
-        strict (bool): If True, cut off by rounding if input is too long.
-            If True remove precision if necessary to fit it into ndigits
+        ndigits (int): desired number of digits after decimal point, precision
+        strict (bool): If True, truncate result by rounding if input is
+            too long to fit into ndigits after decimal point. This would
+            remove precision. If True, result will have at strictly
+            (i.e. exactly) `ndigits` digits after decimal point.
+            If False, never truncate. If False, result can have more than
+            `ndigits`
             digits after decimal point.
 
         Returns:
@@ -2535,8 +2543,8 @@ class Binary(object):
         This is a utility function.
 
         Normalizes the input, i.e. it converts it into a representation
-        without an exponent. Then it appends 0s to the end, after the
-        decimal point to assure at least ndigits digits after the
+        without an exponent. Then it appends '0's to the right, after the
+        decimal point, to assure at least `ndigits` digits after the
         decimal point.
 
         If strict is True and if value does not fit into ndigit digits
@@ -2545,15 +2553,18 @@ class Binary(object):
         In this case precision is lost.
 
         If strict is False, never shorten, never truncate the result.
-        In this case more return value could have more than ndigits
+        In this case, the return value could have more than `ndigits`
         digits after the decimal point.
 
         Parameters:
-        ndigits (int): number of digits after decimal point, precision
+        ndigits (int): desired number of digits after decimal point, precision
         strict (bool): If True, truncate result by rounding if input is
             too long to fit into ndigits after decimal point. This would
-            remove precision.
-            If False, never truncate.
+            remove precision. If True, result will have at strictly
+            (i.e. exactly) `ndigits` digits after decimal point.
+            If False, never truncate. If False, result can have more than
+            `ndigits`
+            digits after decimal point.
 
         Returns:
         str: binary string representation of number
@@ -2588,11 +2599,11 @@ class Binary(object):
             return Binary.fill_to(result, ndigits, strict)
 
     def get_components(value: str) -> tuple:
-        """Return sign, integer part (without sign), fractional part, and
+        """Returns sign, integer part (without sign), fractional part, and
         exponent.
 
-        A sign of integer 1 represents negative (-) value. A sign of integer 0
-        represents a positive (+) value
+        A `sign` of integer 1 represents a negative (-) value. A `sign` of integer 0
+        represents a positive (+) value.
 
         Examples:
         * converts 11 ==> (0, '11', '', 0)
@@ -2638,25 +2649,30 @@ class Binary(object):
         return (sign, intpart, fracpart, exp)
 
     def components(self: Binary) -> tuple:
-        """Return sign, intpart (without sign), fracpart, exp.
+        """Returns sign, integer part (without sign), fractional part, and
+        exponent.
 
-        The intpart does not have a sign bit or a sign (-,+).
+        A `sign` of integer 1 represents a negative (-) value. A `sign` of integer 0
+        represents a positive (+) value.
 
         Examples:
+        * converts 11 ==> (0, '11', '', 0)
+        * converts 11.01e3 ==> (0, '11', '01', 3)
         * converts -11.01e2 ==> (1, '11', '01', 2)
 
         Parameters:
-        none
+        value (str): respresentation of a binary
 
         Returns:
-        tuple: tuple of sign, intpart (without sign), fracpart, exp
+        tuple: tuple of 4 elements: sign (int), integer part (without sign) (str),
+            fractional part (str), exponent (int)
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return Binary.get_components(self._value)
 
     def isinfinity(self: Binary) -> bool:
-        """Determine if object is positive or negative Infinity.
+        """Determines if object is positive or negative Infinity.
 
         Parameters:
         none
@@ -2669,7 +2685,7 @@ class Binary(object):
         return _INF in self._value
 
     def isnegativeinfinity(self: Binary) -> bool:
-        """Determine if object is Negative Infinity.
+        """Determines if object is Negative Infinity.
 
         Parameters:
         none
@@ -2682,7 +2698,7 @@ class Binary(object):
         return _NINF in self._value
 
     def ispositiveinfinity(self: Binary) -> bool:
-        """Determine if object is Positive Infinity.
+        """Determines if object is Positive Infinity.
 
         Parameters:
         none
@@ -2695,7 +2711,7 @@ class Binary(object):
         return _INF in self._value and not _NINF in self._value
 
     def isnan(self: Binary) -> bool:
-        """Determine if object is not-a-number (NaN).
+        """Determines if object is not-a-number (NaN).
 
         Parameters:
         none
@@ -2713,7 +2729,7 @@ class Binary(object):
         This is a utility function.
 
         Returns:
-        bool: True if int, False otherwise (has a fraction).
+        bool: True if int, False otherwise (i.e. has a non-zero fraction).
         """
         if self._is_special:
             return False
@@ -2742,7 +2758,7 @@ class Binary(object):
     def fraction(self: Binary) -> Fraction:
         """Extracts Fractional representation from Binary instance.
 
-        A method to get the Binary as a Fraction.
+        A method to get the Binary as a `Fraction`.
 
         Parameters:
         None
@@ -2760,11 +2776,14 @@ class Binary(object):
         A method to get the Binary as a string.
         It does not have a '0b' prefix.
 
+        See also function `__str__()` which implements the `str()` conversion function
+        which returns the string representation, but with a '0b' prefix.
+
         Parameters:
         None
 
         Returns:
-        str: binary number in string representation
+        str: binary number in string representation without prefix '0b'
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -2913,13 +2932,13 @@ class Binary(object):
         return result
 
     def compare(self: Binary, other: Any) -> Binary:
-        """Compares self to other. Returns a Binary value.
+        """Compares `self` to `other`. Returns a Binary value.
 
         ```
-        a or b is a NaN ==> Binary('NaN')
-        a < b           ==> Binary('-1')
-        a == b          ==> Binary('0')
-        a > b           ==> Binary('1')
+        s or o is a NaN ==> Binary('NaN')
+        s < o           ==> Binary('-1')
+        s == o          ==> Binary('0')
+        s > o           ==> Binary('1')
         ```
 
         Parameters:
@@ -2934,9 +2953,9 @@ class Binary(object):
     def __eq__(self: Binary, other: Any) -> bool:
         """Implements equal, implements operand `==`.
 
-        See `_cmp()` for details.
+        Method that implements `==` operand.
 
-        Method that implements "==" operand.
+        See `_cmp()` for details.
 
         Parameters:
         self (Binary): binary fraction number
@@ -2956,7 +2975,7 @@ class Binary(object):
     def __lt__(self: Binary, other: Any) -> bool:
         """Less than operation.
 
-        Method that implements "<" operand.
+        Method that implements `<` operand.
 
         Parameters:
         self (Binary): binary fraction number
@@ -2976,7 +2995,7 @@ class Binary(object):
     def __gt__(self: Binary, other: Any) -> bool:
         """Greater than operation.
 
-        Method that implements ">" operand.
+        Method that implements `>` operand.
 
         Parameters:
         self (Binary): binary number
@@ -2996,7 +3015,7 @@ class Binary(object):
     def __le__(self: Binary, other: Any) -> bool:
         """Less or equal operation.
 
-        Method that implements "<=" operand.
+        Method that implements `<=` operand.
 
         Parameters:
         self (Binary): binary number
@@ -3016,7 +3035,7 @@ class Binary(object):
     def __ge__(self: Binary, other: Any) -> bool:
         """Greater or equal operation.
 
-        Method that implements ">=" operand.
+        Method that implements `>=` operand.
 
         Parameters:
         self (Binary): binary number
@@ -3111,7 +3130,7 @@ class Binary(object):
         other (Any): number
 
         Returns:
-        Binary: multiplication of the two numbers
+        Binary: multiplication, i.e. product, of the two numbers
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -3214,9 +3233,9 @@ class Binary(object):
         return Binary(self._fraction // other._fraction)
 
     def __mod__(self: Binary, other: Any) -> Binary:
-        """Compute modulo operation.
+        """Modulo operation.
 
-        Method that implements modulo, i.e. it returns the integer remainder.
+        Method that implements modulo, i.e. returns the integer remainder.
         Method that implements the `%` operand.
 
         Parameters:
@@ -3299,7 +3318,7 @@ class Binary(object):
         return Binary(po)
 
     def __abs__(self: Binary) -> Binary:
-        """Compute absolute value.
+        """Computes absolute value.
 
         Method that implements absolute value, i.e. the positive value.
 
@@ -3318,13 +3337,11 @@ class Binary(object):
         return Binary(abs(self._fraction))
 
     def __ceil__(self: Binary) -> int:
-        """Perform math ceiling operation returning an int.
+        """Performs math ceiling operation returning an int.
 
-        TODO continue docstrings review here TODO
-
-        Method that implements ceil. This method is invoked by calling
-        'math.ceil()'. Note, that math.ceil() will return an int (and NOT
-        a Binary).
+        Method that implements `ceil`. This method is invoked by calling
+        `math.ceil()`. Note, that `math.ceil()` will return an int (and NOT
+        a Binary). See method `ceil()` for a function that returns a `Binary` instance.
 
         Examples:
         * input '1.11' will return 1.
@@ -3354,8 +3371,8 @@ class Binary(object):
     def ceil(self: Binary) -> Binary:
         """Perform math ceiling operation returning a Binary.
 
-        Method that implements ceil. This method returns a Binary.
-        See method '__ceil__()' for getting an int return.
+        Method that implements `ceil`. This method returns a Binary.
+        See method '__ceil__()' for getting an `int` return.
 
         Examples:
         * input '1.11' will return '0b1' as Binary.
@@ -3379,13 +3396,12 @@ class Binary(object):
     def __floor__(self: Binary) -> int:
         """Perform math floor operation returning an int.
 
-        Method that implements floor. This method is invoked by calling
-        'math.floor()'. Note, that math.floor() will return an int (and NOT
-        a Binary).
+        Method that implements `floor`. This method is invoked by calling
+        `math.floor()`. Note, that `math.floor()` will return an int (and NOT
+        a Binary). See method `floor()` for a function that returns a `Binary` instance.
 
         Examples:
-        * input '1.11' will return 1.
-
+        * input '1.11' will return int 1.
 
         Parameters:
         self (Binary): binary number.
@@ -3412,12 +3428,11 @@ class Binary(object):
     def floor(self: Binary) -> Binary:
         """Perform math floor operation returning a Binary.
 
-        Method that implements floor. This method returns a Binary.
+        Method that implements `floor`. This method returns a Binary.
         See method '__floor__()' for getting an int return.
 
         Examples:
         * input '1.11' will return '0b1' as Binary.
-
 
         Parameters:
         self (Binary): binary number.
@@ -3436,9 +3451,9 @@ class Binary(object):
         return Binary(math.floor(self._fraction))
 
     def __rshift__(self: Binary, ndigits: int) -> Binary:
-        """Shifts number n digits (bits) to the right.
+        """Shifts number `ndigits` digits (bits) to the right.
 
-        Method that implementes >> operand.
+        Method that implementes `>>` operand.
 
         As example, shifting right by 1, divides the number by 2.
         The string representation will be changed as little as possible.
@@ -3489,9 +3504,9 @@ class Binary(object):
         return Binary(shifted)
 
     def __lshift__(self: Binary, ndigits: int) -> Binary:
-        """Shifts number n digits (bits) to the left.
+        """Shifts number `ndigits` digits (bits) to the left.
 
-        Method that implementes << operand.
+        Method that implementes `<<` operand.
 
         As example, shifting left by 1, multiplies the number by 2.
         The string representation will be changed as little as possible.
@@ -3544,10 +3559,12 @@ class Binary(object):
         return Binary(shifted)
 
     def __bool__(self: Binary) -> bool:
-        """Boolean transformation. Used for bool() and not operand.
+        """Boolean transformation. Used for `bool()` and `not` operand.
 
-        Method that implements transformation to boolean. This
-        boolian transformation is then used by operations like "not".
+        Method that implements transformation to boolean `bool`. This
+        boolean transformation is then used by operations like `not`.
+
+        Number 0 returns `False`. All other numbers return `True`.
 
         Parameters:
         self (Binary): binary number
@@ -3564,8 +3581,8 @@ class Binary(object):
     def __not__(self: Binary) -> bool:
         """Return the 'boolean not' of self.
 
-        Method that implements the 'not' operand.
-        Do not confuse it with the 'bitwise not' operand ~.
+        Method that implements the `not` operand.
+        Do not confuse it with the 'bitwise not' operand `~`.
 
         If self is 0, then method returns True.
         For all other values it returns False.
@@ -3585,7 +3602,7 @@ class Binary(object):
     def __and__(self: Binary, other: Any) -> Binary:
         """Return the bitwise 'and' of self and other.
 
-        Method that implements the & operand.
+        Method that implements the `&` operand.
 
         Any negative number will be converted into twos-complement
         representation, than bitwise-and will be done, then the resulting
@@ -3597,7 +3614,8 @@ class Binary(object):
         * operation '-0.1' & '+1' will return '-1'
             because twos-complement of '-0.1' is 1.1.
             Further, 1.1 & 01.0 results in twos-complement 1.0,
-            and 1.0 in twos-complement is '-1' in binary fraction.
+            and 1.0 in twos-complement is '-1' in binary fraction. Leading to the
+            final result '-1' (or '-0b1').
 
         Parameters:
         self (Binary): binary number
@@ -3621,7 +3639,7 @@ class Binary(object):
     def __or__(self: Binary, other: Any) -> Binary:
         """Return the bitwise 'or' of self and other.
 
-        Method that implements the | operand.
+        Method that implements the `|` operand.
 
         Any negative number will be converted into twos-complement
         representation, than bitwise-or will be done, then the resulting
@@ -3633,7 +3651,8 @@ class Binary(object):
         * operation '-0.1' | '+1' will return '-0.1'
         because twos-complement of
         '-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
-        and 1.1 in twos-complement is '-0.1' in binary fraction.
+        and 1.1 in twos-complement is '-0.1' in binary fraction. Hence, the
+        final result of '-0.1'.
 
         Parameters:
         self (Binary): binary number
@@ -3656,10 +3675,10 @@ class Binary(object):
     def __xor__(self: Binary, other: Any) -> Binary:
         """Return the bitwise 'xor' of self and other.
 
-        Method that implements the ^ operand.
+        Method that implements the `^` operand.
 
         Any negative number will be converted into twos-complement
-        representation, than bitwise-or will be done, then the resulting
+        representation, than bitwise-xor will be done, then the resulting
         number will be converted back from twos-complement to
         binary string format.
 
@@ -3667,7 +3686,8 @@ class Binary(object):
         * operation '11.1' ^ '10.1' will return '1'.
         * operation '-0.1' ^ '+1' will return '-1.1' because twos-complement of
         '-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
-        and 10.1 in twos-complement is '-1.1' in binary fraction.
+        and 10.1 in twos-complement is '-1.1' in binary fraction. Hence, the final
+        result of '-1.1'.
 
         Parameters:
         self (Binary): binary number
@@ -3804,16 +3824,27 @@ class Binary(object):
     def __invert__(self: Binary) -> Binary:
         """Returns the 'bitwise not' of self.
 
-        Method that implements the ~ operand.
+        Method that implements the 'bitwise not' operand `~`.
         This is also called the 'invert' operand, or the 'bitwise not' operand.
         Do not confuse it with the 'boolean not' operand implemented
-        via the 'not' operand and the __not__() method.
+        via the `not` operand and the `__not__()` method.
 
         It is only defined for integers. If self is not an integer it
-        will raise an exception. For integers ~ is defined as
-        ~n = -(n+1).
+        will raise an exception. For integers, `~` is defined as
+        `~n = -(n+1)`.
 
-        For more information, see also the invert() function.
+        To perform `~` on a non-integer Binary instance, convert it to
+        two's complement string of class `TwosComplement`, adjust that string
+        to the desired representation with the desired mantissa and exponent,
+        and then perform `TwosComplement.invert()` on that string.
+        In short, for non-integer binary fractions, do this:
+        `TwosComplement.invert(Binary.to_twoscomplement(value))`.
+        Forcing the user to do this, will lead to more awareness of how to represent
+        the number before inverting it. If arbitrary Binary or float values were
+        allowed to be inverted directly it would lead to unexpected results.
+        To avoid confusion this additional 'manual' step was introduced.
+
+        For more information, see also the `TwosComplement.invert()` function.
 
         Examples:
         * operation ~9 will return -10.
@@ -3823,7 +3854,7 @@ class Binary(object):
         self (Binary): number
 
         Returns:
-        Binary: 'bitwise not' of integer number
+        Binary: 'bitwise not' (`~`) of integer number
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Arguments {self} must be of type Binary.")
@@ -3848,7 +3879,7 @@ class Binary(object):
 
             raise ValueError(
                 f"Invalid literal for Binary: {self._value}. "
-                "~ operand only allowed on integers or fractions. "
+                "~ operand only allowed on integers and integer fractions. "
                 "To perform ~ on Binary, convert it to two's complement string"
                 "and then perform invert() on that string. In short, do this: "
                 "TwosComplement.invert(Binary.to_twoscomplement(value))."

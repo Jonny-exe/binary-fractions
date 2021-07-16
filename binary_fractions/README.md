@@ -1003,7 +1003,7 @@ If you need maximum precision consider working with `Fractions.`
 
 **Returns**:
 
-  float or integer: number as float or integer
+  Union[float, int]: number as float or integer
 
 <a name="binary.Binary.from_float"></a>
 #### from\_float
@@ -1242,7 +1242,8 @@ value. It does not change precision.
 
 Convert string representation of Binary to Fraction.
 
-This is a utility function.
+This is a utility function. If operating on `Binary` use
+method `fraction()` instead.
 
 **Arguments**:
 
@@ -1265,7 +1266,7 @@ Convert string representation of Binary to Fraction.
 This is a utility function.
 
 This is an alternative implementation with possibly less precision.
-Use `to_fraction()` instead.
+Use function `to_fraction()` or method `fraction()` instead.
 
 **Arguments**:
 
@@ -1397,10 +1398,12 @@ This method converts a Binary to an integer.
  | __str__() -> str
 ```
 
-Stringify self.
+Returns string of the binary fraction.
 
-Method that implements the string conversion.
+Method that implements the string conversion `str()`.
 Return format includes the prefix of '0b'.
+As alternative one can use method `string()` which returns
+the same but without prefix '0b'.
 
 **Examples**:
 
@@ -1567,9 +1570,10 @@ Do *NOT* use it on Twos-complement strings!
  | __round__(ndigits: int = 0) -> Binary
 ```
 
-Normalize and round number to n digits after decimal point.
+Normalize and round number to `ndigits` digits after decimal point.
 
-This is a method. Same as function `round()`.
+This is a method. It implements the function `round()`.
+Same as method `round()`.
 See utility function `round_to()` for details and examples.
 
 **Arguments**:
@@ -1591,7 +1595,7 @@ See utility function `round_to()` for details and examples.
  | round(ndigits: int = 0) -> Binary
 ```
 
-Normalize and round number to n digits after decimal point.
+Normalize and round number to `ndigits` digits after decimal point.
 
 This is a method. Same as function `__round__()`.
 See utility function `round_to()` for details and examples.
@@ -1612,7 +1616,7 @@ See utility function `round_to()` for details and examples.
  | round_to(value: str, ndigits: int = 0) -> str
 ```
 
-Normalize and round number to n digits after decimal point.
+Normalize and round number to `ndigits` digits after decimal point.
 
 This is a utility function.
 
@@ -1640,15 +1644,19 @@ This is a utility function.
  | fill(ndigits: int = 0, strict: bool = False)
 ```
 
-Normalize and fill number to n digits after decimal point.
+Normalize and fill number to `ndigits` digits after decimal point.
 
 This is a method. See also function `fill_to()` for more details.
 
 **Arguments**:
 
-- `ndigits` _int_ - number of digits after decimal point, precision
-- `strict` _bool_ - If True, cut off by rounding if input is too long.
-  If True remove precision if necessary to fit it into ndigits
+- `ndigits` _int_ - desired number of digits after decimal point, precision
+- `strict` _bool_ - If True, truncate result by rounding if input is
+  too long to fit into ndigits after decimal point. This would
+  remove precision. If True, result will have at strictly
+  (i.e. exactly) `ndigits` digits after decimal point.
+  If False, never truncate. If False, result can have more than
+  `ndigits`
   digits after decimal point.
 
 
@@ -1668,8 +1676,8 @@ Normalize and fill number to n digits after decimal point.
 This is a utility function.
 
 Normalizes the input, i.e. it converts it into a representation
-without an exponent. Then it appends 0s to the end, after the
-decimal point to assure at least ndigits digits after the
+without an exponent. Then it appends '0's to the right, after the
+decimal point, to assure at least `ndigits` digits after the
 decimal point.
 
 If strict is True and if value does not fit into ndigit digits
@@ -1678,16 +1686,19 @@ then shorten fractional part to strictly (exactly) ndigits.
 In this case precision is lost.
 
 If strict is False, never shorten, never truncate the result.
-In this case more return value could have more than ndigits
+In this case, the return value could have more than `ndigits`
 digits after the decimal point.
 
 **Arguments**:
 
-- `ndigits` _int_ - number of digits after decimal point, precision
+- `ndigits` _int_ - desired number of digits after decimal point, precision
 - `strict` _bool_ - If True, truncate result by rounding if input is
   too long to fit into ndigits after decimal point. This would
-  remove precision.
-  If False, never truncate.
+  remove precision. If True, result will have at strictly
+  (i.e. exactly) `ndigits` digits after decimal point.
+  If False, never truncate. If False, result can have more than
+  `ndigits`
+  digits after decimal point.
 
 
 **Returns**:
@@ -1701,11 +1712,11 @@ digits after the decimal point.
  | get_components(value: str) -> tuple
 ```
 
-Return sign, integer part (without sign), fractional part, and
+Returns sign, integer part (without sign), fractional part, and
 exponent.
 
-A sign of integer 1 represents negative (-) value. A sign of integer 0
-represents a positive (+) value
+A `sign` of integer 1 represents a negative (-) value. A `sign` of integer 0
+represents a positive (+) value.
 
 **Examples**:
 
@@ -1731,23 +1742,28 @@ represents a positive (+) value
  | components() -> tuple
 ```
 
-Return sign, intpart (without sign), fracpart, exp.
+Returns sign, integer part (without sign), fractional part, and
+exponent.
 
-The intpart does not have a sign bit or a sign (-,+).
+A `sign` of integer 1 represents a negative (-) value. A `sign` of integer 0
+represents a positive (+) value.
 
 **Examples**:
 
+  * converts 11 ==> (0, '11', '', 0)
+  * converts 11.01e3 ==> (0, '11', '01', 3)
   * converts -11.01e2 ==> (1, '11', '01', 2)
 
 
 **Arguments**:
 
-  none
+- `value` _str_ - respresentation of a binary
 
 
 **Returns**:
 
-- `tuple` - tuple of sign, intpart (without sign), fracpart, exp
+- `tuple` - tuple of 4 elements: sign (int), integer part (without sign) (str),
+  fractional part (str), exponent (int)
 
 <a name="binary.Binary.isinfinity"></a>
 #### isinfinity
@@ -1756,7 +1772,7 @@ The intpart does not have a sign bit or a sign (-,+).
  | isinfinity() -> bool
 ```
 
-Determine if object is positive or negative Infinity.
+Determines if object is positive or negative Infinity.
 
 **Arguments**:
 
@@ -1774,7 +1790,7 @@ Determine if object is positive or negative Infinity.
  | isnegativeinfinity() -> bool
 ```
 
-Determine if object is Negative Infinity.
+Determines if object is Negative Infinity.
 
 **Arguments**:
 
@@ -1792,7 +1808,7 @@ Determine if object is Negative Infinity.
  | ispositiveinfinity() -> bool
 ```
 
-Determine if object is Positive Infinity.
+Determines if object is Positive Infinity.
 
 **Arguments**:
 
@@ -1810,7 +1826,7 @@ Determine if object is Positive Infinity.
  | isnan() -> bool
 ```
 
-Determine if object is not-a-number (NaN).
+Determines if object is not-a-number (NaN).
 
 **Arguments**:
 
@@ -1834,7 +1850,7 @@ This is a utility function.
 
 **Returns**:
 
-- `bool` - True if int, False otherwise (has a fraction).
+- `bool` - True if int, False otherwise (i.e. has a non-zero fraction).
 
 <a name="binary.Binary.fraction"></a>
 #### fraction
@@ -1845,7 +1861,7 @@ This is a utility function.
 
 Extracts Fractional representation from Binary instance.
 
-A method to get the Binary as a Fraction.
+A method to get the Binary as a `Fraction`.
 
 **Arguments**:
 
@@ -1868,6 +1884,9 @@ Extracts string representation from Binary instance.
 A method to get the Binary as a string.
 It does not have a '0b' prefix.
 
+See also function `__str__()` which implements the `str()` conversion function
+which returns the string representation, but with a '0b' prefix.
+
 **Arguments**:
 
   None
@@ -1875,7 +1894,7 @@ It does not have a '0b' prefix.
 
 **Returns**:
 
-- `str` - binary number in string representation
+- `str` - binary number in string representation without prefix '0b'
 
 <a name="binary.Binary.fraction_to_string"></a>
 #### fraction\_to\_string
@@ -1933,14 +1952,14 @@ created from floats with precision errors.
  | compare(other: Any) -> Binary
 ```
 
-Compares self to other. Returns a Binary value.
+Compares `self` to `other`. Returns a Binary value.
 
 
 ```
-a or b is a NaN ==> Binary('NaN')
-a < b           ==> Binary('-1')
-a == b          ==> Binary('0')
-a > b           ==> Binary('1')
+s or o is a NaN ==> Binary('NaN')
+s < o           ==> Binary('-1')
+s == o          ==> Binary('0')
+s > o           ==> Binary('1')
 ```
 
 **Arguments**:
@@ -1962,9 +1981,9 @@ a > b           ==> Binary('1')
 
 Implements equal, implements operand `==`.
 
-See `_cmp()` for details.
+Method that implements `==` operand.
 
-Method that implements "==" operand.
+See `_cmp()` for details.
 
 **Arguments**:
 
@@ -1985,7 +2004,7 @@ Method that implements "==" operand.
 
 Less than operation.
 
-Method that implements "<" operand.
+Method that implements `<` operand.
 
 **Arguments**:
 
@@ -2006,7 +2025,7 @@ Method that implements "<" operand.
 
 Greater than operation.
 
-Method that implements ">" operand.
+Method that implements `>` operand.
 
 **Arguments**:
 
@@ -2027,7 +2046,7 @@ Method that implements ">" operand.
 
 Less or equal operation.
 
-Method that implements "<=" operand.
+Method that implements `<=` operand.
 
 **Arguments**:
 
@@ -2048,7 +2067,7 @@ Method that implements "<=" operand.
 
 Greater or equal operation.
 
-Method that implements ">=" operand.
+Method that implements `>=` operand.
 
 **Arguments**:
 
@@ -2121,7 +2140,7 @@ Method that implements the `*` operand.
 
 **Returns**:
 
-- `Binary` - multiplication of the two numbers
+- `Binary` - multiplication, i.e. product, of the two numbers
 
 <a name="binary.Binary.__truediv__"></a>
 #### \_\_truediv\_\_
@@ -2172,9 +2191,9 @@ Method that implements the `//` operand.
  | __mod__(other: Any) -> Binary
 ```
 
-Compute modulo operation.
+Modulo operation.
 
-Method that implements modulo, i.e. it returns the integer remainder.
+Method that implements modulo, i.e. returns the integer remainder.
 Method that implements the `%` operand.
 
 **Arguments**:
@@ -2215,7 +2234,7 @@ Method that implements the `**` operand.
  | __abs__() -> Binary
 ```
 
-Compute absolute value.
+Computes absolute value.
 
 Method that implements absolute value, i.e. the positive value.
 
@@ -2235,13 +2254,11 @@ Method that implements absolute value, i.e. the positive value.
  | __ceil__() -> int
 ```
 
-Perform math ceiling operation returning an int.
+Performs math ceiling operation returning an int.
 
-TODO continue docstrings review here TODO
-
-Method that implements ceil. This method is invoked by calling
-'math.ceil()'. Note, that math.ceil() will return an int (and NOT
-a Binary).
+Method that implements `ceil`. This method is invoked by calling
+`math.ceil()`. Note, that `math.ceil()` will return an int (and NOT
+a Binary). See method `ceil()` for a function that returns a `Binary` instance.
 
 **Examples**:
 
@@ -2272,8 +2289,8 @@ a Binary).
 
 Perform math ceiling operation returning a Binary.
 
-Method that implements ceil. This method returns a Binary.
-See method '__ceil__()' for getting an int return.
+Method that implements `ceil`. This method returns a Binary.
+See method '__ceil__()' for getting an `int` return.
 
 **Examples**:
 
@@ -2298,14 +2315,13 @@ See method '__ceil__()' for getting an int return.
 
 Perform math floor operation returning an int.
 
-Method that implements floor. This method is invoked by calling
-'math.floor()'. Note, that math.floor() will return an int (and NOT
-a Binary).
+Method that implements `floor`. This method is invoked by calling
+`math.floor()`. Note, that `math.floor()` will return an int (and NOT
+a Binary). See method `floor()` for a function that returns a `Binary` instance.
 
 **Examples**:
 
-  * input '1.11' will return 1.
-
+  * input '1.11' will return int 1.
 
 
 **Arguments**:
@@ -2332,13 +2348,12 @@ a Binary).
 
 Perform math floor operation returning a Binary.
 
-Method that implements floor. This method returns a Binary.
+Method that implements `floor`. This method returns a Binary.
 See method '__floor__()' for getting an int return.
 
 **Examples**:
 
   * input '1.11' will return '0b1' as Binary.
-
 
 
 **Arguments**:
@@ -2357,9 +2372,9 @@ See method '__floor__()' for getting an int return.
  | __rshift__(ndigits: int) -> Binary
 ```
 
-Shifts number n digits (bits) to the right.
+Shifts number `ndigits` digits (bits) to the right.
 
-Method that implementes >> operand.
+Method that implementes `>>` operand.
 
 As example, shifting right by 1, divides the number by 2.
 The string representation will be changed as little as possible.
@@ -2385,9 +2400,9 @@ moved to the left.
  | __lshift__(ndigits: int) -> Binary
 ```
 
-Shifts number n digits (bits) to the left.
+Shifts number `ndigits` digits (bits) to the left.
 
-Method that implementes << operand.
+Method that implementes `<<` operand.
 
 As example, shifting left by 1, multiplies the number by 2.
 The string representation will be changed as little as possible.
@@ -2413,10 +2428,12 @@ moved to the right.
  | __bool__() -> bool
 ```
 
-Boolean transformation. Used for bool() and not operand.
+Boolean transformation. Used for `bool()` and `not` operand.
 
-Method that implements transformation to boolean. This
-boolian transformation is then used by operations like "not".
+Method that implements transformation to boolean `bool`. This
+boolean transformation is then used by operations like `not`.
+
+Number 0 returns `False`. All other numbers return `True`.
 
 **Arguments**:
 
@@ -2436,8 +2453,8 @@ boolian transformation is then used by operations like "not".
 
 Return the 'boolean not' of self.
 
-Method that implements the 'not' operand.
-Do not confuse it with the 'bitwise not' operand ~.
+Method that implements the `not` operand.
+Do not confuse it with the 'bitwise not' operand `~`.
 
 If self is 0, then method returns True.
 For all other values it returns False.
@@ -2466,7 +2483,7 @@ For all other values it returns False.
 
 Return the bitwise 'and' of self and other.
 
-Method that implements the & operand.
+Method that implements the `&` operand.
 
 Any negative number will be converted into twos-complement
 representation, than bitwise-and will be done, then the resulting
@@ -2479,7 +2496,8 @@ binary string format.
   * operation '-0.1' & '+1' will return '-1'
   because twos-complement of '-0.1' is 1.1.
   Further, 1.1 & 01.0 results in twos-complement 1.0,
-  and 1.0 in twos-complement is '-1' in binary fraction.
+  and 1.0 in twos-complement is '-1' in binary fraction. Leading to the
+  final result '-1' (or '-0b1').
 
 
 **Arguments**:
@@ -2501,7 +2519,7 @@ binary string format.
 
 Return the bitwise 'or' of self and other.
 
-Method that implements the | operand.
+Method that implements the `|` operand.
 
 Any negative number will be converted into twos-complement
 representation, than bitwise-or will be done, then the resulting
@@ -2514,7 +2532,8 @@ binary string format.
   * operation '-0.1' | '+1' will return '-0.1'
   because twos-complement of
   '-0.1' is 1.1; and 1.1 | 01.0 results in twos-complement 1.1;
-  and 1.1 in twos-complement is '-0.1' in binary fraction.
+  and 1.1 in twos-complement is '-0.1' in binary fraction. Hence, the
+  final result of '-0.1'.
 
 
 **Arguments**:
@@ -2536,10 +2555,10 @@ binary string format.
 
 Return the bitwise 'xor' of self and other.
 
-Method that implements the ^ operand.
+Method that implements the `^` operand.
 
 Any negative number will be converted into twos-complement
-representation, than bitwise-or will be done, then the resulting
+representation, than bitwise-xor will be done, then the resulting
 number will be converted back from twos-complement to
 binary string format.
 
@@ -2548,7 +2567,8 @@ binary string format.
   * operation '11.1' ^ '10.1' will return '1'.
   * operation '-0.1' ^ '+1' will return '-1.1' because twos-complement of
   '-0.1' is 1.1; and 1.1 ^ 01.0 results in twos-complement 10.1;
-  and 10.1 in twos-complement is '-1.1' in binary fraction.
+  and 10.1 in twos-complement is '-1.1' in binary fraction. Hence, the final
+  result of '-1.1'.
 
 
 **Arguments**:
@@ -2571,16 +2591,27 @@ binary string format.
 
 Returns the 'bitwise not' of self.
 
-Method that implements the ~ operand.
+Method that implements the 'bitwise not' operand `~`.
 This is also called the 'invert' operand, or the 'bitwise not' operand.
 Do not confuse it with the 'boolean not' operand implemented
-via the 'not' operand and the __not__() method.
+via the `not` operand and the `__not__()` method.
 
 It is only defined for integers. If self is not an integer it
-will raise an exception. For integers ~ is defined as
-~n = -(n+1).
+will raise an exception. For integers, `~` is defined as
+`~n = -(n+1)`.
 
-For more information, see also the invert() function.
+To perform `~` on a non-integer Binary instance, convert it to
+two's complement string of class `TwosComplement`, adjust that string
+to the desired representation with the desired mantissa and exponent,
+and then perform `TwosComplement.invert()` on that string.
+In short, for non-integer binary fractions, do this:
+`TwosComplement.invert(Binary.to_twoscomplement(value))`.
+Forcing the user to do this, will lead to more awareness of how to represent
+the number before inverting it. If arbitrary Binary or float values were
+allowed to be inverted directly it would lead to unexpected results.
+To avoid confusion this additional 'manual' step was introduced.
+
+For more information, see also the `TwosComplement.invert()` function.
 
 **Examples**:
 
@@ -2595,7 +2626,7 @@ For more information, see also the invert() function.
 
 **Returns**:
 
-- `Binary` - 'bitwise not' of integer number
+- `Binary` - 'bitwise not' (`~`) of integer number
 
 <a name="binary.TestTwosComplement"></a>
 ## TestTwosComplement Objects
