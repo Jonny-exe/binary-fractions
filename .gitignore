@@ -4,3 +4,5 @@ binary_fractions/pydoc-markdown.yml
 temp/
 tmp/
 binary_fractions_old/
+dist
+binary_fractions.egg-info

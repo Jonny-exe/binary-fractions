@@ -4,8 +4,7 @@
 
 # Install with: pip3 install --upgrade binary-fractions
 if __name__ == "__main__":
-    from binary_fractions import TwosComplement
-    from binary_fractions import Binary
+    from binary_fractions import TwosComplement, Binary
     from math import ceil, floor
 
     bf1str: str = "-1.01"  # -1.25
