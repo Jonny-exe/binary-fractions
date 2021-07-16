@@ -1,0 +1,5 @@
+go to stackoverflow.com, search for "binary math", "binary fractions" and where there are matches add comment/entry to reference this module in PyPi
+announce it on HN
+code clean up
+improve pydoc by revising docstrings
+run mypy to find bugs or problems
