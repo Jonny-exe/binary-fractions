@@ -88,6 +88,10 @@ If you are curious about Two's complement:
 - constructors for various types: int, float, Fraction, str, TwosComplement, Binary
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
 - supports many methods: not, abs, round, floor, ceil, ...
+- internally the value is kept as a Fraction and most operations are done
+	in Fractions. This results in better performance and infinite precision.
+	Only a few limited operations such as 'and', 'or', 'xor', and 'invert'
+	are done on strings.
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
@@ -272,7 +276,7 @@ _NAN = "NaN"
 _INF = "Inf"
 _NINF = "-Inf"
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210716-184259"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210717-103913"  # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1646  # number of asserts in .py file
 
@@ -2463,12 +2467,16 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type int.")
         value = self._value
         result = Binary.round_to(value, ndigits, simplify)
-        return Binary(result)
+        return Binary(result, simplify)
 
     def round_to(value: str, ndigits: int = 0, simplify: bool = True) -> str:
         """Normalize and round number to `ndigits` digits after decimal point.
 
         This is a utility function.
+
+        First it normalizes the number, i.e. it changes the representation intro
+        a representation without exponent. Then it rounds to the right of the
+        decimal point. The optional simplification is done as the last step.
 
         Examples:
         * converts '11.01e-2' to '0.11' with ndigits==2.
@@ -2502,7 +2510,8 @@ class Binary(object):
             raise OverflowError(
                 f"Argument 'value' ({value}): cannot convert infinities to integer."
             )
-        value = Binary.to_no_exponent(value, simplify=simplify)
+        if _EXP in value:
+            value = Binary.to_no_exponent(value, simplify=simplify)
         value = value.replace(_PREFIX, "")
         li = value.split(".")
         intpart = li[0]
@@ -2512,6 +2521,8 @@ class Binary(object):
             fracpart = li[1]
 
         if len(fracpart) <= ndigits:
+            if simplify:
+                value = Binary.simplify(value)
             return value
         nplusonedigit = fracpart[ndigits]
         nplusonedigits = fracpart[ndigits:]

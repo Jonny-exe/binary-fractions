@@ -86,6 +86,10 @@ If you are curious about Two's complement:
 - constructors for various types: int, float, Fraction, str, TwosComplement, Binary
 - supports many operators: +, -, *, /, //, %, **, <<, >>, ~, &, ...
 - supports many methods: not, abs, round, floor, ceil, ...
+- internally the value is kept as a Fraction and most operations are done
+	in Fractions. This results in better performance and infinite precision.
+	Only a few limited operations such as 'and', 'or', 'xor', and 'invert'
+	are done on strings.
 - very high precision
 - many operations are lossless, i.e. with no rounding errors or loss of precision
 - supports very long binary fractions
