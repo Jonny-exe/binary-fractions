@@ -49,6 +49,10 @@
     * [isint](#binary.Binary.isint)
     * [fraction](#binary.Binary.fraction)
     * [string](#binary.Binary.string)
+    * [sign](#binary.Binary.sign)
+    * [isspecial](#binary.Binary.isspecial)
+    * [warnonfloat](#binary.Binary.warnonfloat)
+    * [islossless](#binary.Binary.islossless)
     * [fraction\_to\_string](#binary.Binary.fraction_to_string)
     * [isclose](#binary.Binary.isclose)
     * [compare](#binary.Binary.compare)
@@ -191,6 +195,7 @@ __Floating-point Binary Fractions: Do math in base 2!__
 
 [![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 An implementation of a floating-point binary fractions class and module
 in Python. Work with binary fractions and binary floats with ease!
@@ -238,6 +243,7 @@ If you are curious about floating point binary fractions, have a look at:
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
+
 If you are curious about Two's complement:
 - https://janmr.com/blog/2010/07/bitwise-operators-and-negative-numbers/
 - https://en.wikipedia.org/wiki/Two%27s_complement
@@ -323,7 +329,9 @@ if __name__ == "__main__":
     print(f"float({bf1}) = {float(bf1)}")
     print(f"str({bf1}) = {str(bf1)}")
     print(f"str({bf3}) = {str(bf3)}")
-    print(f"Fraction({bf1}) = {bf1.fraction()}")
+    print(f"Fraction({bf1}) = {bf1.fraction}")
+    print(f"Binary({bf1}).fraction = {bf1.fraction}")
+    print(f"Binary({fl2}).string = {Binary(fl2).string}")
     print(f"{bf1} & {bf2} = {bf1&bf2}")
     print(f"{bf1} | {bf2} = {bf1|bf2}")
     print(f"{bf1} ^ {bf2} = {bf1^bf2}")
@@ -413,6 +421,8 @@ TwosComplement(-1975.5) = 100001001000.1
     [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
     before issuing a PR.
 - File Format: linted/beautified with [black](https://github.com/psf/black)
+- This project uses static typing. [mypy](https://github.com/python/mypy)
+    is used for type checking.
 - Test case format: [unittest](https://docs.python.org/3/library/unittest.html)
 - Documentation format: [pydoc](https://docs.python.org/3/library/pydoc.html)
 
@@ -615,7 +625,7 @@ Determine if string content has a valid two's-complement syntax.
 #### components
 
 ```python
- | components(self_value: Union[str, TwosComplement], simplify: bool = True) -> tuple
+ | components(self_value: Union[str, TwosComplement], simplify: bool = True) -> tuple[int, str, str, int]
 ```
 
 Returns sign, integer part (indicates sign in first bit), fractional
@@ -952,7 +962,7 @@ If you are curious about floating point binary fractions, have a look at:
 #### \_\_new\_\_
 
 ```python
- | __new__(cls, value: Union[int, float, str, Fraction, TwosComplement] = "0", simplify: bool = True, warn_on_float: bool = False) -> Binary
+ | __new__(cls, value: Union[int, float, str, Fraction, TwosComplement, Binary] = "0", simplify: bool = True, warn_on_float: bool = False) -> Binary
 ```
 
 Constructor.
@@ -997,6 +1007,7 @@ With 'simplify' set to True, simplifications will be performed, e.g.
 #### to\_float
 
 ```python
+ | @staticmethod
  | to_float(value: str) -> Union[float, int]
 ```
 
@@ -1021,6 +1032,7 @@ If you need maximum precision consider working with `Fractions.`
 #### from\_float
 
 ```python
+ | @staticmethod
  | from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE) -> str
 ```
 
@@ -1270,6 +1282,7 @@ method `fraction()` instead.
 #### to\_fraction\_alternative\_implementation
 
 ```python
+ | @staticmethod
  | to_fraction_alternative_implementation(value: str) -> Fraction
 ```
 
@@ -1339,6 +1352,7 @@ See `TwosComplement` class for more details on twos-complement format.
 #### from\_twoscomplement
 
 ```python
+ | @staticmethod
  | from_twoscomplement(value: TwosComplement, simplify: bool = True) -> str
 ```
 
@@ -1414,8 +1428,8 @@ Returns string of the binary fraction.
 
 Method that implements the string conversion `str()`.
 Return format includes the prefix of '0b'.
-As alternative one can use method `string()` which returns
-the same but without prefix '0b'.
+As alternative one can use attribute method `obj.string` which returns
+the same property, but without prefix '0b'.
 
 **Examples**:
 
@@ -1529,6 +1543,7 @@ Same as `no_prefix()`.
 #### version
 
 ```python
+ | @staticmethod
  | version() -> str
 ```
 
@@ -1549,6 +1564,7 @@ This is a utility function giving version of this program.
 #### simplify
 
 ```python
+ | @staticmethod
  | simplify(value: str, add_prefix: bool = False) -> str
 ```
 
@@ -1629,6 +1645,7 @@ See utility function `round_to()` for details and examples.
 #### round\_to
 
 ```python
+ | @staticmethod
  | round_to(value: str, ndigits: int = 0, simplify: bool = True) -> str
 ```
 
@@ -1695,6 +1712,7 @@ See also function `rfill()` to perform a right-fill.
 #### lfill\_to
 
 ```python
+ | @staticmethod
  | lfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str
 ```
 
@@ -1769,6 +1787,7 @@ See also function `lfill()` to perform a left-fill.
 #### rfill\_to
 
 ```python
+ | @staticmethod
  | rfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str
 ```
 
@@ -1812,7 +1831,8 @@ digits after the decimal point.
 #### get\_components
 
 ```python
- | get_components(value: str, simplify: bool = True) -> tuple
+ | @staticmethod
+ | get_components(value: str, simplify: bool = True) -> tuple[int, str, str, int]
 ```
 
 Returns sign, integer part (without sign), fractional part, and
@@ -1846,7 +1866,7 @@ represents a positive (+) value.
 #### components
 
 ```python
- | components(simplify: bool = True) -> tuple
+ | components(simplify: bool = True) -> tuple[int, str, str, int]
 ```
 
 Returns sign, integer part (without sign), fractional part, and
@@ -1967,12 +1987,18 @@ This is a utility function.
 #### fraction
 
 ```python
+ | @property
  | fraction() -> Fraction
 ```
 
 Extracts Fractional representation from Binary instance.
 
 A method to get the Binary as a `Fraction`.
+
+Since this is a Python `property`, one must call it via `obj.fraction`
+instead of `obj.fraction()`, i.e. drop the parenthesis.
+Furthermore, since it is a property, it *cannot* be called as a method,
+i.e. `Binary.fraction(obj)` will *not* work.
 
 **Arguments**:
 
@@ -1987,6 +2013,7 @@ A method to get the Binary as a `Fraction`.
 #### string
 
 ```python
+ | @property
  | string() -> str
 ```
 
@@ -1994,6 +2021,11 @@ Extracts string representation from Binary instance.
 
 A method to get the Binary as a string.
 It does not have a '0b' prefix.
+
+Since this is a Python `property`, one must call it via `obj.string`
+instead of `obj.string()`, i.e. drop the parenthesis.
+Furthermore, since it is a property, it *cannot* be called as a method,
+i.e. `Binary.string(obj)` will *not* work.
 
 See also function `__str__()` which implements the `str()` conversion function
 which returns the string representation, but with a '0b' prefix.
@@ -2007,10 +2039,118 @@ which returns the string representation, but with a '0b' prefix.
 
 - `str` - binary number in string representation without prefix '0b'
 
+<a name="binary.Binary.sign"></a>
+#### sign
+
+```python
+ | @property
+ | sign() -> int
+```
+
+Gets sign from Binary instance.
+
+It returns int 1 for negative (-) or int 0 for positive (+) numbers.
+
+Since this is a Python `property`, one must call it via `obj.sign`
+instead of `obj.sign()`, i.e. drop the parenthesis.
+Furthermore, since it is a property, it *cannot* be called as a method,
+i.e. `Binary.sign(obj)` will *not* work.
+
+**Arguments**:
+
+  None
+
+
+**Returns**:
+
+- `int` - int 1 for negative (-) or int 0 for positive (+) numbers
+
+<a name="binary.Binary.isspecial"></a>
+#### isspecial
+
+```python
+ | @property
+ | isspecial() -> bool
+```
+
+Gets is_special property from Binary instance.
+
+It returns bool True for negative infinity, positive infinity and NaN.
+It returns bool False for anything else, i.e. for regular numbers.
+
+Since this is a Python `property`, one must call it via `obj.isspecial`
+instead of `obj.isspecial()`, i.e. drop the parenthesis.
+Furthermore, since it is a property, it *cannot* be called as a method,
+i.e. `Binary.isspecial(obj)` will *not* work.
+
+**Arguments**:
+
+  None
+
+
+**Returns**:
+
+- `bool` - True for special numbers like infinities and NaN, False for regular numbers
+
+<a name="binary.Binary.warnonfloat"></a>
+#### warnonfloat
+
+```python
+ | @property
+ | warnonfloat() -> bool
+```
+
+Gets warn_on_float property from Binary instance.
+
+It returns bool True if flag warn_on_float was set to True.
+It returns bool False if flag warn_on_float was set to False.
+
+Since this is a Python `property`, one must call it via `obj.warnonfloat`
+instead of `obj.warnonfloat()`, i.e. drop the parenthesis.
+Furthermore, since it is a property, it *cannot* be called as a method,
+i.e. `Binary.warnonfloat(obj)` will *not* work.
+
+**Arguments**:
+
+  None
+
+
+**Returns**:
+
+- `bool` - boolean value of warn_on_float flag
+
+<a name="binary.Binary.islossless"></a>
+#### islossless
+
+```python
+ | @property
+ | islossless() -> bool
+```
+
+Gets is_lossless property from Binary instance.
+
+It returns bool True if Binary instance has lost no precision.
+It returns bool False if Binary instance possibly has lost precision.
+
+Since this is a Python `property`, one must call it via `obj.islossless`
+instead of `obj.islossless()`, i.e. drop the parenthesis.
+Furthermore, since it is a property, it *cannot* be called as a method,
+i.e. `Binary.islossless(obj)` will *not* work.
+
+**Arguments**:
+
+  None
+
+
+**Returns**:
+
+- `bool` - boolean value indicating if there was possible loss of precision
+
 <a name="binary.Binary.fraction_to_string"></a>
 #### fraction\_to\_string
 
 ```python
+ | @staticmethod
  | fraction_to_string(number: Union[int, float, Fraction], ndigits: int = _BINARY_PRECISION, simplify: bool = True) -> str
 ```
 

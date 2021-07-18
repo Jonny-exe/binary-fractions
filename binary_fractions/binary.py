@@ -29,6 +29,7 @@
 
 [![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 An implementation of a floating-point binary fractions class and module
 in Python. Work with binary fractions and binary floats with ease!
@@ -76,6 +77,7 @@ If you are curious about floating point binary fractions, have a look at:
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
+
 If you are curious about Two's complement:
 - https://janmr.com/blog/2010/07/bitwise-operators-and-negative-numbers/
 - https://en.wikipedia.org/wiki/Two%27s_complement
@@ -161,7 +163,9 @@ if __name__ == "__main__":
     print(f"float({bf1}) = {float(bf1)}")
     print(f"str({bf1}) = {str(bf1)}")
     print(f"str({bf3}) = {str(bf3)}")
-    print(f"Fraction({bf1}) = {bf1.fraction()}")
+    print(f"Fraction({bf1}) = {bf1.fraction}")
+    print(f"Binary({bf1}).fraction = {bf1.fraction}")
+    print(f"Binary({fl2}).string = {Binary(fl2).string}")
     print(f"{bf1} & {bf2} = {bf1&bf2}")
     print(f"{bf1} | {bf2} = {bf1|bf2}")
     print(f"{bf1} ^ {bf2} = {bf1^bf2}")
@@ -251,6 +255,8 @@ TwosComplement(-1975.5) = 100001001000.1
     [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
     before issuing a PR.
 - File Format: linted/beautified with [black](https://github.com/psf/black)
+- This project uses static typing. [mypy](https://github.com/python/mypy)
+    is used for type checking.
 - Test case format: [unittest](https://docs.python.org/3/library/unittest.html)
 - Documentation format: [pydoc](https://docs.python.org/3/library/pydoc.html)
 
@@ -259,26 +265,27 @@ Enjoy :heart: !
 """
 
 from __future__ import annotations  # to allow type hinting in class methods
-from fractions import Fraction
+
 import math
 import re
 import sys
 import unittest
-from typing import Union
+from fractions import Fraction
+from typing import Any, Union
 
-
-_BINARY_WARNED_ABOUT_FLOAT = False
-_BINARY_RELATIVE_TOLERANCE = 1e-10
-_BINARY_PRECISION = 128  # number of binary digits to the right of decimal point
-_PREFIX = "0b"
-_EXP = "e"
-_NAN = "NaN"
-_INF = "Inf"
-_NINF = "-Inf"
+_BINARY_WARNED_ABOUT_FLOAT = False  # type: bool
+_BINARY_RELATIVE_TOLERANCE = 1e-10  # type: float
+# number of binary digits to the right of decimal point
+_BINARY_PRECISION = 128  # type: int
+_PREFIX = "0b"  # type: str
+_EXP = "e"  # type: str
+_NAN = "NaN"  # type: str
+_INF = "Inf"  # type: str
+_NINF = "-Inf"  # type: str
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210717-103913"  # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210718-153558"  # type: str # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
-_BINARY_TOTAL_TESTS = 1646  # number of asserts in .py file
+_BINARY_TOTAL_TESTS = 1646  # type: int # number of asserts in .py file
 
 # see implementation of class Decimal:
 # https://github.com/python/cpython/blob/3.9/Lib/_pydecimal.py
@@ -480,6 +487,7 @@ class TwosComplement(str):
             f"Cannot convert {value} of type {type(value)} to TwosComplement"
         )
 
+    @staticmethod
     def _int2twoscomp(value: int, length: int = -1) -> str:
         """Computes the two's complement of int value.
 
@@ -499,7 +507,7 @@ class TwosComplement(str):
         str: string containing twos-complement of value
         """
         if value == 0:
-            digits = 1
+            digits = 1  # type: int
         elif value > 0:
             # add 1 for leading '0' in positive numbers
             # less precise: digits = math.ceil(math.log(abs(value + 1), 2)) + 1
@@ -529,6 +537,7 @@ class TwosComplement(str):
             result = result[0] * (length - le) + result
         return result
 
+    @staticmethod
     def _frac2twoscomp(
         value: float, length: int = -1, rel_tol: float = _BINARY_RELATIVE_TOLERANCE
     ) -> str:
@@ -612,6 +621,7 @@ class TwosComplement(str):
             result = result[0:length]
         return result
 
+    @staticmethod
     def _float2twoscomp(
         value: float,
         length: int = -1,
@@ -657,6 +667,7 @@ class TwosComplement(str):
         # more precise to use Fraction than float
         return TwosComplement._fraction2twoscomp(Fraction(value), length)
 
+    @staticmethod
     def _float2twoscomp_implementation_with_less_precision(
         value: float, length: int = -1, rel_tol: float = _BINARY_RELATIVE_TOLERANCE
     ) -> str:
@@ -689,6 +700,7 @@ class TwosComplement(str):
             result = sign * (length - len(result)) + result
         return result
 
+    @staticmethod
     def _fraction2twoscomp(
         value: Fraction,
         length: int = -1,
@@ -777,6 +789,7 @@ class TwosComplement(str):
             result = result[0] * (length - le) + result
         return result
 
+    @staticmethod
     def _str2twoscomp(value: str, length: int = -1, simplify: bool = True) -> str:
         """Converts two's-complement string to possibly refined two's-complement
         string.
@@ -833,7 +846,7 @@ class TwosComplement(str):
 
     def components(
         self_value: Union[str, TwosComplement], simplify: bool = True
-    ) -> tuple:
+    ) -> tuple[int, str, str, int]:
         """Returns sign, integer part (indicates sign in first bit), fractional
         part, and exponent as a tuple of int, str, str, and int.
 
@@ -1140,7 +1153,7 @@ class TwosComplement(str):
         value = str(self_value)
         if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
             raise ArithmeticError(
-                f"ArithmeticError: argument {self} is NaN or infinity."
+                f"ArithmeticError: argument {self_value} is NaN or infinity."
             )
         if len(value) == 0 or _PREFIX in value or value[0] == "-":
             raise ValueError(
@@ -1341,9 +1354,18 @@ class Binary(object):
 
     """
 
+    __slots__ = [
+        "_fraction",
+        "_string",
+        "_sign",
+        "_is_special",
+        "_warn_on_float",
+        "_is_lossless",
+    ]
+
     def __new__(
         cls,
-        value: Union[int, float, str, Fraction, TwosComplement] = "0",
+        value: Union[int, float, str, Fraction, TwosComplement, Binary] = "0",
         simplify: bool = True,
         warn_on_float: bool = False,
     ) -> Binary:
@@ -1418,9 +1440,11 @@ class Binary(object):
 
         global _BINARY_WARNED_ABOUT_FLOAT
         self = super(Binary, cls).__new__(cls)
+        self._fraction = Fraction()
+        self._string = ""
+        self._sign = 0  # 0 indicates positive, 1 indicates negative sign
         self._is_special = False
         self._warn_on_float = warn_on_float
-        self._fraction = Fraction()
         # indicate if operations were lossless
         # if True it was lossless,
         # if False it might be lossy (but it could also be lossless)
@@ -1438,7 +1462,7 @@ class Binary(object):
                 )
                 resultbin = resultbin.to_exponent(exp)
                 if _EXP in value and exp == 0:
-                    resultstr: str = resultbin._value
+                    resultstr: str = resultbin.string
                     if _EXP not in resultstr:  # check just in case
                         resultstr += _EXP + "0"  # keep it as alike as possible
                     return Binary(resultstr, simplify=False)
@@ -1459,16 +1483,16 @@ class Binary(object):
                 raise ValueError(f"Invalid literal for Binary: {value}.")
 
             if m.group("sign") == "-":
-                sign = "-"
+                signstr = "-"
                 self._sign = 1
             else:
-                sign = ""
+                signstr = ""
                 self._sign = 0
             intpart = m.group("int")
             if intpart is not None:
                 # finite number
                 if not simplify:
-                    self._value = value  # leave as is
+                    self._string = value  # leave as is
                 else:
                     fracpart = m.group("frac") or ""
                     fracpart = fracpart.rstrip("0")
@@ -1477,33 +1501,33 @@ class Binary(object):
                         # # version A: this normalizes to remove decimal point
                         # intpart = str(int(intpart + fracpart))
                         # exppart = str(exp - len(fracpart))
-                        # self._value = sign + intpart + _EXP + exppart
+                        # self._string = signstr + intpart + _EXP + exppart
                         # version B: this leaves string as much as is
                         if fracpart == "":
-                            self._value = sign + intpart + _EXP + str(exp)
+                            self._string = signstr + intpart + _EXP + str(exp)
                         else:
-                            self._value = (
-                                sign + intpart + "." + fracpart + _EXP + str(exp)
+                            self._string = (
+                                signstr + intpart + "." + fracpart + _EXP + str(exp)
                             )
                     else:
                         if fracpart == "":
-                            self._value = sign + intpart
+                            self._string = signstr + intpart
                         else:
-                            self._value = sign + intpart + "." + fracpart
+                            self._string = signstr + intpart + "." + fracpart
             else:
                 self._is_special = True
                 diag = m.group("diag")
                 if diag is not None:
                     # NaN
                     if m.group("signal"):
-                        self._value = _NAN  # "NaN", N, ignore signal
+                        self._string = _NAN  # "NaN", N, ignore signal
                     else:
-                        self._value = _NAN  # "NaN", n, ignore signal
+                        self._string = _NAN  # "NaN", n, ignore signal
                 else:
                     # infinity
-                    self._value = sign + "Infinity"  # F
+                    self._string = signstr + "Infinity"  # F
             if not self._is_special:
-                self._fraction = Binary.to_fraction(self._value)
+                self._fraction = Binary.to_fraction(self._string)
             return self
 
         # From a tuple/list conversion (possibly from as_tuple())
@@ -1529,7 +1553,7 @@ class Binary(object):
                 sign = ""
             if value[2] == "F":
                 # infinity: value[1] is ignored
-                self._value = "Infinity"
+                self._string = "Infinity"
                 self._is_special = True
             else:
                 # process and validate the digits in value[1]
@@ -1547,12 +1571,12 @@ class Binary(object):
                         )
                 if value[2] in ("n", "N"):
                     # NaN: digits form the diagnostic
-                    self._value = _NAN  # "NaN"
+                    self._string = _NAN  # "NaN"
                     self._is_special = True
                 elif isinstance(value[2], int):
                     # finite number: digits give the coefficient
                     integer = "".join(map(str, digits or [0]))
-                    self._value = sign + integer + _EXP + str(value[2])
+                    self._string = sign + integer + _EXP + str(value[2])
                 else:
                     raise ValueError(
                         "The third value in the tuple must "
@@ -1560,30 +1584,30 @@ class Binary(object):
                         "strings 'F', 'n', 'N'."
                     )
             if not self._is_special:
-                self._fraction = Binary.to_fraction(self._value)
+                self._fraction = Binary.to_fraction(self._string)
             return self
 
         # From another Binary
         if isinstance(value, Binary):
-            self._sign = value._sign
-            self._value = value._value
-            self._fraction = value._fraction
-            self._is_lossless = value._is_lossless
-            self._is_special = value._is_special
-            self._warn_on_float = value._warn_on_float
+            self._sign = value.sign
+            self._string = value.string
+            self._fraction = value.fraction
+            self._is_lossless = value.islossless
+            self._is_special = value.isspecial
+            self._warn_on_float = value.warnonfloat
             return self
 
         if isinstance(value, Fraction):
             self._fraction = value
-            self._value = Binary.fraction_to_string(value)
+            self._string = Binary.fraction_to_string(value)
             self._sign = 1 if value < 0 else 0
             return self
 
         # From an integer
         if isinstance(value, int):
             self._fraction = Fraction(value)
-            # self._value = Binary.fraction_to_string(self._value)
-            self._value = bin(value).replace(_PREFIX, "")
+            # self._string = Binary.fraction_to_string(self._string)
+            self._string = bin(value).replace(_PREFIX, "")
             self._sign = 1 if value < 0 else 0
             return self
 
@@ -1607,13 +1631,14 @@ class Binary(object):
             if value != int(value):
                 self._is_lossless = False
             self._fraction = Fraction(value)
-            self._value = Binary.fraction_to_string(value)
+            self._string = Binary.fraction_to_string(value)
             self._sign = 1 if value < 0 else 0
             return self
 
         # any other types
         raise TypeError(f"Cannot convert {value} to Binary")
 
+    @staticmethod
     def to_float(value: str) -> Union[float, int]:
         """Convert from Binary string to float or integer.
 
@@ -1639,7 +1664,7 @@ class Binary(object):
             return float("-inf")
         elif value.lower() == "nan" or value.lower() == "-nan":
             return float("nan")
-        value = Binary.to_no_exponent(value)
+        value = Binary.to_no_exponent(value)  # type: ignore # pypi complains, but this is ok
         li = value.split(".")
         intpart = li[0]
         result = int(intpart, 2)
@@ -1658,6 +1683,7 @@ class Binary(object):
                 result += (2 ** -(i + 1)) * sign
         return result  # float
 
+    @staticmethod
     def from_float(value: float, rel_tol: float = _BINARY_RELATIVE_TOLERANCE) -> str:
         """Convert from float to Binary string of type string.
 
@@ -1755,7 +1781,7 @@ class Binary(object):
         if isinstance(self_value, Binary):
             return Binary(
                 Binary.to_no_exponent(
-                    self_value._value, length=length, simplify=simplify
+                    self_value.string, length=length, simplify=simplify
                 )
             )
         if self_value == "":
@@ -1837,11 +1863,11 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
+        if self.isspecial:
             raise OverflowError(
                 f"Argument 'self' ({self}): cannot convert NaN and infinities."
             )
-        value = self._value
+        value = self.string
         if _EXP not in value:
             exp = 0
             intfracpart = Binary.simplify(value)
@@ -1861,7 +1887,7 @@ class Binary(object):
         exp -= lenfracpart
         intpart += fracpart
 
-        if self._sign:
+        if self.sign:
             intpart = "-" + intpart[1:].lstrip("0") if len(intpart) > 1 else intpart
         else:
             intpart = intpart.lstrip("0") if len(intpart) > 1 else intpart
@@ -1892,11 +1918,11 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
+        if self.isspecial:
             raise OverflowError(
                 f"Argument 'self' ({self}): cannot convert NaN and infinities."
             )
-        sign, intpart, fracpart, _ = self.to_no_exponent().components()
+        sign, intpart, fracpart, _ = self.to_no_exponent().components()  # type: ignore
         result = "-" if sign else ""
 
         if exp >= 0:
@@ -1936,11 +1962,11 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
+        if self.isspecial:
             raise OverflowError(
                 f"Argument 'self' ({self}): cannot convert NaN and infinities."
             )
-        value = self._value
+        value = self.string
         if _EXP not in value:
             exp = 0
             intfracpart = Binary.simplify(value)
@@ -1955,7 +1981,7 @@ class Binary(object):
             fracpart = ""
         else:
             fracpart = li[1]
-        if self._sign:
+        if self.sign:
             intpart = intpart[1:]
             sign = "-"
         else:
@@ -2036,17 +2062,17 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
+        if self.isspecial:
             raise OverflowError(
                 f"Argument 'self' ({self}): cannot convert NaN and infinities."
             )
 
-        if self._value == Binary.simplify("0"):
+        if self.string == Binary.simplify("0"):
             return Binary("0")
-        if _EXP in self._value:
-            value = self.to_no_exponent()._value
+        if _EXP in self.string:
+            value = self.to_no_exponent().string  # type: ignore
         else:
-            value = self._value
+            value = self.string
 
         sign, intpart, fracpart, exp = Binary.get_components(value)
 
@@ -2088,7 +2114,7 @@ class Binary(object):
             raise TypeError(f"Argument {self_value} must be of type str or Binary.")
         if isinstance(self_value, Binary):
             # this is just an alternative way to get the fraction part of a Binary
-            return self_value._fraction
+            return self_value.fraction
         sign, intpart, fracpart, exp = Binary.get_components(self_value)
         exp -= len(fracpart)
         if exp > 0:
@@ -2097,6 +2123,7 @@ class Binary(object):
             result = Fraction((-1) ** sign * int(intpart + fracpart, 2), 2 ** -exp)
         return result
 
+    @staticmethod
     def to_fraction_alternative_implementation(value: str) -> Fraction:
         """Convert string representation of Binary to Fraction.
 
@@ -2114,7 +2141,7 @@ class Binary(object):
         if not isinstance(value, str):
             raise TypeError(f"Argument {value} must be of type str.")
         if _EXP in value:
-            value = Binary.to_no_exponent(value)
+            value = Binary.to_no_exponent(value)  # type: ignore
         sign, intpart, fracpart, exp = Binary.get_components(value)
         result = Fraction(int(intpart, 2))
         le = len(fracpart)
@@ -2165,12 +2192,13 @@ class Binary(object):
             raise TypeError(f"Argument {length} must be of type int.")
         if length <= 0 and length != -1:
             raise ValueError(f"Argument {length} must be bigger than 0 or -1")
-        if self._is_special:
+        if self.isspecial:
             raise ArithmeticError(
                 f"ArithmeticError: argument {self} is NaN or infinity."
             )
-        return TwosComplement(self._fraction, length=length)
+        return TwosComplement(self.fraction, length=length)
 
+    @staticmethod
     def from_twoscomplement(value: TwosComplement, simplify: bool = True) -> str:
         """The opposite of `to_twoscomplement()` function.
 
@@ -2201,18 +2229,18 @@ class Binary(object):
             raise TypeError(f"Argument {value} must be of type TwosComplement.")
         if _NAN.lower() in value.lower() or _INF.lower() in value.lower():
             raise ArithmeticError(
-                f"ArithmeticError: argument {self} is NaN or infinity."
+                f"ArithmeticError: argument {value} is NaN or infinity."
             )
         if not TwosComplement.istwoscomplement(value):
             raise ValueError(f"Argument {value} not a valid twos-complement literal.")
-        result = value
+        result = str(value)
         if value[0] == "0":
             # positive twoscomplement is like binary fraction but with (possibly) leading 0
             if simplify:
                 # result = value[1:] if value != "0" else value
                 result = Binary.simplify(result)
             return result
-        return Binary(value, simplify=simplify)._value
+        return Binary(value, simplify=simplify).string
 
     def __float__(self: Binary) -> Union[float, int]:
         """Convert from Binary to float.
@@ -2230,9 +2258,9 @@ class Binary(object):
         elif self.isnan():
             result = float("NaN")
         else:
-            result = float(self._fraction)
+            result = float(self.fraction)
         # alternative implementation of float
-        # result = Binary.to_float(self._value)
+        # result = Binary.to_float(self.string)
         return result  # float or integer
 
     def __int__(self: Binary) -> int:
@@ -2250,7 +2278,7 @@ class Binary(object):
                 f"Argument {self} is infinity. Infinity cannot be converted to integer."
             )
         else:
-            result = int(self._fraction)
+            result = int(self.fraction)
         return result  # int
 
     def __str__(self: Binary) -> str:
@@ -2258,8 +2286,8 @@ class Binary(object):
 
         Method that implements the string conversion `str()`.
         Return format includes the prefix of '0b'.
-        As alternative one can use method `string()` which returns
-        the same but without prefix '0b'.
+        As alternative one can use attribute method `obj.string` which returns
+        the same property, but without prefix '0b'.
 
         Examples:
         * 0b1
@@ -2281,10 +2309,10 @@ class Binary(object):
             return _INF
         if self.isnegativeinfinity():
             return _NINF
-        if self._sign:
-            return "-" + _PREFIX + self._value[1:]
+        if self.sign:
+            return "-" + _PREFIX + self.string[1:]
         else:
-            return _PREFIX + self._value
+            return _PREFIX + self.string
 
     def compare_representation(self: Binary, other: Union[str, Binary]) -> bool:
         """Compare representation of self to representation of other string.
@@ -2307,11 +2335,11 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         # compare representation to another Binary
         if isinstance(other, Binary):
-            return str(self._value) == str(other._value)
+            return str(self.string) == str(other.string)
         if isinstance(other, str):
-            return str(self._value) == other
+            return str(self.string) == other
         else:
-            return str(self._value) == str(other)
+            return str(self.string) == str(other)
 
     def __repr__(self: Binary) -> str:
         """Represents self. Shows details of the given object.
@@ -2326,7 +2354,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         return (
             f"{self.__class__.__name__}"
-            + f"({self._value}, {self._sign}, {self._is_special})"
+            + f"({self.string}, {self.sign}, {self.isspecial})"
         )
 
     def no_prefix(self_value: Union[str, Binary]) -> str:
@@ -2352,7 +2380,7 @@ class Binary(object):
         if isinstance(self_value, str):
             return self_value.replace(_PREFIX, "")
         else:
-            return str(self_value._value)
+            return str(self_value.string)
 
     def np(self_value: Union[str, Binary]) -> str:  # no prefix
         """Remove prefix '0b' from string representation.
@@ -2367,6 +2395,7 @@ class Binary(object):
         """
         return Binary.no_prefix(self_value)
 
+    @staticmethod
     def version() -> str:
         """Gives version number.
 
@@ -2380,6 +2409,7 @@ class Binary(object):
         """
         return _BINARY_VERSION
 
+    @staticmethod
     def simplify(value: str, add_prefix: bool = False) -> str:
         """Simplifies string representation.
 
@@ -2465,10 +2495,11 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(ndigits, int):
             raise TypeError(f"Argument {self} must be of type int.")
-        value = self._value
+        value = self.string
         result = Binary.round_to(value, ndigits, simplify)
         return Binary(result, simplify)
 
+    @staticmethod
     def round_to(value: str, ndigits: int = 0, simplify: bool = True) -> str:
         """Normalize and round number to `ndigits` digits after decimal point.
 
@@ -2511,7 +2542,7 @@ class Binary(object):
                 f"Argument 'value' ({value}): cannot convert infinities to integer."
             )
         if _EXP in value:
-            value = Binary.to_no_exponent(value, simplify=simplify)
+            value = Binary.to_no_exponent(value, simplify=simplify)  # type: ignore
         value = value.replace(_PREFIX, "")
         li = value.split(".")
         intpart = li[0]
@@ -2573,9 +2604,10 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type int.")
         if not isinstance(strict, bool):
             raise TypeError(f"Argument {self} must be of type bool.")
-        value = self._value
+        value = self.string
         return Binary(Binary.lfill_to(value, ndigits, strict), simplify=False)
 
+    @staticmethod
     def lfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str:
         """Normalize and left-fill number to n digits after decimal point.
 
@@ -2624,7 +2656,7 @@ class Binary(object):
                 f"Argument 'ndigits' ({ndigits}) must be a positive integer."
             )
         if _EXP in value:
-            value = Binary.to_no_exponent(value, simplify=False)
+            value = Binary.to_no_exponent(value, simplify=False)  # type: ignore
         sign, intpart, fracpart, exp = Binary.get_components(value, simplify=False)
         if ndigits > len(intpart):
             result = (ndigits - len(intpart)) * "0" + intpart
@@ -2666,9 +2698,10 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type int.")
         if not isinstance(strict, bool):
             raise TypeError(f"Argument {self} must be of type bool.")
-        value = self._value
+        value = self.string
         return Binary(Binary.rfill_to(value, ndigits, strict), simplify=False)
 
+    @staticmethod
     def rfill_to(value: str, ndigits: int = 0, strict: bool = False) -> str:
         """Normalize and right-fill number to n digits after decimal point.
 
@@ -2714,7 +2747,7 @@ class Binary(object):
                 f"Argument 'ndigits' ({ndigits}) must be a positive integer."
             )
         if _EXP in value:
-            value = Binary.to_no_exponent(value, simplify=False)
+            value = Binary.to_no_exponent(value, simplify=False)  # type: ignore
         li = value.split(".")
         if len(li) == 1:
             fracpart = ""
@@ -2733,7 +2766,8 @@ class Binary(object):
             # rounding can shorten it drastically, 0.1111 => 1
             return Binary.rfill_to(result, ndigits, strict)
 
-    def get_components(value: str, simplify: bool = True) -> tuple:
+    @staticmethod
+    def get_components(value: str, simplify: bool = True) -> tuple[int, str, str, int]:
         """Returns sign, integer part (without sign), fractional part, and
         exponent.
 
@@ -2788,7 +2822,7 @@ class Binary(object):
         sign = 0 if intpart == "0" and fracpart == "" else sign
         return (sign, intpart, fracpart, exp)
 
-    def components(self: Binary, simplify: bool = True) -> tuple:
+    def components(self: Binary, simplify: bool = True) -> tuple[int, str, str, int]:
         """Returns sign, integer part (without sign), fractional part, and
         exponent.
 
@@ -2813,7 +2847,7 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return Binary.get_components(self._value, simplify=simplify)
+        return Binary.get_components(self.string, simplify=simplify)
 
     def isinfinity(self: Binary) -> bool:
         """Determines if object is positive or negative Infinity.
@@ -2826,7 +2860,7 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return _INF in self._value
+        return _INF in self.string
 
     def isnegativeinfinity(self: Binary) -> bool:
         """Determines if object is Negative Infinity.
@@ -2839,7 +2873,7 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return _NINF in self._value
+        return _NINF in self.string
 
     def ispositiveinfinity(self: Binary) -> bool:
         """Determines if object is Positive Infinity.
@@ -2852,7 +2886,7 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return _INF in self._value and not _NINF in self._value
+        return _INF in self.string and not _NINF in self.string
 
     def isnan(self: Binary) -> bool:
         """Determines if object is not-a-number (NaN).
@@ -2865,7 +2899,7 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return _NAN in self._value  # "NaN"
+        return _NAN in self.string  # "NaN"
 
     def isint(self: Binary) -> bool:
         """Determines if binary fraction is an integer.
@@ -2877,9 +2911,9 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        if self._is_special:
+        if self.isspecial:
             return False
-        return self._fraction == int(self._fraction)
+        return self.fraction == int(self.fraction)
 
     def _adjusted(self: Binary) -> int:
         """Return the adjusted exponent of self.
@@ -2890,21 +2924,27 @@ class Binary(object):
         Returns:
         int: adjusted exponent
         """
-        if self._is_special:
+        if self.isspecial:
             return 0
         se = Binary.to_no_mantissa(self)
         sign, intpart, fracpart, exp = Binary.components(se)
         if fracpart != "":
             raise ValueError(
-                f"Invalid literal: {se._value}. Internal error. "
+                f"Invalid literal: {se.string}. Internal error. "
                 "Fraction part should be empty."
             )
         return exp + len(intpart) - 1
 
+    @property
     def fraction(self: Binary) -> Fraction:
         """Extracts Fractional representation from Binary instance.
 
         A method to get the Binary as a `Fraction`.
+
+        Since this is a Python `property`, one must call it via `obj.fraction`
+        instead of `obj.fraction()`, i.e. drop the parenthesis.
+        Furthermore, since it is a property, it *cannot* be called as a method,
+        i.e. `Binary.fraction(obj)` will *not* work.
 
         Parameters:
         None
@@ -2914,13 +2954,19 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return self._fraction
+        return self._fraction  # type: ignore
 
+    @property
     def string(self: Binary) -> str:
         """Extracts string representation from Binary instance.
 
         A method to get the Binary as a string.
         It does not have a '0b' prefix.
+
+        Since this is a Python `property`, one must call it via `obj.string`
+        instead of `obj.string()`, i.e. drop the parenthesis.
+        Furthermore, since it is a property, it *cannot* be called as a method,
+        i.e. `Binary.string(obj)` will *not* work.
 
         See also function `__str__()` which implements the `str()` conversion function
         which returns the string representation, but with a '0b' prefix.
@@ -2933,8 +2979,96 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return self._value
+        return self._string  # type: ignore
 
+    @property
+    def sign(self: Binary) -> int:
+        """Gets sign from Binary instance.
+
+        It returns int 1 for negative (-) or int 0 for positive (+) numbers.
+
+        Since this is a Python `property`, one must call it via `obj.sign`
+        instead of `obj.sign()`, i.e. drop the parenthesis.
+        Furthermore, since it is a property, it *cannot* be called as a method,
+        i.e. `Binary.sign(obj)` will *not* work.
+
+        Parameters:
+        None
+
+        Returns:
+        int: int 1 for negative (-) or int 0 for positive (+) numbers
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return self._sign  # type: ignore
+
+    @property
+    def isspecial(self: Binary) -> bool:
+        """Gets is_special property from Binary instance.
+
+        It returns bool True for negative infinity, positive infinity and NaN.
+        It returns bool False for anything else, i.e. for regular numbers.
+
+        Since this is a Python `property`, one must call it via `obj.isspecial`
+        instead of `obj.isspecial()`, i.e. drop the parenthesis.
+        Furthermore, since it is a property, it *cannot* be called as a method,
+        i.e. `Binary.isspecial(obj)` will *not* work.
+
+        Parameters:
+        None
+
+        Returns:
+        bool: True for special numbers like infinities and NaN, False for regular numbers
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return self._is_special  # type: ignore
+
+    @property
+    def warnonfloat(self: Binary) -> bool:
+        """Gets warn_on_float property from Binary instance.
+
+        It returns bool True if flag warn_on_float was set to True.
+        It returns bool False if flag warn_on_float was set to False.
+
+        Since this is a Python `property`, one must call it via `obj.warnonfloat`
+        instead of `obj.warnonfloat()`, i.e. drop the parenthesis.
+        Furthermore, since it is a property, it *cannot* be called as a method,
+        i.e. `Binary.warnonfloat(obj)` will *not* work.
+
+        Parameters:
+        None
+
+        Returns:
+        bool: boolean value of warn_on_float flag
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return self._warn_on_float  # type: ignore
+
+    @property
+    def islossless(self: Binary) -> bool:
+        """Gets is_lossless property from Binary instance.
+
+        It returns bool True if Binary instance has lost no precision.
+        It returns bool False if Binary instance possibly has lost precision.
+
+        Since this is a Python `property`, one must call it via `obj.islossless`
+        instead of `obj.islossless()`, i.e. drop the parenthesis.
+        Furthermore, since it is a property, it *cannot* be called as a method,
+        i.e. `Binary.islossless(obj)` will *not* work.
+
+        Parameters:
+        None
+
+        Returns:
+        bool: boolean value indicating if there was possible loss of precision
+        """
+        if not isinstance(self, Binary):
+            raise TypeError(f"Argument {self} must be of type Binary.")
+        return self._is_lossless  # type: ignore
+
+    @staticmethod
     def fraction_to_string(
         number: Union[int, float, Fraction],
         ndigits: int = _BINARY_PRECISION,
@@ -3002,9 +3136,9 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(other, Binary):
             other = Binary(other)
-        if self._is_special or other._is_special:
+        if self.isspecial or other._is_special:
             return False
-        return math.isclose(self._fraction, other._fraction, rel_tol=rel_tol)
+        return math.isclose(self.fraction, other._fraction, rel_tol=rel_tol)
 
     def _cmp(self: Binary, other: Any) -> int:
         """Compare two objects.
@@ -3045,7 +3179,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(other, Binary):
             other = Binary(other)
-        if self._is_special or other._is_special:
+        if self.isspecial or other._is_special:
             if self.isnan() or other.isnan():
                 # Compare(NaN, NaN) => exception
                 # Equal(NaN, NaN) => False
@@ -3069,9 +3203,9 @@ class Binary(object):
             else:  # other.ispostiveinfinity():
                 return 1
 
-        if self._fraction == other._fraction:
+        if self.fraction == other._fraction:
             result = 0
-        elif self._fraction < other._fraction:
+        elif self.fraction < other._fraction:
             result = -1
         else:
             result = 1
@@ -3230,7 +3364,7 @@ class Binary(object):
             return Binary(_INF)
         if self.isnegativeinfinity() or other.isnegativeinfinity():
             return Binary(_NINF)
-        return Binary(self._fraction + other._fraction)
+        return Binary(self.fraction + other._fraction)
 
     def __sub__(self: Binary, other: Any) -> Binary:
         """Subtraction operation.
@@ -3266,7 +3400,7 @@ class Binary(object):
             return Binary(_INF)
         if other.ispositiveinfinity():
             return Binary(_NINF)
-        return Binary(self._fraction - other._fraction)
+        return Binary(self.fraction - other._fraction)
 
     def __mul__(self: Binary, other: Any) -> Binary:
         """Multiply operation.
@@ -3302,7 +3436,7 @@ class Binary(object):
             return Binary(_NINF)
         if other.ispositiveinfinity():
             return Binary(_INF)
-        return Binary(self._fraction * other._fraction)
+        return Binary(self.fraction * other._fraction)
 
     def __truediv__(self: Binary, other: Any) -> Binary:
         """True division operation.
@@ -3338,9 +3472,9 @@ class Binary(object):
             return Binary(0)
         if other.ispositiveinfinity():
             return Binary(-0)
-        if other._fraction == 0:
+        if other.fraction == 0:
             raise ZeroDivisionError(f"ZeroDivisionError: Binary division by zero.")
-        return Binary(self._fraction / other._fraction)
+        return Binary(self.fraction / other._fraction)
 
     def __floordiv__(self: Binary, other: Any) -> Binary:
         """Floor division operation.
@@ -3373,12 +3507,12 @@ class Binary(object):
         if self.isnegativeinfinity():
             return Binary(_NAN)
         if other.isnegativeinfinity():
-            return Binary(0) if self._sign else Binary(-1)
+            return Binary(0) if self.sign else Binary(-1)
         if other.ispositiveinfinity():
-            return Binary(-1) if self._sign else Binary(0)
+            return Binary(-1) if self.sign else Binary(0)
         if other._fraction == 0:
             raise ZeroDivisionError(f"ZeroDivisionError: Binary division by zero.")
-        return Binary(self._fraction // other._fraction)
+        return Binary(self.fraction // other._fraction)
 
     def __mod__(self: Binary, other: Any) -> Binary:
         """Modulo operation.
@@ -3412,12 +3546,12 @@ class Binary(object):
         if self.isnegativeinfinity():
             return Binary(_NAN)
         if other.isnegativeinfinity():
-            return self if self._sign else Binary(_NINF)
+            return self if self.sign else Binary(_NINF)
         if other.ispositiveinfinity():
-            return Binary(_INF) if self._sign else self
+            return Binary(_INF) if self.sign else self
         if other._fraction == 0:
             raise ZeroDivisionError(f"ZeroDivisionError: Binary modulo.")
-        return Binary(self._fraction % other._fraction)
+        return Binary(self.fraction % other._fraction)
 
     def __pow__(self: Binary, other: Any) -> Binary:
         """Power of operation.
@@ -3455,7 +3589,7 @@ class Binary(object):
             return Binary(_INF)
         if other._fraction == 0:
             return Binary(1)
-        po = self._fraction ** other._fraction
+        po = self.fraction ** other._fraction
         # (-3.4)**(-3.4)  ==>  (-0.00481896804140973+0.014831258607220378j)
         # type((-3.4)**(-3.4))  ==>  <class 'complex'>
         if isinstance(po, complex):
@@ -3482,7 +3616,7 @@ class Binary(object):
             return Binary(_NAN)
         if self.isinfinity():
             return Binary(_INF)
-        return Binary(abs(self._fraction))
+        return Binary(abs(self.fraction))
 
     def __ceil__(self: Binary) -> int:
         """Performs math ceiling operation returning an int.
@@ -3514,7 +3648,7 @@ class Binary(object):
             raise OverflowError(
                 f"OverflowError: cannot convert Binary infinity to integer."
             )
-        return math.ceil(self._fraction)
+        return math.ceil(self.fraction)
 
     def ceil(self: Binary) -> Binary:
         """Perform math ceiling operation returning a Binary.
@@ -3539,7 +3673,7 @@ class Binary(object):
             raise OverflowError(
                 f"OverflowError: cannot convert Binary infinity to integer."
             )
-        return Binary(math.ceil(self._fraction))
+        return Binary(math.ceil(self.fraction))
 
     def __floor__(self: Binary) -> int:
         """Perform math floor operation returning an int.
@@ -3571,7 +3705,7 @@ class Binary(object):
             raise OverflowError(
                 f"OverflowError: cannot convert Binary infinity to integer."
             )
-        return math.floor(self._fraction)
+        return math.floor(self.fraction)
 
     def floor(self: Binary) -> Binary:
         """Perform math floor operation returning a Binary.
@@ -3596,7 +3730,7 @@ class Binary(object):
             raise OverflowError(
                 f"OverflowError: cannot convert Binary infinity to integer."
             )
-        return Binary(math.floor(self._fraction))
+        return Binary(math.floor(self.fraction))
 
     def __rshift__(self: Binary, ndigits: int) -> Binary:
         """Shifts number `ndigits` digits (bits) to the right.
@@ -3631,8 +3765,8 @@ class Binary(object):
             return Binary(_INF)
         if ndigits == 0:
             return self
-        if _EXP in self._value:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+        if _EXP in self.string:
+            sign, intpart, fracpart, exp = Binary.get_components(self.string)
             shifted = (
                 sign * "-"
                 + intpart
@@ -3642,7 +3776,7 @@ class Binary(object):
                 + str(exp - ndigits)
             )
         else:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            sign, intpart, fracpart, exp = Binary.get_components(self.string)
             if ndigits >= len(intpart):
                 intpart = (ndigits - len(intpart) + 1) * "0" + intpart
 
@@ -3684,8 +3818,8 @@ class Binary(object):
             return Binary(_INF)
         if ndigits == 0:
             return self
-        if _EXP in self._value:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+        if _EXP in self.string:
+            sign, intpart, fracpart, exp = Binary.get_components(self.string)
             shifted = (
                 sign * "-"
                 + intpart
@@ -3695,7 +3829,7 @@ class Binary(object):
                 + str(exp + ndigits)
             )
         else:
-            sign, intpart, fracpart, exp = Binary.get_components(self._value)
+            sign, intpart, fracpart, exp = Binary.get_components(self.string)
             if ndigits >= len(fracpart):
                 fracpart += (ndigits - len(fracpart) + 1) * "0"
             shifted_intpart = (
@@ -3724,7 +3858,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if self.isnan() or self.isinfinity():
             return True
-        return bool(self._fraction)
+        return bool(self.fraction)
 
     def __not__(self: Binary) -> bool:
         """Return the 'boolean not' of self.
@@ -3745,7 +3879,7 @@ class Binary(object):
         Returns:
         Binary: 'boolean not' of number
         """
-        return not self._fraction
+        return not self.fraction
 
     def __and__(self: Binary, other: Any) -> Binary:
         """Return the bitwise 'and' of self and other.
@@ -3777,7 +3911,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(other, Binary):
             other = Binary(other)
-        if self._is_special or other._is_special:
+        if self.isspecial or other._is_special:
             raise ArithmeticError(
                 f"ArithmeticError: one of the arguments {self}, {other} "
                 "is NaN or infinity."
@@ -3813,7 +3947,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(other, Binary):
             other = Binary(other)
-        if self._is_special or other._is_special:
+        if self.isspecial or other._is_special:
             raise ArithmeticError(
                 f"ArithmeticError: one of the arguments {self}, {other} "
                 "is NaN or infinity."
@@ -3849,7 +3983,7 @@ class Binary(object):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if not isinstance(other, Binary):
             other = Binary(other)
-        if self._is_special or other._is_special:
+        if self.isspecial or other._is_special:
             raise ArithmeticError(
                 f"ArithmeticError: one of the arguments {self}, {other} "
                 "is NaN or infinity."
@@ -3871,11 +4005,11 @@ class Binary(object):
         """
         if not isinstance(this, Binary) or not isinstance(other, Binary):
             raise TypeError(
-                f"Arguments {this} {other} must be of type Binary and Binary."
+                f"Arguments {this}, {other} must be of type Binary and Binary."
             )
         if not isinstance(which, str):
             raise TypeError(f"Arguments {which} must be of type str.")
-        if this._is_special or other._is_special:
+        if this.isspecial or other.isspecial:
             raise ArithmeticError(
                 f"ArithmeticError: one of the arguments {this}, {other} "
                 "is NaN or infinity."
@@ -3901,12 +4035,14 @@ class Binary(object):
         sign1, _, _, _ = this.components()
         sign2, _, _, _ = other.components()
 
+        thisstr = this.string
+        otherstr = other.string
         if sign1:
-            this = TwosComplement(this._fraction)
+            thisstr = str(TwosComplement(this.fraction))
         if sign2:
-            other = TwosComplement(other._fraction)
-        _, intpart1, fracpart1, _ = this.components()
-        _, intpart2, fracpart2, _ = other.components()
+            otherstr = str(TwosComplement(other.fraction))
+        _, intpart1, fracpart1, _ = Binary.get_components(thisstr)
+        _, intpart2, fracpart2, _ = Binary.get_components(otherstr)
 
         v1, v2 = intpart1, intpart2
         l1, l2 = len(v1), len(v2)
@@ -3948,7 +4084,7 @@ class Binary(object):
         )
 
         def negative(number):
-            return Binary(TwosComplement(number))._value
+            return Binary(TwosComplement(number))._string
             result = "-"
             if number[0] == "1":
                 result += "1" + number.lstrip("1")
@@ -4006,14 +4142,14 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Arguments {self} must be of type Binary.")
-        if self._is_special:
+        if self.isspecial:
             raise ArithmeticError(
                 f"ArithmeticError: argument {self} is NaN or infinity."
             )
         # for integers it is defined as -(x+1). So ~9 is -10.
         if Binary.isint(self):
             # for integers ~ is defined as: ~n = - (n+1) formula
-            return Binary(-(self._fraction + 1))
+            return Binary(-(self.fraction + 1))
         else:
             # For floating point numbers ~ is not defined. What would ~0.5 be?
             # It could be implemented but only if the number of fractional bits is
@@ -4026,7 +4162,7 @@ class Binary(object):
             # an inverted (~) float.
 
             raise ValueError(
-                f"Invalid literal for Binary: {self._value}. "
+                f"Invalid literal for Binary: {self.string}. "
                 "~ operand only allowed on integers and integer fractions. "
                 "To perform ~ on Binary, convert it to two's complement string"
                 "and then perform invert() on that string. In short, do this: "
@@ -5066,10 +5202,10 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary("111111.1111").lfill(5, True), "11111.1111")
         self.assertEqual(Binary("111111.1111").lfill(6, True), "111111.1111")
         self.assertEqual(Binary("111111.0011").lfill(1, True), "1.0011")
-        self.assertEqual(Binary("0.01e1").lfill(4).rfill(4).string(), "0000.1000")
-        self.assertEqual(Binary("0.01e1").rfill(4).lfill(4).string(), "0000.1000")
-        self.assertEqual(Binary("0.01").lfill(4).rfill(4).string(), "0000.0100")
-        self.assertEqual(Binary("0.01").rfill(4).lfill(4).string(), "0000.0100")
+        self.assertEqual(Binary("0.01e1").lfill(4).rfill(4).string, "0000.1000")
+        self.assertEqual(Binary("0.01e1").rfill(4).lfill(4).string, "0000.1000")
+        self.assertEqual(Binary("0.01").lfill(4).rfill(4).string, "0000.0100")
+        self.assertEqual(Binary("0.01").rfill(4).lfill(4).string, "0000.0100")
         with self.assertRaises(TypeError):
             Binary.lfill(1, "1")  # should fail
         with self.assertRaises(ValueError):
@@ -5768,13 +5904,27 @@ class TestBinary(unittest.TestCase):
 
     def test_fraction(self):
         """Test function/method."""
-        self.assertEqual(isinstance(Binary(0).fraction(), Fraction), True)
-        self.assertEqual(isinstance(Binary("0").fraction(), Fraction), True)
+        self.assertEqual(isinstance(Binary(0).fraction, Fraction), True)
+        self.assertEqual(isinstance(Binary("0").fraction, Fraction), True)
+        self.assertEqual(Binary(0).fraction, Fraction(0))
+        self.assertEqual(Binary(1).fraction, Fraction(1))
+        self.assertEqual(Binary(1.5).fraction, Fraction(1.5))
+        with self.assertRaises(TypeError):  # property is not callable
+            Binary.fraction(Binary(1.5))
+        with self.assertRaises(AttributeError):  # property is not callable
+            Binary(1.5).fraction = 1
 
     def test_string(self):
         """Test function/method."""
-        self.assertEqual(isinstance(Binary(0).string(), str), True)
-        self.assertEqual(isinstance(Binary("0").string(), str), True)
+        self.assertEqual(isinstance(Binary(0).string, str), True)
+        self.assertEqual(isinstance(Binary("0").string, str), True)
+        self.assertEqual(Binary(0).string, "0")
+        self.assertEqual(Binary(1).string, "1")
+        self.assertEqual(Binary(1.5).string, "1.1")
+        with self.assertRaises(TypeError):  # property is not callable
+            Binary.string(Binary(1.5))
+        with self.assertRaises(AttributeError):  # property is not callable
+            Binary(1.5).string = "123"
 
     def test_fraction_to_string(self):
         """Test function/method."""

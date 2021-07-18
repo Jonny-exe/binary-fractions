@@ -27,6 +27,7 @@
 
 [![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 An implementation of a floating-point binary fractions class and module
 in Python. Work with binary fractions and binary floats with ease!
@@ -74,6 +75,7 @@ If you are curious about floating point binary fractions, have a look at:
 - https://www.electronics-tutorials.ws/binary/binary-fractions.html
 - https://ryanstutorials.net/binary-tutorial/binary-floating-point.php
 - https://planetcalc.com/862/
+
 If you are curious about Two's complement:
 - https://janmr.com/blog/2010/07/bitwise-operators-and-negative-numbers/
 - https://en.wikipedia.org/wiki/Two%27s_complement
@@ -159,7 +161,9 @@ if __name__ == "__main__":
     print(f"float({bf1}) = {float(bf1)}")
     print(f"str({bf1}) = {str(bf1)}")
     print(f"str({bf3}) = {str(bf3)}")
-    print(f"Fraction({bf1}) = {bf1.fraction()}")
+    print(f"Fraction({bf1}) = {bf1.fraction}")
+    print(f"Binary({bf1}).fraction = {bf1.fraction}")
+    print(f"Binary({fl2}).string = {Binary(fl2).string}")
     print(f"{bf1} & {bf2} = {bf1&bf2}")
     print(f"{bf1} | {bf2} = {bf1|bf2}")
     print(f"{bf1} ^ {bf2} = {bf1^bf2}")
@@ -249,6 +253,8 @@ TwosComplement(-1975.5) = 100001001000.1
     [binary_test.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary_test.py)
     before issuing a PR.
 - File Format: linted/beautified with [black](https://github.com/psf/black)
+- This project uses static typing. [mypy](https://github.com/python/mypy)
+    is used for type checking.
 - Test case format: [unittest](https://docs.python.org/3/library/unittest.html)
 - Documentation format: [pydoc](https://docs.python.org/3/library/pydoc.html)
 
