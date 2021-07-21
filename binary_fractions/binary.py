@@ -284,7 +284,7 @@ _NAN = "NaN"  # type: str
 _INF = "Inf"  # type: str
 _NINF = "-Inf"  # type: str
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210718-153558"  # type: str # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210721-145815"  # type: str # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1646  # type: int # number of asserts in .py file
 
