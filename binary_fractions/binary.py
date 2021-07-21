@@ -30,7 +30,7 @@
 [![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
-[![Docs](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat)](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)
+[![Docs](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat)](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md)
 
 An implementation of a floating-point binary fractions class and module
 in Python. Work with binary fractions and binary floats with ease!
@@ -703,9 +703,7 @@ class TwosComplement(str):
 
     @staticmethod
     def _fraction2twoscomp(
-        value: Fraction,
-        length: int = -1,
-        ndigits: int = _BINARY_PRECISION,
+        value: Fraction, length: int = -1, ndigits: int = _BINARY_PRECISION
     ) -> str:
         """Converts fraction to two's-complement.
 
@@ -1665,7 +1663,9 @@ class Binary(object):
             return float("-inf")
         elif value.lower() == "nan" or value.lower() == "-nan":
             return float("nan")
-        value = Binary.to_no_exponent(value)  # type: ignore # pypi complains, but this is ok
+        value = Binary.to_no_exponent(
+            value
+        )  # type: ignore # pypi complains, but this is ok
         li = value.split(".")
         intpart = li[0]
         result = int(intpart, 2)
@@ -4650,8 +4650,7 @@ class TestTwosComplement(unittest.TestCase):
             TwosComplement.invert(TwosComplement.invert("0101010e-34")), "0101010e-34"
         )
         self.assertEqual(
-            TwosComplement.invert(TwosComplement.invert("101010e34")),
-            "101010e34",
+            TwosComplement.invert(TwosComplement.invert("101010e34")), "101010e34"
         )
         self.assertEqual(
             TwosComplement("101010e34").invert().invert().to_no_exponent(),
@@ -5070,8 +5069,7 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary.to_fraction("-1.1"), Fraction(3, -2))
         self.assertEqual(Binary.to_fraction("-0.111"), Fraction(-0.875))
         self.assertEqual(
-            Binary.to_fraction("1.1" + "0" * 2 + "1"),
-            Fraction(3 * 2 ** 3 + 1, 2 ** 4),
+            Binary.to_fraction("1.1" + "0" * 2 + "1"), Fraction(3 * 2 ** 3 + 1, 2 ** 4)
         )
         self.assertEqual(
             Binary.to_fraction("1.1" + "0" * 100 + "1"),
@@ -5332,44 +5330,34 @@ class TestBinary(unittest.TestCase):
     def test_to_no_mantissa(self):
         """Test function/method."""
         self.assertEqual(
-            Binary("-11").to_no_mantissa().compare_representation("-11e0"),
-            True,
+            Binary("-11").to_no_mantissa().compare_representation("-11e0"), True
         )
         self.assertEqual(
-            Binary("-11e-0").to_no_mantissa().compare_representation("-11e0"),
-            True,
+            Binary("-11e-0").to_no_mantissa().compare_representation("-11e0"), True
         )
         self.assertEqual(
-            Binary("-11e+0").to_no_mantissa().compare_representation("-11e0"),
-            True,
+            Binary("-11e+0").to_no_mantissa().compare_representation("-11e0"), True
         )
         self.assertEqual(
-            Binary("+11").to_no_mantissa().compare_representation("11e0"),
-            True,
+            Binary("+11").to_no_mantissa().compare_representation("11e0"), True
         )
         self.assertEqual(
-            Binary("1.1").to_no_mantissa().compare_representation("11e-1"),
-            True,
+            Binary("1.1").to_no_mantissa().compare_representation("11e-1"), True
         )
         self.assertEqual(
-            Binary("-0.01e-2").to_no_mantissa().compare_representation("-1e-4"),
-            True,
+            Binary("-0.01e-2").to_no_mantissa().compare_representation("-1e-4"), True
         )
         self.assertEqual(
-            Binary("-1.1").to_no_mantissa().compare_representation("-11e-1"),
-            True,
+            Binary("-1.1").to_no_mantissa().compare_representation("-11e-1"), True
         )
         self.assertEqual(
-            Binary("-1.1e-1").to_no_mantissa().compare_representation("-11e-2"),
-            True,
+            Binary("-1.1e-1").to_no_mantissa().compare_representation("-11e-2"), True
         )
         self.assertEqual(
-            Binary("+1.1e-1").to_no_mantissa().compare_representation("11e-2"),
-            True,
+            Binary("+1.1e-1").to_no_mantissa().compare_representation("11e-2"), True
         )
         self.assertEqual(
-            Binary("+1.1000e-1").to_no_mantissa().compare_representation("11e-2"),
-            True,
+            Binary("+1.1000e-1").to_no_mantissa().compare_representation("11e-2"), True
         )
         self.assertEqual(
             Binary("+0001.1000e-1").to_no_mantissa().compare_representation("11e-2"),
@@ -5424,8 +5412,7 @@ class TestBinary(unittest.TestCase):
         """Test function/method."""
         self.assertIsInstance(Binary("1").to_sci_exponent(), Binary)
         self.assertEqual(
-            Binary("101e2").to_sci_exponent().compare_representation("1.01e4"),
-            True,
+            Binary("101e2").to_sci_exponent().compare_representation("1.01e4"), True
         )
         self.assertEqual(str(Binary("1.1").to_sci_exponent()), "0b1.1e0")
         self.assertEqual(
@@ -5433,20 +5420,17 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("-001.100").to_sci_exponent().compare_representation("-1.1e0"),
-            True,
+            Binary("-001.100").to_sci_exponent().compare_representation("-1.1e0"), True
         )
         self.assertEqual(
-            Binary("-0.01e-2").to_sci_exponent().compare_representation("-1e-4"),
-            True,
+            Binary("-0.01e-2").to_sci_exponent().compare_representation("-1e-4"), True
         )
         self.assertEqual(
             Binary("-0.00001e-2").to_sci_exponent().compare_representation("-1e-7"),
             True,
         )
         self.assertEqual(
-            Binary("+0.00001e+2").to_sci_exponent().compare_representation("1e-3"),
-            True,
+            Binary("+0.00001e+2").to_sci_exponent().compare_representation("1e-3"), True
         )
         self.assertEqual(
             Binary("-0.00001010e-2")
@@ -5474,29 +5458,24 @@ class TestBinary(unittest.TestCase):
             else:
                 self.assertEqual(Binary(ii).to_eng_exponent(), bin(ii)[2:])
         self.assertEqual(
-            Binary(1023).to_eng_exponent().compare_representation("1111111111"),
-            True,
+            Binary(1023).to_eng_exponent().compare_representation("1111111111"), True
         )
         self.assertEqual(
-            Binary(1024).to_eng_exponent().compare_representation("1e10"),
-            True,
+            Binary(1024).to_eng_exponent().compare_representation("1e10"), True
         )
         self.assertEqual(
             Binary(1025).to_eng_exponent().compare_representation("1.0000000001e10"),
             True,
         )
         self.assertEqual(
-            Binary(3072).to_eng_exponent().compare_representation("11e10"),
-            True,
+            Binary(3072).to_eng_exponent().compare_representation("11e10"), True
         )
         self.assertEqual(
-            Binary(1024 ** 2).to_eng_exponent().compare_representation("1e20"),
-            True,
+            Binary(1024 ** 2).to_eng_exponent().compare_representation("1e20"), True
         )
         self.assertEqual(str(Binary(".11111e1").to_eng_exponent()), "0b1.1111")
         self.assertEqual(
-            Binary(".01111e2").to_eng_exponent().compare_representation("1.111"),
-            True,
+            Binary(".01111e2").to_eng_exponent().compare_representation("1.111"), True
         )
         self.assertEqual(
             Binary(".0011111e3").to_eng_exponent().compare_representation("1.1111"),
@@ -5529,35 +5508,13 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary(".11111e1").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary(".11111e1").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary(".011111e2").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary(".011111e2").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
             Binary(".0011111e3").to_eng_exponent().compare_representation("1.1111"),
-            True,
-        )
-        self.assertEqual(
-            Binary("-0.01e-2").to_eng_exponent().compare_representation("-1000000e-10"),
-            True,
-        )
-        self.assertEqual(
-            Binary("-0.0001e-4")
-            .to_eng_exponent()
-            .compare_representation(
-                "-100e-10",
-            ),
-            True,
-        )
-        self.assertEqual(
-            Binary("-0.0001111e-4")
-            .to_eng_exponent()
-            .compare_representation(
-                "-111.1e-10",
-            ),
             True,
         )
         self.assertEqual(
@@ -5575,8 +5532,21 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("101e2").to_eng_exponent().compare_representation("10100"),
+            Binary("-0.01e-2").to_eng_exponent().compare_representation("-1000000e-10"),
             True,
+        )
+        self.assertEqual(
+            Binary("-0.0001e-4").to_eng_exponent().compare_representation("-100e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("-0.0001111e-4")
+            .to_eng_exponent()
+            .compare_representation("-111.1e-10"),
+            True,
+        )
+        self.assertEqual(
+            Binary("101e2").to_eng_exponent().compare_representation("10100"), True
         )
         self.assertEqual(
             Binary("1.1").to_eng_exponent().compare_representation("1.1"), True
@@ -5612,8 +5582,7 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("-001.100").to_eng_exponent().compare_representation("-1.1"),
-            True,
+            Binary("-001.100").to_eng_exponent().compare_representation("-1.1"), True
         )
         self.assertEqual(
             Binary("-0.01e-2").to_eng_exponent().compare_representation("-1000000e-10"),
@@ -5642,12 +5611,10 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("1.1").to_eng_exponent().compare_representation("1.1"),
-            True,
+            Binary("1.1").to_eng_exponent().compare_representation("1.1"), True
         )
         self.assertEqual(
-            Binary("1.1111").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary("1.1111").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
             Binary("100.1111").to_eng_exponent().compare_representation("100.1111"),
@@ -5658,32 +5625,25 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("1").to_eng_exponent().compare_representation("1"),
-            True,
+            Binary("1").to_eng_exponent().compare_representation("1"), True
         )
         self.assertEqual(
-            Binary("10").to_eng_exponent().compare_representation("10"),
-            True,
+            Binary("10").to_eng_exponent().compare_representation("10"), True
         )
         self.assertEqual(
-            Binary("100").to_eng_exponent().compare_representation("100"),
-            True,
+            Binary("100").to_eng_exponent().compare_representation("100"), True
         )
         self.assertEqual(
-            Binary("1000").to_eng_exponent().compare_representation("1000"),
-            True,
+            Binary("1000").to_eng_exponent().compare_representation("1000"), True
         )
         self.assertEqual(
-            Binary("10000").to_eng_exponent().compare_representation("10000"),
-            True,
+            Binary("10000").to_eng_exponent().compare_representation("10000"), True
         )
         self.assertEqual(
-            Binary("100000").to_eng_exponent().compare_representation("100000"),
-            True,
+            Binary("100000").to_eng_exponent().compare_representation("100000"), True
         )
         self.assertEqual(
-            Binary("1000000").to_eng_exponent().compare_representation("1000000"),
-            True,
+            Binary("1000000").to_eng_exponent().compare_representation("1000000"), True
         )
         self.assertEqual(
             Binary("1_000_000_000")
@@ -5756,32 +5716,25 @@ class TestBinary(unittest.TestCase):
             True,
         )
         self.assertEqual(
-            Binary("1.1111e0").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary("1.1111e0").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary("11.111e-1").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary("11.111e-1").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary("111.11e-2").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary("111.11e-2").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary("1111.1e-3").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary("1111.1e-3").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary("11111.e-4").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary("11111.e-4").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary(".11111e1").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary(".11111e1").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
-            Binary(".011111e2").to_eng_exponent().compare_representation("1.1111"),
-            True,
+            Binary(".011111e2").to_eng_exponent().compare_representation("1.1111"), True
         )
         self.assertEqual(
             Binary(".0011111e3").to_eng_exponent().compare_representation("1.1111"),
@@ -5954,8 +5907,7 @@ class TestBinary(unittest.TestCase):
         self.assertEqual(Binary.fraction_to_string(Fraction(-2.0)), "-10")
         self.assertEqual(Binary.fraction_to_string(Fraction(-13.0)), "-1101")
         self.assertEqual(
-            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)),
-            "1" + "0" * 99 + "1",
+            Binary.fraction_to_string(Fraction(2 ** 100 + 2 ** 0)), "1" + "0" * 99 + "1"
         )
         self.assertEqual(
             Binary.fraction_to_string(Fraction(-(2 ** 100) - 2 ** 0)),
