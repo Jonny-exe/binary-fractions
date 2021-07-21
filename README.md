@@ -99,9 +99,9 @@ If you are curious about Two's complement:
 - supports exponential representations
 - well documented
     - Please read the documentation inside the source code
-  ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
+        ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
     - Or look at the pydoc-generated documentation in
-  [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
+        [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 - well tested
     - over 1600 test cases
 

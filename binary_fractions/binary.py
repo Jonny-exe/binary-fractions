@@ -101,9 +101,9 @@ If you are curious about Two's complement:
 - supports exponential representations
 - well documented
     - Please read the documentation inside the source code
-  ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
+        ([binary.py](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/binary.py)).
     - Or look at the pydoc-generated documentation in
-  [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
+        [README.md](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md).
 - well tested
     - over 1600 test cases
 
@@ -269,7 +269,6 @@ from __future__ import annotations  # to allow type hinting in class methods
 
 import math
 import re
-import sys
 import unittest
 from fractions import Fraction
 from typing import Any, Union
@@ -284,7 +283,7 @@ _NAN = "NaN"  # type: str
 _INF = "Inf"  # type: str
 _NINF = "-Inf"  # type: str
 # _BINARY_VERSION will be set automatically with git hook upon commit
-_BINARY_VERSION = "20210721-150127"  # type: str # format: date +%Y%m%d-%H%M%S
+_BINARY_VERSION = "20210721-160328"  # type: str # format: date +%Y%m%d-%H%M%S
 # _BINARY_TOTAL_TESTS will be set automatically with git hook upon commit
 _BINARY_TOTAL_TESTS = 1646  # type: int # number of asserts in .py file
 
@@ -1009,7 +1008,6 @@ class TwosComplement(str):
         sign, intpart, fracpart, exp = TwosComplement.components(noman)
         intpartlen = len(intpart)
         if value[0] == "0":  # positive twos-complement
-            intpartnosign = intpart.lstrip("0")
             num = int(intpart, 2)
         else:
             num = -(2 ** intpartlen - int(intpart, 2))
@@ -1163,26 +1161,28 @@ class TwosComplement(str):
         if exp == 0:
             result = intpart + "." + fracpart
         elif exp > 0:
-            l = len(fracpart[:exp])
+            le = len(fracpart[:exp])
             result = intpart + (
-                fracpart[:exp] if l > exp else fracpart[:exp] + "0" * (exp - l)
+                fracpart[:exp] if le > exp else fracpart[:exp] + "0" * (exp - le)
             )
             result += "." + fracpart[exp:]
         elif exp < 0:
-            l = len(intpart)
+            le = len(intpart)
             aexp = abs(exp)
             signdigit = "1" if sign else "0"
-            if l > aexp:
-                result = intpart[: (l - aexp)] + "." + intpart[(l - aexp) :] + fracpart
-            else:  # l <= aexp
+            if le > aexp:
+                result = (
+                    intpart[: (le - aexp)] + "." + intpart[(le - aexp) :] + fracpart
+                )
+            else:  # le <= aexp
                 result = (
                     intpart[0]
                     + "."
-                    + signdigit * (aexp - l + 1)
+                    + signdigit * (aexp - le + 1)
                     + intpart[1:]
                     + fracpart
                 )
-        if not "." in value:
+        if "." not in value:
             result = result.rstrip(".")
         if _EXP in value:
             result = result.rstrip(".")
@@ -1193,11 +1193,11 @@ class TwosComplement(str):
             result = TwosComplement.simplify(result)
 
         if length != -1:
-            l = len(result)
-            if l > length:
+            le = len(result)
+            if le > length:
                 raise OverflowError
-            i = length - l
-            result = result[: l - i] if i < 0 else result[0] * i + result
+            ii = length - le
+            result = result[: le - ii] if ii < 0 else result[0] * ii + result
         if isinstance(self_value, TwosComplement):
             result = TwosComplement(result)
         return result
@@ -1276,9 +1276,11 @@ class TwosComplement(str):
                 # # Alternative implementation A: using TwosComplement.to_no_exponent()
                 # # simplify = False to not miss any bits on the right
                 # value = TwosComplement.to_no_exponent(value, simplify=False)
-                # Alternative implementation B: just adding sufficient 0s after decimal point
+                # Alternative implementation B:
+                # just adding sufficient 0s after decimal point
                 fl = len(fracpart)
-                fracpart += "0" * (exp - fl)  # if negative, no 0s will be added
+                # if negative, no 0s will be added
+                fracpart += "0" * (exp - fl)
                 value = intpart + "." + fracpart + _EXP + str(exp)
                 # assert len(fracpart) >= exp
         result = ""
@@ -2236,7 +2238,7 @@ class Binary(object):
             raise ValueError(f"Argument {value} not a valid twos-complement literal.")
         result = str(value)
         if value[0] == "0":
-            # positive twoscomplement is like binary fraction but with (possibly) leading 0
+            # positive twoscomplement is like binary fraction but with leading 0
             if simplify:
                 # result = value[1:] if value != "0" else value
                 result = Binary.simplify(result)
@@ -2887,7 +2889,7 @@ class Binary(object):
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
-        return _INF in self.string and not _NINF in self.string
+        return _INF in self.string and _NINF not in self.string
 
     def isnan(self: Binary) -> bool:
         """Determines if object is not-a-number (NaN).
@@ -3019,7 +3021,8 @@ class Binary(object):
         None
 
         Returns:
-        bool: True for special numbers like infinities and NaN, False for regular numbers
+        bool: True for special numbers like infinities and NaN,
+            False for regular numbers
         """
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
@@ -3186,7 +3189,7 @@ class Binary(object):
                 # Equal(NaN, NaN) => False
                 # Compare(NaN, 1) => False
                 # Compare(NaN, Inf) => False
-                raise ArithmeticError(f"Arithmetic Error: Cannot compare two NaNs.")
+                raise ArithmeticError("Arithmetic Error: Cannot compare two NaNs.")
             if self.isnegativeinfinity() and other.ispositiveinfinity():
                 return -1
             elif self.ispositiveinfinity() and other.isnegativeinfinity():
@@ -3474,7 +3477,9 @@ class Binary(object):
         if other.ispositiveinfinity():
             return Binary(-0)
         if other.fraction == 0:
-            raise ZeroDivisionError(f"ZeroDivisionError: Binary division by zero.")
+            raise ZeroDivisionError(
+                f"ZeroDivisionError: Binary division by zero ({other})."
+            )
         return Binary(self.fraction / other._fraction)
 
     def __floordiv__(self: Binary, other: Any) -> Binary:
@@ -3512,7 +3517,9 @@ class Binary(object):
         if other.ispositiveinfinity():
             return Binary(-1) if self.sign else Binary(0)
         if other._fraction == 0:
-            raise ZeroDivisionError(f"ZeroDivisionError: Binary division by zero.")
+            raise ZeroDivisionError(
+                f"ZeroDivisionError: Binary division by zero ({other})."
+            )
         return Binary(self.fraction // other._fraction)
 
     def __mod__(self: Binary, other: Any) -> Binary:
@@ -3551,7 +3558,7 @@ class Binary(object):
         if other.ispositiveinfinity():
             return Binary(_INF) if self.sign else self
         if other._fraction == 0:
-            raise ZeroDivisionError(f"ZeroDivisionError: Binary modulo.")
+            raise ZeroDivisionError(f"ZeroDivisionError: Binary modulo ({other}).")
         return Binary(self.fraction % other._fraction)
 
     def __pow__(self: Binary, other: Any) -> Binary:
@@ -3644,10 +3651,10 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if self.isnan():
-            raise ValueError(f"ValueError: cannot convert Binary NaN to integer.")
+            raise ValueError("ValueError: cannot convert Binary NaN to integer.")
         if self.isinfinity():
             raise OverflowError(
-                f"OverflowError: cannot convert Binary infinity to integer."
+                "OverflowError: cannot convert Binary infinity to integer."
             )
         return math.ceil(self.fraction)
 
@@ -3669,10 +3676,10 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if self.isnan():
-            raise ValueError(f"ValueError: cannot convert Binary NaN to integer.")
+            raise ValueError("ValueError: cannot convert Binary NaN to integer.")
         if self.isinfinity():
             raise OverflowError(
-                f"OverflowError: cannot convert Binary infinity to integer."
+                "OverflowError: cannot convert Binary infinity to integer."
             )
         return Binary(math.ceil(self.fraction))
 
@@ -3701,10 +3708,10 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if self.isnan():
-            raise ValueError(f"ValueError: cannot convert Binary NaN to integer.")
+            raise ValueError("ValueError: cannot convert Binary NaN to integer.")
         if self.isinfinity():
             raise OverflowError(
-                f"OverflowError: cannot convert Binary infinity to integer."
+                "OverflowError: cannot convert Binary infinity to integer."
             )
         return math.floor(self.fraction)
 
@@ -3726,10 +3733,10 @@ class Binary(object):
         if not isinstance(self, Binary):
             raise TypeError(f"Argument {self} must be of type Binary.")
         if self.isnan():
-            raise ValueError(f"ValueError: cannot convert Binary NaN to integer.")
+            raise ValueError("ValueError: cannot convert Binary NaN to integer.")
         if self.isinfinity():
             raise OverflowError(
-                f"OverflowError: cannot convert Binary infinity to integer."
+                "OverflowError: cannot convert Binary infinity to integer."
             )
         return Binary(math.floor(self.fraction))
 
@@ -3757,7 +3764,7 @@ class Binary(object):
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
         if ndigits < 0:
-            raise ValueError(f"ValueError: negative shift count")
+            raise ValueError(f"ValueError: negative shift count ({ndigits})")
         if self.isnan():
             return Binary(_NAN)
         if self.isnegativeinfinity():
@@ -3810,7 +3817,7 @@ class Binary(object):
                 f"Arguments {self} {ndigits} must be of type Binary and int."
             )
         if ndigits < 0:
-            raise ValueError(f"ValueError: negative shift count")
+            raise ValueError(f"ValueError: negative shift count ({ndigits})")
         if self.isnan():
             return Binary(_NAN)
         if self.isnegativeinfinity():
@@ -4203,7 +4210,7 @@ class TestTwosComplement(unittest.TestCase):
         ttl = suite.countTestCases()
         success = test_result.wasSuccessful()
         print("")
-        print(f"Test results for class TwosComplement are: ")
+        print("Test results for class TwosComplement are: ")
         print(f"    Total number of individual tests = {_BINARY_TOTAL_TESTS}")
         print(f"    Total number of unit tests       = {ttl}")
         print(f"    Unit tests executed              = {run}")
@@ -4706,7 +4713,7 @@ class TestBinary(unittest.TestCase):
         ttl = suite.countTestCases()
         success = test_result.wasSuccessful()
         print("")
-        print(f"Test results for class Binary are: ")
+        print("Test results for class Binary are: ")
         print(f"    Total number of individual tests = {_BINARY_TOTAL_TESTS}")
         print(f"    Total number of unit tests       = {ttl}")
         print(f"    Unit tests executed              = {run}")
