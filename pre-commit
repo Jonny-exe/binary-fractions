@@ -23,11 +23,13 @@ exec 1>&2
 
 # autogenerate README.md
 pydoc-markdown -I ./binary_fractions -m binary --render-toc  > ./binary_fractions/README.md
-perl -pi -e 's/ +$//' binary_fractions/README.md
+perl -pi -e 's/ +$//' binary_fractions/README.md # remove spaces at end of lines
+perl -pi -e 'undef $/; $_ = <>; s/\s+\z/\n/; print' binary_fractions/README.md  # remove newlines at end of file
 echo "===Generated new document README.md==="
 python3 update_readme.py
 echo "===Updated VERSION==="
-./update_version.sh
+bash update_version.sh
+pwd
 echo "===Updated README.md==="
 black binary_fractions/*.py
 git add README.md
