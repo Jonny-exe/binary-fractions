@@ -477,7 +477,7 @@ class TwosComplement(str):
                 TwosComplement._float2twoscomp(value, length, rel_tol, warn_on_float),
             )
         if isinstance(value, Fraction):
-            return str.__new__(cls, TwosComplement._fraction2twoscomp(value, length))
+            return str.__new__(cls, TwosComplement._fraction2twoscomp(value, length, ndigits))
         if isinstance(value, str):
             return str.__new__(
                 cls, TwosComplement._str2twoscomp(value, length, simplify=simplify)
