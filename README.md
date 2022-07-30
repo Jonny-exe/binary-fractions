@@ -26,7 +26,7 @@
 ```
 
 [![PyPi](https://img.shields.io/pypi/v/binary-fractions)](https://pypi.org/project/binary-fractions/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/binary-fractions?color=blue&label=Pypi%20downloads)](https://pypi.org/project/binary-fractions/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/binary-fractions?color=blue&label=pypi%20downloads)](https://pypi.org/project/binary-fractions/)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![Docs](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat)](https://github.com/Jonny-exe/binary-fractions/blob/master/binary_fractions/README.md)
